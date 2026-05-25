@@ -91,9 +91,9 @@ select option{background:var(--p900);color:var(--ivory)}
   background:linear-gradient(180deg,#16403Aee,#0E2723f2);border-left:1px solid var(--line);border-right:1px solid var(--line);box-shadow:0 0 80px rgba(0,0,0,.55)}
 
 /* header */
-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:center;
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:flex-start;
   padding:10px 18px;background:#0E2723e0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.logo-wrap{display:flex;align-items:center;justify-content:center;width:100%}
+.logo-wrap{display:flex;align-items:center}
 
 main{flex:1;overflow-y:auto;padding-bottom:calc(90px + env(safe-area-inset-bottom, 0px))}
 .page{padding:8px 18px 24px;animation:fade .35s ease both}
@@ -263,8 +263,8 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 <div class="shell">
   <header>
     <div class="logo-wrap">
-      <img src="/Logo_PadelMeeting.png" alt="PadelMeeting"
-           style="height:44px;width:auto;filter:drop-shadow(0 0 8px #5BF0CB22)">
+      <img src="/PadelMeeting_header.png" alt="PadelMeeting"
+           style="height:36px;width:auto">
     </div>
   </header>
   <main id="view"></main>
