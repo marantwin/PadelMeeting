@@ -91,17 +91,9 @@ select option{background:var(--p900);color:var(--ivory)}
   background:linear-gradient(180deg,#16403Aee,#0E2723f2);border-left:1px solid var(--line);border-right:1px solid var(--line);box-shadow:0 0 80px rgba(0,0,0,.55)}
 
 /* header */
-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
-  padding:14px 18px;background:#0E2723e0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.logo-wrap{display:flex;align-items:center;gap:12px}
-.logo-txt .name{font-family:var(--serif);font-size:23px;font-style:italic;font-weight:600;line-height:1;letter-spacing:.01em}
-.logo-txt .name b{color:var(--neon);text-shadow:0 0 12px #5BF0CB66;font-weight:600}
-.logo-txt .sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--ivoryFaint);margin-top:3px}
-.hdr-right{display:flex;align-items:center;gap:10px}
-.hdr-rating{text-align:right}
-.hdr-rating .lbl{font-size:9px;letter-spacing:.16em;color:var(--ivoryFaint);font-family:var(--mono)}
-.hdr-rating .val{font-family:var(--mono);font-size:17px;color:var(--neon);font-weight:700;text-shadow:0 0 10px #5BF0CB55}
-.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--p600),var(--p800));border:1px solid var(--neon);color:var(--neon);font-weight:700;font-size:16px;box-shadow:0 0 14px #5BF0CB44}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:center;
+  padding:10px 18px;background:#0E2723e0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.logo-wrap{display:flex;align-items:center}
 
 main{flex:1;overflow-y:auto;padding-bottom:calc(90px + env(safe-area-inset-bottom, 0px))}
 .page{padding:8px 18px 24px;animation:fade .35s ease both}
@@ -271,15 +263,8 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 <div class="shell">
   <header>
     <div class="logo-wrap">
-      <span id="emblem"></span>
-      <div class="logo-txt">
-        <div class="name">Padel<b>Meeting</b></div>
-        <div class="sub">Sport &amp; Eleganza</div>
-      </div>
-    </div>
-    <div class="hdr-right">
-      <div class="hdr-rating"><div class="lbl">RATING</div><div class="val" id="hdrRating">5.95</div></div>
-      <div class="avatar" id="hdrAvatar">T</div>
+      <img src="/Logo_PadelMeeting.png" alt="PadelMeeting"
+           style="height:44px;width:auto;filter:drop-shadow(0 0 8px #5BF0CB22)">
     </div>
   </header>
   <main id="view"></main>
