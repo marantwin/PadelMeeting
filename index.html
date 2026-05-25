@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E2723">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PadelMeeting">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<title>PadelMeeting — Sport & Eleganza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0E2723; --p900:#123430; --p800:#16403A; --p700:#1B4D45; --p600:#235C52;
+  --line:rgba(124,238,208,.26); --lineSoft:rgba(124,238,208,.14);
+  --neon:#5BF0CB; --neonDim:#34C9A8; --ivory:#F7F0DC;
+  --ivoryDim:rgba(247,240,220,.82); --ivoryFaint:rgba(247,240,220,.55);
+  --rust:#E07B4A; --gold:#EFD06A; --danger:#F06A80;
+  --sans:'Outfit',system-ui,sans-serif; --serif:'Cormorant Garamond',serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;height:100dvh}
+body{background:var(--void);font-family:var(--sans);color:var(--ivory);overflow:hidden;display:flex;justify-content:center}
+::-webkit-scrollbar{width:0;height:0}
+button{font-family:inherit;cursor:pointer;border:none;background:none;transition:transform .12s ease}
+button:active{transform:scale(.98)}
+select{font-family:inherit}
+select option{background:var(--p900);color:var(--ivory)}
+
+/* organize state */
+.org-date{width:100%;padding:11px 14px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--ivory);font-size:14px;font-family:var(--sans);outline:none;-webkit-appearance:none}
+.org-date:focus{border-color:var(--neon)}
+.org-time{width:100%;padding:11px 14px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--ivory);font-size:14px;font-family:var(--sans);outline:none}
+.org-time:focus{border-color:var(--neon)}
+.org-row{display:flex;gap:10px;margin-bottom:10px}
+.org-row > *{flex:1}
+
+/* home tiles */
+.home-tile-main{
+  display:flex;align-items:center;gap:16px;
+  width:calc(100% - 36px);margin:10px 18px 0;
+  padding:20px 22px;border-radius:16px;
+  border:1px solid var(--neon);text-align:left;
+  background:linear-gradient(135deg,var(--p600),var(--p800));
+  color:var(--neon);box-shadow:0 0 24px #5BF0CB22,inset 0 0 24px #5BF0CB0e;
+  position:relative;overflow:hidden;
+}
+.home-tile-main::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(120deg,transparent,#5BF0CB28,transparent);
+  transform:translateX(-120%);animation:sweep 3.4s ease-in-out infinite;
+}
+.htm-icon{font-size:34px;flex-shrink:0;position:relative;z-index:1}
+.htm-body{flex:1;position:relative;z-index:1}
+.htm-title{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:.04em}
+.htm-sub{font-size:11px;color:rgba(91,240,203,.7);margin-top:3px;letter-spacing:.04em}
+.htm-arrow{font-size:22px;opacity:.6;position:relative;z-index:1}
+
+.home-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin:10px 18px 0;
+}
+.home-tile{
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:20px 18px 18px;border-radius:14px;text-align:left;
+  border:1px solid var(--line);
+  background:linear-gradient(160deg,#1B4D4555,#12343080);
+  color:var(--ivory);
+  transition:border-color .18s,box-shadow .18s;
+}
+.home-tile:active{border-color:var(--neon);box-shadow:0 0 16px #5BF0CB22}
+.ht-icon{font-size:30px;margin-bottom:12px;line-height:1}
+.ht-title{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.04em}
+.ht-sub{font-size:10.5px;color:var(--ivoryFaint);margin-top:5px;line-height:1.5}
+
+/* backdrop */
+.backdrop{position:fixed;inset:0;z-index:0;pointer-events:none}
+.grid{position:absolute;inset:0;
+  background-image:linear-gradient(var(--lineSoft) 1px,transparent 1px),linear-gradient(90deg,var(--lineSoft) 1px,transparent 1px);
+  background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000,transparent 75%);mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000,transparent 75%)}
+.glowA{position:absolute;top:-10%;left:20%;width:380px;height:380px;background:radial-gradient(circle,#5BF0CB2e,transparent 70%);filter:blur(40px)}
+.glowB{position:absolute;bottom:8%;right:5%;width:320px;height:320px;background:radial-gradient(circle,#E07B4A26,transparent 70%);filter:blur(50px)}
+.scan{position:absolute;inset:0;opacity:.18;background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 3px)}
+
+/* shell */
+.shell{position:relative;z-index:1;width:100%;max-width:440px;height:100vh;height:100dvh;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#16403Aee,#0E2723f2);border-left:1px solid var(--line);border-right:1px solid var(--line);box-shadow:0 0 80px rgba(0,0,0,.55)}
+
+/* header */
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:#0E2723e0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.logo-wrap{display:flex;align-items:center;gap:12px}
+.logo-txt .name{font-family:var(--serif);font-size:23px;font-style:italic;font-weight:600;line-height:1;letter-spacing:.01em}
+.logo-txt .name b{color:var(--neon);text-shadow:0 0 12px #5BF0CB66;font-weight:600}
+.logo-txt .sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--ivoryFaint);margin-top:3px}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.hdr-rating{text-align:right}
+.hdr-rating .lbl{font-size:9px;letter-spacing:.16em;color:var(--ivoryFaint);font-family:var(--mono)}
+.hdr-rating .val{font-family:var(--mono);font-size:17px;color:var(--neon);font-weight:700;text-shadow:0 0 10px #5BF0CB55}
+.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--p600),var(--p800));border:1px solid var(--neon);color:var(--neon);font-weight:700;font-size:16px;box-shadow:0 0 14px #5BF0CB44}
+
+main{flex:1;overflow-y:auto;padding-bottom:calc(90px + env(safe-area-inset-bottom, 0px))}
+.page{padding:8px 18px 24px;animation:fade .35s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* section tag */
+.stag{display:flex;align-items:center;gap:10px;margin:20px 0 12px}
+.stag i{width:5px;height:5px;background:var(--neon);box-shadow:0 0 8px var(--neon);transform:rotate(45deg);display:block}
+.stag span{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--neon);font-family:var(--mono);font-weight:600}
+.stag em{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent);font-style:normal}
+
+/* cards */
+.card{background:linear-gradient(180deg,#1B4D4599,#123430bb);border:1px solid var(--line);border-radius:16px;padding:16px 18px;backdrop-filter:blur(6px)}
+.rise{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* pills */
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:999px;font-family:var(--mono);font-weight:600}
+.pill.neon{background:#5BF0CB1f;border:1px solid #5BF0CB66;color:var(--neon)}
+.pill.rust{background:#E07B4A24;border:1px solid #E07B4A73;color:var(--rust)}
+.pill.gold{background:#EFD06A24;border:1px solid #EFD06A73;color:var(--gold)}
+.pill.danger{background:#E0556B24;border:1px solid #E0556B73;color:var(--danger)}
+.pill.ghost{background:#F4EBD30f;border:1px solid #F4EBD32e;color:var(--ivoryDim)}
+
+/* hero */
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;padding:22px 22px 16px;gap:12px}
+.hero-rating{font-family:var(--serif);font-size:64px;font-weight:700;line-height:.95;margin-top:14px;letter-spacing:-.01em}
+.hero-rating sup{font-size:18px;color:var(--neon);margin-left:8px;font-family:var(--mono);text-shadow:0 0 10px var(--neon)}
+.tags-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.track{height:7px;background:rgba(0,0,0,.4);border-radius:999px;overflow:hidden;border:1px solid var(--lineSoft)}
+.fill{height:100%;background:linear-gradient(90deg,var(--neonDim),var(--neon));box-shadow:0 0 12px var(--neon);border-radius:999px;transition:width .6s}
+.prog-lbls{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:6px}
+
+/* stats */
+.stats3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.statCard{background:linear-gradient(180deg,#1B4D4577,#12343099);border:1px solid var(--lineSoft);border-radius:12px;padding:12px}
+.statCard .l{font-size:9px;letter-spacing:.16em;color:var(--ivoryFaint);font-family:var(--mono);text-transform:uppercase}
+.statCard .v{font-size:22px;font-weight:700;margin-top:4px;font-family:var(--mono)}
+.statCard .s{font-size:9.5px;color:var(--ivoryFaint);margin-top:2px}
+
+/* cta */
+.cta{position:relative;width:100%;margin-top:18px;padding:16px;border-radius:14px;border:1px solid var(--neon);
+  background:linear-gradient(135deg,var(--p600),var(--p800));color:var(--neon);font-family:var(--mono);font-weight:700;font-size:14px;
+  letter-spacing:.08em;overflow:hidden;box-shadow:0 0 20px #5BF0CB33,inset 0 0 20px #5BF0CB11}
+.cta span{position:relative;z-index:2}
+.cta::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(120deg,transparent,#5BF0CB40,transparent);transform:translateX(-120%);animation:sweep 3.2s ease-in-out infinite}
+@keyframes sweep{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+.cta:disabled{opacity:.4}
+.linkBtn{width:100%;margin-top:10px;padding:10px;color:var(--neon);font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-align:center}
+
+/* rank rows */
+.rrow{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--lineSoft);border-left:2px solid transparent}
+.rrow.compact{padding:10px 4px}
+.rrow.me{background:#5BF0CB0f;border-radius:8px;padding-left:10px;padding-right:10px;border-left:2px solid var(--neon)}
+.rrow .rk{width:26px;text-align:center;font-family:var(--mono);font-weight:700;font-size:14px}
+.avatarSm{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:linear-gradient(135deg,var(--p600),var(--p800));border:1px solid var(--line);color:var(--ivory);font-weight:700;font-size:12px}
+.rrow .nm{flex:1;min-width:0}
+.rrow .nm .n1{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .nm .n2{font-size:10px;color:var(--ivoryFaint)}
+.rrow .rt{text-align:right}
+.rrow .rt .r1{font-family:var(--mono);font-size:16px;font-weight:700}
+.rrow .rt .r2{font-size:9px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.06em}
+
+/* chips */
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:4px}
+.chip{padding:7px 13px;border-radius:999px;border:1px solid var(--line);color:var(--ivoryDim);font-size:12px;white-space:nowrap}
+.chip.active{background:#5BF0CB1a;border-color:var(--neon);color:var(--neon);font-weight:600}
+
+/* band scale */
+.bands{display:flex;gap:3px}
+.band{height:30px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-family:var(--mono)}
+
+/* segmented */
+.seg{display:flex;gap:8px}
+.segBtn{flex:1;padding:12px;border-radius:11px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--ivoryDim);font-size:12.5px;font-weight:500;transition:all .2s}
+.segBtn.active{background:#5BF0CB18;border-color:var(--neon);color:var(--neon);font-weight:700;box-shadow:0 0 14px #5BF0CB33}
+
+/* team builder */
+.teamBlock{padding-left:12px;margin-bottom:4px}
+.teamBlock .tt{font-size:10px;letter-spacing:.16em;font-family:var(--mono);text-transform:uppercase;margin-bottom:8px}
+.selWrap{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.selLabel{font-size:10.5px;color:var(--ivoryFaint);font-family:var(--mono);width:78px;flex-shrink:0;letter-spacing:.04em}
+.selBox{flex:1;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--ivory);font-size:13px;-webkit-appearance:none;appearance:none;outline:none}
+.selBox.fixed{color:var(--neon)}
+.vs{text-align:center;margin:10px 0;font-family:var(--serif);font-style:italic;font-size:18px;color:var(--rust);letter-spacing:.2em}
+
+/* preview rows */
+.prow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--lineSoft)}
+.prow .pn{font-size:13px}
+.prow .pd{font-size:14px;font-weight:700;font-family:var(--mono)}
+.warn{font-size:11px;margin-top:8px;font-style:italic}
+
+/* buttons */
+.btnSolid{padding:11px 18px;border-radius:10px;border:1px solid var(--neon);background:#5BF0CB1a;color:var(--neon);font-weight:700;font-size:13px}
+.btnGhost{padding:11px 18px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ivoryDim);font-size:13px}
+.btnSolidSm{padding:7px 14px;border-radius:8px;border:1px solid var(--neon);background:#5BF0CB1a;color:var(--neon);font-weight:700;font-size:12px}
+.btnGhostSm{padding:7px 14px;border-radius:8px;border:1px solid #E07B4A66;background:transparent;color:var(--danger);font-size:12px}
+
+/* matches */
+.mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mgrid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.mside .pl{font-size:12.5px;line-height:1.5}
+.mscore{font-family:var(--mono);font-size:12px;color:var(--ivoryDim);text-align:center;line-height:1.5}
+.mfoot{margin-top:14px;display:flex;align-items:center;justify-content:space-between}
+
+/* profile */
+.avatarBig{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--p600),var(--p800));border:2px solid var(--neon);color:var(--neon);font-weight:700;font-size:32px;box-shadow:0 0 24px #5BF0CB44}
+.irow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--lineSoft)}
+.irow:last-child{border-bottom:none}
+.irow .k{font-size:12.5px;color:var(--ivoryFaint)}
+.irow .v{font-size:12.5px;font-weight:500}
+
+/* rules accordion */
+.acc{margin-bottom:8px;padding:0;overflow:hidden}
+.acc .ah{display:flex;align-items:center;justify-content:space-between;padding:15px 18px}
+.acc .ah .at{font-size:14px;font-weight:600}
+.acc .ah .ax{color:var(--neon);font-size:18px;transition:transform .25s}
+.acc.open .ah .ax{transform:rotate(45deg)}
+.acc .ab{padding:0 18px 16px;font-size:12.5px;color:var(--ivoryDim);line-height:1.6;border-top:1px solid var(--lineSoft);padding-top:12px;display:none}
+.acc.open .ab{display:block}
+/* rich rule body */
+.ab p{margin:0 0 8px}
+.ab p:last-child{margin-bottom:0}
+.ab .note{font-style:italic;color:var(--ivoryFaint);font-size:11.5px;border-left:2px solid var(--lineSoft);padding-left:10px;margin:8px 0 0}
+.ab .li{display:flex;gap:8px;margin:5px 0;align-items:flex-start}
+.ab .li::before{content:'';width:5px;height:5px;background:var(--neon);box-shadow:0 0 6px var(--neon);transform:rotate(45deg);margin-top:6px;flex-shrink:0}
+.ab .li.rust::before{background:var(--rust);box-shadow:0 0 6px var(--rust)}
+.ab b{color:var(--ivory);font-weight:600}
+.ab .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--lineSoft)}
+.ab .kv:last-child{border-bottom:none}
+.ab .kv .kk{color:var(--ivoryDim)}
+.ab .kv .vv{font-family:var(--mono);font-weight:600;color:var(--neon);white-space:nowrap}
+.ab .vv.pos{color:var(--neon)} .ab .vv.neg{color:var(--danger)} .ab .vv.gold{color:var(--gold)}
+.ab .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin:8px 0}
+.ab .grid2 .cell{display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0;border-bottom:1px solid var(--lineSoft)}
+.ab .grid2 .cell .vv{font-family:var(--mono);color:var(--neon);font-weight:600}
+.ab .sub{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--neon);font-family:var(--mono);margin:12px 0 6px;font-weight:600}
+.ab .sub.rust{color:var(--rust)}
+
+/* mini match */
+.mmini{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--lineSoft)}
+.mmini .t{font-size:12.5px}
+.mmini .d{font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:2px}
+
+/* nav */
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;z-index:30;
+  display:flex;align-items:center;justify-content:space-around;padding:8px 8px calc(12px + env(safe-area-inset-bottom, 0px));background:#0E2723f0;backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.navBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;position:relative;color:var(--ivoryFaint)}
+.navBtn.active{color:var(--neon)}
+.navBtn .ic{font-size:17px}
+.navBtn.active .ic{text-shadow:0 0 10px var(--neon)}
+.navBtn .nl{font-size:8.5px;letter-spacing:.06em;margin-top:2px;font-family:var(--mono)}
+.navBtn .dot{position:absolute;bottom:0;width:4px;height:4px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon)}
+.navPlay{flex:0 0 auto;width:50px;height:50px;border-radius:50%;margin-top:-22px;background:linear-gradient(135deg,var(--neon),var(--neonDim));border:2px solid #0A1C19;box-shadow:0 0 20px #5BF0CB88;color:#0A1C19}
+.navPlay .ic{font-size:20px;color:#0A1C19}
+
+/* utility text colors */
+.c-neon{color:var(--neon)} .c-gold{color:var(--gold)} .c-rust{color:var(--rust)}
+.c-ivory{color:var(--ivory)} .c-dim{color:var(--ivoryDim)} .c-faint{color:var(--ivoryFaint)}
+.c-good{color:var(--neon)} .c-danger{color:var(--danger)}
+.glow{color:var(--neon);text-shadow:0 0 12px #5BF0CB66}
+.center{text-align:center}
+</style>
+</head>
+<body>
+<div class="backdrop"><div class="grid"></div><div class="glowA"></div><div class="glowB"></div><div class="scan"></div></div>
+<div class="shell">
+  <header>
+    <div class="logo-wrap">
+      <span id="emblem"></span>
+      <div class="logo-txt">
+        <div class="name">Padel<b>Meeting</b></div>
+        <div class="sub">Sport &amp; Eleganza</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-rating"><div class="lbl">RATING</div><div class="val" id="hdrRating">5.95</div></div>
+      <div class="avatar" id="hdrAvatar">T</div>
+    </div>
+  </header>
+  <main id="view"></main>
+  <nav id="nav"></nav>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const C = { neon:'#5BF0CB', neonDim:'#34C9A8', ivory:'#F7F0DC', ivoryDim:'rgba(247,240,220,.82)',
+  ivoryFaint:'rgba(247,240,220,.55)', rust:'#E07B4A', gold:'#EFD06A', danger:'#F06A80', void:'#0A1C19' };
+
+const BANDS = ['Zero','Uno','Due','Tre','Quattro','Cinque','Sei','Sette','Otto','Nove','Dieci'];
+const bandIdx = r => r>=10?10:Math.max(0,Math.min(9,Math.floor(r)));
+const bandName = r => BANDS[bandIdx(r)];
+const isHigh = r => r>=7;
+
+let players = [
+  {id:1,name:'Ivano Casilli',club:'Padel Vesuvio',city:'Napoli',rating:9.85,fondo:0.15,streak:7},
+  {id:2,name:'Luigi Rocco',club:'Padel Vesuvio',city:'Napoli',rating:8.40,fondo:0.30,streak:4},
+  {id:3,name:'Giuliano Del Giudice',club:'Salerno Smash',city:'Salerno',rating:7.95,fondo:0.60,streak:2},
+  {id:4,name:'Marta Esposito',club:'Salerno Smash',city:'Salerno',rating:7.10,fondo:0.00,streak:9},
+  {id:5,name:'Davide Greco',club:'Padel Vesuvio',city:'Napoli',rating:6.55,fondo:0.45,streak:0,malus:0.5},
+  {id:6,name:'Chiara Ferraro',club:'Costa Padel',city:'Sorrento',rating:6.20,fondo:0.10,streak:1},
+  {id:7,name:'Antonio Russo',club:'Costa Padel',city:'Sorrento',rating:5.30,fondo:0.00,streak:3},
+  {id:8,name:'Sara Bianchi',club:'Salerno Smash',city:'Salerno',rating:4.75,fondo:0.20,streak:0},
+  {id:9,name:'Marco Romano',club:'Padel Vesuvio',city:'Napoli',rating:3.60,fondo:0.00,streak:5},
+  {id:10,name:'Elena Conti',club:'Costa Padel',city:'Sorrento',rating:2.40,fondo:0.05,streak:0},
+  {id:11,name:'Antonello Martux',club:'EVOSPORT',city:'Eboli',rating:5.95,fondo:0.35,streak:2},
+  {id:13,name:'Luca Ferretti',club:'EVOSPORT',city:'Eboli',rating:6.40,fondo:0.10,streak:1},
+  {id:14,name:'Marco De Rosa',club:'EVOSPORT',city:'Eboli',rating:5.20,fondo:0.00,streak:0},
+  {id:15,name:'Simone Aiello',club:'EVOSPORT',city:'Eboli',rating:4.85,fondo:0.20,streak:3},
+  {id:16,name:'Carmine Vitolo',club:'EVOSPORT',city:'Eboli',rating:7.10,fondo:0.55,streak:5},
+  {id:17,name:'Gianluca Serra',club:'EVOSPORT',city:'Eboli',rating:3.30,fondo:0.00,streak:0},
+  {id:18,name:'Raffaele Muto',club:'EVOSPORT',city:'Eboli',rating:6.80,fondo:0.40,streak:2},
+  {id:19,name:'Davide Amendola',club:'EVOSPORT',city:'Eboli',rating:2.15,fondo:0.05,streak:1},
+  {id:12,name:'Paolo Gallo',club:'Salerno Smash',city:'Salerno',rating:1.20,fondo:0.00,streak:0},
+];
+let matches = [
+  {id:901,when:'Oggi · 19:30',format:'Classica',t1:[11,7],t2:[3,4],score:'6-4 / 3-6 / 7-5',status:'pending',winner:1,mover:11},
+  {id:902,when:'Ieri · 21:00',format:'Set singolo',t1:[2,5],t2:[1,6],score:'7-6',status:'approved',winner:2,mover:2},
+  {id:903,when:'2 giorni fa · 18:00',format:'Classica',t1:[9,12],t2:[8,10],score:'6-2 / 6-3',status:'approved',winner:1,mover:9},
+];
+const ME = 11;
+let tab = 'home';
+// play state
+let pl = { partner:1, opp1:3, opp2:4, format:'classic', winner:1, done:false };
+
+/* ============ HELPERS ============ */
+const $ = (s,el=document)=>el.querySelector(s);
+const me = ()=>players.find(p=>p.id===ME);
+const pName = id => (players.find(p=>p.id===id)||{}).name || '—';
+const ranked = ()=>[...players].sort((a,b)=>(b.rating+b.fondo)-(a.rating+a.fondo));
+const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function teamSum(ids){return ids.reduce((s,id)=>s+((players.find(p=>p.id===id)||{}).rating||0),0)}
+
+function computeMatch(t1,t2,format,winnerTeam){
+  const sum1=teamSum(t1), sum2=teamSum(t2), diff=Math.abs(sum1-sum2);
+  const strong = sum1>=sum2?1:2;
+  const f = format==='single'?0.5:1;
+  let favWin,favLose,sfvWin,sfvLose;
+  if(diff<=1.0){favWin=.2;favLose=-.2;sfvWin=.2;sfvLose=-.2;}
+  else if(diff<=2.0){favWin=.1;favLose=-.3;sfvWin=.3;sfvLose=-.1;}
+  else{favWin=0;favLose=-.4;sfvWin=.4;sfvLose=0;}
+  const res={};
+  [1,2].forEach(team=>{
+    const ids=team===1?t1:t2, isStrong=team===strong, won=team===winnerTeam;
+    let d = isStrong?(won?favWin:favLose):(won?sfvWin:sfvLose);
+    d*=f;
+    ids.forEach(id=>res[id]={delta:d,isStrong,won});
+  });
+  return {sum1,sum2,diff,strong,res};
+}
+
+/* ============ EMBLEM SVG ============ */
+function emblem(size){
+  const ticks = Array.from({length:16}).map((_,i)=>{
+    const a=i/16*Math.PI*2; return `<circle cx="${(50+Math.cos(a)*43).toFixed(1)}" cy="${(50+Math.sin(a)*43).toFixed(1)}" r="0.9" fill="${C.rust}" opacity="0.7"/>`;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none" style="filter:drop-shadow(0 0 8px ${C.neon}55)">
+    <circle cx="50" cy="50" r="46" stroke="${C.neon}" stroke-width="1.5" opacity=".9"/>
+    <circle cx="50" cy="50" r="40" stroke="${C.rust}" stroke-width=".8" opacity=".7"/>
+    <circle cx="50" cy="50" r="33" stroke="${C.neon}" stroke-width=".6" stroke-dasharray="2 3" opacity=".5"/>
+    <rect x="38" y="30" width="24" height="40" stroke="${C.ivory}" stroke-width=".7" opacity=".55"/>
+    <line x1="38" y1="50" x2="62" y2="50" stroke="${C.ivory}" stroke-width=".6" opacity=".45"/>
+    <g stroke="${C.neon}" stroke-width="1.6" stroke-linecap="round"><line x1="42" y1="66" x2="56" y2="40"/><line x1="58" y1="66" x2="44" y2="40"/></g>
+    <ellipse cx="56" cy="38" rx="6" ry="7.5" stroke="${C.neon}" stroke-width="1.4" transform="rotate(20 56 38)"/>
+    <ellipse cx="44" cy="38" rx="6" ry="7.5" stroke="${C.neon}" stroke-width="1.4" transform="rotate(-20 44 38)"/>
+    ${ticks}
+  </svg>`;
+}
+
+/* ============ COMPONENTS ============ */
+const stag = t => `<div class="stag"><i></i><span>${t}</span><em></em></div>`;
+const pill = (t,tone)=>`<span class="pill ${tone}">${t}</span>`;
+
+function rankRow(p,rank,compact){
+  const mine=p.id===ME;
+  const medal = rank===1?C.gold:rank===2?'#C9D1D0':rank===3?C.rust:null;
+  const star = p.streak>=3?` <span class="c-gold" style="font-size:11px;text-shadow:0 0 8px ${C.gold}">★${p.streak}</span>`:'';
+  return `<div class="rrow ${mine?'me':''} ${compact?'compact':''}">
+    <div class="rk" style="color:${medal||C.ivoryFaint};text-shadow:${medal?`0 0 10px ${medal}88`:'none'}">${rank}</div>
+    <div class="avatarSm" style="border-color:${mine?C.neon:'var(--line)'}">${esc(p.name[0])}</div>
+    <div class="nm"><div class="n1" style="font-weight:${mine?700:500}">${esc(p.name)}${star}</div><div class="n2">${esc(p.club)}</div></div>
+    <div class="rt"><div class="r1" style="color:${isHigh(p.rating)?C.neon:C.ivory};text-shadow:${isHigh(p.rating)?`0 0 8px ${C.neon}55`:'none'}">${p.rating.toFixed(2)}</div>
+    <div class="r2">${bandName(p.rating).toUpperCase()}</div></div>
+  </div>`;
+}
+
+function statCard(l,v,sub,col){
+  return `<div class="statCard"><div class="l">${l}</div><div class="v" style="color:${col};text-shadow:0 0 10px ${col}44">${v}</div><div class="s">${sub}</div></div>`;
+}
+
+function matchMini(m){
+  const nm = id=>esc(pName(id).replace(' (Demo)',''));
+  return `<div class="mmini"><div>
+    <div class="t">${m.t1.map(nm).join(' & ')} <span class="c-rust" style="font-style:italic">vs</span> ${m.t2.map(nm).join(' & ')}</div>
+    <div class="d">${m.when} · ${m.format}</div></div>
+    ${m.status==='pending'?pill('48h','gold'):pill('✓','neon')}</div>`;
+}
+
+/* ============ VIEWS ============ */
+function viewHome(){
+  const M=me(), bi=bandIdx(M.rating), pos=ranked().findIndex(p=>p.id===ME)+1;
+  const toNext=((bi+1)-M.rating).toFixed(2), nextBand=BANDS[bi+1]||'Top';
+  return `<div class="page">
+    <!-- Logo -->
+    <div class="rise" style="display:flex;justify-content:center;padding:28px 0 18px">
+      <img src="/Logo_PadelMeeting.png" alt="PadelMeeting"
+           style="width:220px;height:auto;filter:drop-shadow(0 0 18px #5BF0CB33)">
+    </div>
+
+    <!-- TILE PRINCIPALE: Organizza -->
+    <button class="home-tile-main rise" onclick="go('organize')" style="animation-delay:.05s">
+      <div class="htm-icon">📅</div>
+      <div class="htm-body">
+        <div class="htm-title">Organizza partita</div>
+        <div class="htm-sub">Pianifica · Invita · Bilancia le coppie</div>
+      </div>
+      <div class="htm-arrow">→</div>
+    </button>
+
+    <!-- TILE SECONDARIO: Registra -->
+    <button class="home-tile-main rise" onclick="go('play')" style="animation-delay:.10s">
+      <div class="htm-icon">⚡</div>
+      <div class="htm-body">
+        <div class="htm-title">Registra partita</div>
+        <div class="htm-sub">Inserisci il risultato · calcola i punti</div>
+      </div>
+      <div class="htm-arrow">→</div>
+    </button>
+
+    <!-- GRIGLIA 2×2 -->
+    <div class="home-grid">
+      <button class="home-tile rise" onclick="go('rank')" style="animation-delay:.15s">
+        <div class="ht-icon" style="color:${C.neon}">≡</div>
+        <div class="ht-title">Classifica</div>
+        <div class="ht-sub">Rating · Fasce · Circoli</div>
+      </button>
+      <button class="home-tile rise" onclick="go('matches')" style="animation-delay:.20s">
+        <div class="ht-icon" style="color:${C.gold}">⊞</div>
+        <div class="ht-title">Partite</div>
+        <div class="ht-sub">Storico · Approva · Contesta</div>
+      </button>
+      <button class="home-tile rise" onclick="go('profile')" style="animation-delay:.25s">
+        <div class="ht-icon" style="color:${C.neon}">◉</div>
+        <div class="ht-title">Profilo</div>
+        <div class="ht-sub">Fondocassa · Circolo · Stelle</div>
+      </button>
+      <button class="home-tile rise" onclick="go('rules')" style="animation-delay:.30s">
+        <div class="ht-icon" style="color:${C.rust}">§</div>
+        <div class="ht-title">Regole</div>
+        <div class="ht-sub">Regolamento completo</div>
+      </button>
+    </div>
+  </div>`;
+}
+
+function viewRank(){
+  const r=ranked();
+  const clubs=['all',...new Set(r.map(p=>p.club))];
+  const list = rankFilter==='all'?r:r.filter(p=>p.club===rankFilter);
+  const bandsHtml = BANDS.map((b,i)=>{
+    const hi=i>=7;
+    return `<div class="band" title="${b}" style="flex:${i===10?0.4:1};
+      background:${hi?`linear-gradient(180deg,${C.neon},${C.neonDim})`:`rgba(91,240,203,${(0.06+i*0.02).toFixed(2)})`};
+      border:1px solid ${hi?C.neon:'var(--lineSoft)'};color:${hi?C.void:C.ivoryFaint};font-weight:${hi?700:400}">${i}</div>`;
+  }).join('');
+  return `<div class="page">
+    ${stag('Classifica')}
+    <div class="chips">${clubs.map(c=>`<button class="chip ${rankFilter===c?'active':''}" onclick="setFilter('${c.replace(/'/g,"")}')">${c==='all'?'Tutti i circoli':esc(c)}</button>`).join('')}</div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:9px;letter-spacing:.16em;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:10px">11 FASCE · 0.00 → 10.00</div>
+      <div class="bands">${bandsHtml}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px">
+        <span style="font-size:9px;color:var(--ivoryFaint);font-family:var(--mono)">BASSE</span>
+        <span style="font-size:9px;color:var(--neon);font-family:var(--mono);text-shadow:0 0 8px ${C.neon}">FASCE ALTE 7+</span></div>
+    </div>
+    <div class="card">${list.map(p=>rankRow(p,r.findIndex(x=>x.id===p.id)+1,false)).join('')}</div>
+  </div>`;
+}
+let rankFilter='all';
+function setFilter(c){rankFilter=c;render()}
+
+function viewPlay(){
+  if(pl.done){
+    return `<div class="page"><div class="card rise center" style="padding:44px 24px">
+      <div style="font-size:40px;margin-bottom:8px">✓</div>
+      <div style="font-family:var(--serif);font-size:30px;font-style:italic;color:${C.neon};text-shadow:0 0 14px ${C.neon}66">Partita registrata</div>
+      <p class="c-dim" style="font-size:13.5px;line-height:1.6;max-width:320px;margin:12px auto 0">In attesa di approvazione dagli avversari (48h). La classifica è già stata aggiornata in questa simulazione.</p>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:22px">
+        <button class="btnGhost" onclick="resetPlay()">Nuova partita</button>
+        <button class="btnSolid" onclick="go('rank')">Vedi classifica</button></div>
+    </div></div>`;
+  }
+  const others=players.filter(p=>p.id!==ME);
+  const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
+  const valid=new Set([...t1,...t2]).size===4;
+  const calc=valid?computeMatch(t1,t2,pl.format,pl.winner):null;
+  const opt=(sel,exclude)=>others.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>${esc(p.name)} · ${p.rating.toFixed(2)}</option>`).join('');
+
+  let preview='';
+  if(calc){
+    const rows=[ME,pl.partner,pl.opp1,pl.opp2].map(id=>{
+      const r=calc.res[id], up=r.delta>0, flat=r.delta===0;
+      const col=flat?C.ivoryFaint:up?C.neon:C.danger;
+      return `<div class="prow"><span class="pn" style="color:${id===ME?C.neon:C.ivory};font-weight:${id===ME?700:500}">${esc(pName(id))} ${r.isStrong?'<span style="font-size:9px;color:var(--ivoryFaint)">· forte</span>':''}</span>
+        <span class="pd" style="color:${col}">${flat?'0.00':(up?'+':'')+r.delta.toFixed(2)}</span></div>`;
+    }).join('');
+    preview=`<div class="card rise" style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+        ${pill('Coppia A · '+calc.sum1.toFixed(2),'ghost')}${pill('Diff · '+calc.diff.toFixed(2),'ghost')}${pill('Coppia B · '+calc.sum2.toFixed(2),'ghost')}</div>
+      ${rows}
+      ${pl.format==='single'?`<div class="warn c-gold">⚠ Il set singolo non dà diritto alla promozione e vale metà punti.</div>`:''}
+      ${calc.diff>2.0?`<div class="warn c-rust">⚠ Differenza &gt; 2.0 — richiede approvazione esplicita della coppia forte.</div>`:''}
+    </div>`;
+  }
+
+  return `<div class="page">
+    ${stag('Registra partita')}
+    <div class="seg">
+      <button class="segBtn ${pl.format==='classic'?'active':''}" onclick="setPlay('format','classic')">Classica · 2 su 3</button>
+      <button class="segBtn ${pl.format==='single'?'active':''}" onclick="setPlay('format','single')">Set singolo</button>
+    </div>
+    <div class="card" style="margin-top:4px">
+      <div class="teamBlock" style="border-left:2px solid ${C.neon}">
+        <div class="tt" style="color:${C.neon}">La tua coppia</div>
+        <div class="selWrap"><span class="selLabel">Tu</span><div class="selBox fixed">${esc(pName(ME))}</div></div>
+        <div class="selWrap"><span class="selLabel">Compagno</span><select class="selBox" onchange="setPlay('partner',+this.value)">${opt(pl.partner,[pl.opp1,pl.opp2])}</select></div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="teamBlock" style="border-left:2px solid ${C.rust}">
+        <div class="tt" style="color:${C.rust}">Avversari</div>
+        <div class="selWrap"><span class="selLabel">Avversario 1</span><select class="selBox" onchange="setPlay('opp1',+this.value)">${opt(pl.opp1,[pl.partner,pl.opp2])}</select></div>
+        <div class="selWrap"><span class="selLabel">Avversario 2</span><select class="selBox" onchange="setPlay('opp2',+this.value)">${opt(pl.opp2,[pl.partner,pl.opp1])}</select></div>
+      </div>
+    </div>
+    ${stag('Esito')}
+    <div class="seg">
+      <button class="segBtn ${pl.winner===1?'active':''}" onclick="setPlay('winner',1)">Vince la tua coppia</button>
+      <button class="segBtn ${pl.winner===2?'active':''}" onclick="setPlay('winner',2)">Vincono gli avversari</button>
+    </div>
+    ${preview}
+    <button class="cta" ${valid?'':'disabled'} onclick="confirmMatch()"><span>Conferma e invia ↗</span></button>
+  </div>`;
+}
+function setPlay(k,v){pl[k]=v;render()}
+function resetPlay(){pl.done=false;render()}
+function confirmMatch(){
+  const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
+  if(new Set([...t1,...t2]).size!==4) return;
+  const calc=computeMatch(t1,t2,pl.format,pl.winner);
+  players=players.map(p=>{
+    const r=calc.res[p.id]; if(!r) return p;
+    let {rating,fondo,streak}=p; let d=r.delta;
+    if(d>=0){rating=Math.min(10,rating+d);}
+    else{const fromFondo=Math.min(fondo,-d);fondo=+(fondo-fromFondo).toFixed(2);rating=Math.max(0,rating+(d+fromFondo));}
+    if(pl.format==='classic') streak = r.won?streak+1:0;
+    return {...p,rating:+rating.toFixed(2),fondo:+fondo.toFixed(2),streak};
+  });
+  matches.unshift({id:900+matches.length+Math.floor(Math.random()*1000),when:'Adesso',
+    format:pl.format==='classic'?'Classica':'Set singolo',t1,t2,
+    score:pl.format==='classic'?'6-3 / 4-6 / 6-2':'7-5',status:'pending',winner:pl.winner,mover:ME});
+  pl.done=true; render();
+}
+
+function viewMatches(){
+  const cards=matches.map(m=>{
+    const involvesMe=[...m.t1,...m.t2].includes(ME);
+    const side=(ids,win,align)=>`<div class="mside" style="text-align:${align}">
+      ${ids.map(id=>`<div class="pl" style="color:${win?C.neon:C.ivory};font-weight:${win?700:500}">${esc(pName(id).replace(' (Demo)',''))}</div>`).join('')}
+      ${win?`<div style="font-size:9px;color:${C.gold};font-family:var(--mono);letter-spacing:.1em;margin-top:2px">★ VITTORIA</div>`:''}</div>`;
+    let foot='';
+    if(m.status==='pending'){
+      foot=pill('In attesa · 48h','gold');
+      if(involvesMe && m.mover!==ME) foot+=`<div style="display:flex;gap:8px">
+        <button class="btnGhostSm" onclick="actMatch(${m.id},'disputed')">Contesta</button>
+        <button class="btnSolidSm" onclick="actMatch(${m.id},'approved')">Approva</button></div>`;
+      else if(m.mover===ME) foot+=`<span style="font-size:11px;color:var(--ivoryFaint);font-style:italic">In attesa avversari</span>`;
+    } else if(m.status==='approved') foot=pill('✓ Approvata','neon');
+    else if(m.status==='disputed') foot=pill('Contestata','danger');
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="mhead">${pill(m.format,m.format==='Classica'?'neon':'ghost')}<span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${m.when}</span></div>
+      <div class="mgrid">${side(m.t1,m.winner===1,'left')}<div class="mscore">${m.score}</div>${side(m.t2,m.winner===2,'right')}</div>
+      <div class="mfoot">${foot}</div></div>`;
+  }).join('');
+  return `<div class="page">${stag('Le mie partite')}${cards}</div>`;
+}
+function actMatch(id,status){matches=matches.map(m=>m.id===id?{...m,status}:m);render()}
+
+function viewProfile(){
+  const M=me();
+  const tm=players.filter(p=>p.club===M.club && p.id!==ME);
+  return `<div class="page">
+    ${stag('Profilo')}
+    <div class="card rise center" style="padding:28px 20px">
+      <div class="avatarBig" style="margin:0 auto">${esc(M.name[0])}</div>
+      <div style="font-family:var(--serif);font-size:26px;font-style:italic;margin-top:12px">${esc(M.name)}</div>
+      <div style="font-size:11.5px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.1em;margin-top:2px">${esc(M.club).toUpperCase()} · ${esc(M.city)}</div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap">${pill('Fascia '+bandName(M.rating),'neon')}${pill('★ '+M.streak+' di fila','gold')}</div>
+    </div>
+    <div class="stats3">
+      ${statCard('Rating',M.rating.toFixed(2),bandName(M.rating),C.neon)}
+      ${statCard('Fondocassa',M.fondo.toFixed(2),'riserva',C.gold)}
+      ${statCard('Stelle',M.streak,'serie',C.rust)}
+    </div>
+    ${stag('Stato profilo')}
+    <div class="card">
+      <div class="irow"><span class="k">Circolo</span><span class="v">${esc(M.club)} (affiliato)</span></div>
+      <div class="irow"><span class="k">Valutazione iniziale</span><span class="v">Completata · 1 set</span></div>
+      <div class="irow"><span class="k">Stato classifica</span><span class="v c-good">Attivo</span></div>
+      <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
+      <div class="irow"><span class="k">Bounty disponibili</span><span class="v c-gold">Sì — batti chi è in serie</span></div>
+    </div>
+    ${stag('Compagni di circolo')}
+    <div class="card">${tm.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
+      <div class="avatarSm">${esc(p.name[0])}</div><span style="flex:1;font-size:13px">${esc(p.name)}</span>
+      <span style="font-family:var(--mono);font-size:13px;color:${isHigh(p.rating)?C.neon:C.ivoryDim}">${p.rating.toFixed(2)}</span></div>`).join('')}</div>
+  </div>`;
+}
+
+const RULES=[
+  ['Registrazione e valutazione iniziale',
+    `<p>Registrati su <b>www.padelmeeting.it</b>, tramite invito di un altro giocatore o del responsabile del circolo. Indica nome del circolo e città — non serve che sia già affiliato a PadelMeeting.</p>
+     <p>Dopo la registrazione il profilo è <b>in attesa di valutazione</b>. Il responsabile del circolo ti osserva durante <b>1 set</b> e ti assegna il rating iniziale (massimo <b>8,00</b>). Da quel momento sei in classifica e le tue partite muovono il punteggio.</p>
+     <p class="note">Se il circolo non è ancora affiliato, il profilo resta in attesa finché non si iscrive: nel frattempo non puoi partecipare a partite classificate.</p>
+     <p class="note">Le partite giocate prima della valutazione non possono essere inserite retroattivamente.</p>`],
+
+  ['Fasce e classifica',
+    `<p>La classifica va da <b>0,00 a 10,00</b>, divisa in <b>11 fasce</b>: Zero, Uno, Due, Tre, Quattro, Cinque, Sei, Sette, Otto, Nove, Dieci.</p>
+     <div class="li">La fascia del <b>Dieci</b> può contenere un solo giocatore alla volta.</div>
+     <div class="li">Le fasce dalla <b>7 alla 10</b> sono dette "alte" e hanno regole aggiuntive per avanzare.</div>`],
+
+  ['Partite classificate',
+    `<p>Una partita muove la classifica solo se dichiarata <b>classificata prima del primo 15</b> giocato, con accordo verbale di tutti e 4 i giocatori, e se tutti e 4 sono registrati con un rating assegnato.</p>
+     <div class="sub">Classica · 2 set su 3 (Punto Secco + tie-break)</div>
+     <div class="kv"><span class="kk">Diff. 0,0 – 1,0</span><span class="vv">+0,20 / −0,20 ciascuno</span></div>
+     <div class="kv"><span class="kk">Diff. 1,05 – 2,0 · favoriti</span><span class="vv">+0,10 / −0,30</span></div>
+     <div class="kv"><span class="kk">Diff. 1,05 – 2,0 · sfavoriti</span><span class="vv">+0,30 / −0,10</span></div>
+     <div class="kv"><span class="kk">Diff. &gt; 2,0 · forti*</span><span class="vv">0 / −0,40</span></div>
+     <div class="kv"><span class="kk">Diff. &gt; 2,0 · deboli</span><span class="vv">+0,40 / 0</span></div>
+     <p class="note">*Con approvazione esplicita della coppia forte.</p>
+     <div class="sub rust">Set singolo · Punto Secco, diff. max 2,0</div>
+     <p>Punti <b>dimezzati</b> rispetto alla classica.</p>
+     <p class="note">Il set singolo non dà mai diritto alla promozione. La sconfitta in un set classificato può invece far retrocedere.</p>
+     <p>Quando gli stessi 4 giocatori con le stesse coppie giocano nella stessa prenotazione, si gioca <b>sempre e solo la classica</b> (2 su 3): non è possibile optare per set singoli separati.</p>`],
+
+  ['Inserimento e approvazione del risultato',
+    `<p>Al termine della partita uno dei 4 giocatori inserisce il risultato nell'app, identificando gli altri 3 per <b>username o numero di telefono</b>. Almeno un giocatore della squadra avversaria deve approvare entro <b>48 ore</b>.</p>
+     <div class="li">Se nessuno approva entro 48 ore, il risultato passa al <b>responsabile del circolo</b> per validazione manuale.</div>
+     <div class="li rust">Se un avversario contesta, la partita viene bloccata e decide il responsabile del circolo: la sua decisione è definitiva.</div>`],
+
+  ['Punto Secco',
+    `<p>Dal primo <b>40 pari</b> in poi si gioca con il Punto Secco, in tre fasi:</p>
+     <div class="li"><span><b>1° vantaggio:</b> chi lo vince chiude il game, chi lo perde torna a 40-40.</span></div>
+     <div class="li"><span><b>2° vantaggio:</b> chi lo vince chiude il game, chi lo perde passa al Punto Secco.</span></div>
+     <div class="li"><span><b>Punto Secco:</b> un unico punto decisivo — chi lo vince si aggiudica il game.</span></div>`],
+
+  ['Promozione',
+    `<p>Per salire di fascia devi soddisfare <b>tutte</b> queste condizioni in una partita classica:</p>
+     <div class="li">Vincere la partita (il set singolo non conta).</div>
+     <div class="li">Battere almeno un giocatore della fascia superiore.</div>
+     <div class="li">Ricevere <b style="white-space:nowrap">+0,20 o +0,30</b> (non essere nella coppia con oltre 1,05 di vantaggio).</div>
+     <div class="li">La somma dei coefficienti degli avversari deve raggiungere la soglia minima.</div>
+     <div class="sub">Soglia somma avversari</div>
+     <div class="grid2">
+       <div class="cell"><span>Fascia 6</span><span class="vv">≥ 11</span></div>
+       <div class="cell"><span>Fascia 7</span><span class="vv">≥ 13</span></div>
+       <div class="cell"><span>Fascia 8</span><span class="vv">≥ 15</span></div>
+       <div class="cell"><span>Fascia 9</span><span class="vv">≥ 17</span></div>
+     </div>`],
+
+  ['Avanzamento nelle fasce alte (6+)',
+    `<p>Nelle fasce alte vinci punti per il <b>rating ufficiale</b> solo se la somma degli avversari raggiunge la soglia minima. Altrimenti i punti vinti vanno nel <b>fondocassa</b>.</p>
+     <div class="grid2">
+       <div class="cell"><span>6,00–6,45</span><span class="vv">≥ 11,0</span></div>
+       <div class="cell"><span>6,50–6,95</span><span class="vv">≥ 12,0</span></div>
+       <div class="cell"><span>7,00–7,45</span><span class="vv">≥ 13,0</span></div>
+       <div class="cell"><span>7,50–7,95</span><span class="vv">≥ 14,0</span></div>
+       <div class="cell"><span>8,00–8,45</span><span class="vv">≥ 15,0</span></div>
+       <div class="cell"><span>8,50–8,95</span><span class="vv">≥ 16,0</span></div>
+       <div class="cell"><span>9,00–9,45</span><span class="vv">≥ 17,0</span></div>
+       <div class="cell"><span>9,50–9,95</span><span class="vv">≥ 18,0</span></div>
+     </div>`],
+
+  ['Fondocassa',
+    `<p>Il fondocassa è una <b>riserva separata</b> dal rating ufficiale, massimo <b>1,00 punto</b>. I punti vi finiscono quando non hai i requisiti per la promozione, o quando sei nelle fasce alte e la somma degli avversari è sotto soglia.</p>
+     <div class="li">Quando perdi punti, vengono sottratti <b>prima dal fondocassa</b> e poi dal rating.</div>
+     <div class="li">Nel calcolo dei coefficienti, al giocatore col punteggio <b>più alto in campo</b> si sommano anche i suoi punti fondocassa.</div>
+     <p class="note">Alla promozione il fondocassa viene decurtato fino a 0,20 massimo.</p>`],
+
+  ['Serie di vittorie ★',
+    `<p>Vinci partite classiche di fila e accumuli <b>stelle</b> con bonus:</p>
+     <div class="kv"><span class="kk">3 vittorie consecutive</span><span class="vv pos">+0,10</span></div>
+     <div class="kv"><span class="kk">5 vittorie consecutive</span><span class="vv pos">+0,20 aggiuntivi</span></div>
+     <div class="kv"><span class="kk">10 vittorie consecutive</span><span class="vv pos">+0,50 aggiuntivi</span></div>
+     <p>Le stelle si perdono <b>tutte</b> alla prima sconfitta in una classica.</p>
+     <p class="note">Una vittoria non conta per la serie se sei nella coppia favorita con differenza superiore a 1,0, o se nelle fasce alte non rispetti la soglia minima degli avversari.</p>`],
+
+  ['Bounty 🎯',
+    `<p>Se batti un giocatore in serie di vittorie, <b>entrambi</b> i giocatori della coppia vincitrice ricevono un bonus in fondocassa:</p>
+     <div class="kv"><span class="kk">Gioca per la 3ª stella (ne ha 2)</span><span class="vv gold">+0,05 ciascuno</span></div>
+     <div class="kv"><span class="kk">Gioca per la 5ª stella (ne ha 4)</span><span class="vv gold">+0,10 ciascuno</span></div>
+     <div class="kv"><span class="kk">Gioca per la 10ª stella (ne ha 9)</span><span class="vv gold">+0,20 ciascuno</span></div>`],
+
+  ['Inattività',
+    `<p>Se non giochi partite classificate per <b>30 giorni consecutivi</b>, perdi punti. Ricevi una notifica 7 giorni prima del primo malus.</p>
+     <div class="kv"><span class="kk">30° giorno</span><span class="vv neg">−0,10</span></div>
+     <div class="kv"><span class="kk">Ogni settimana succ. (1° mese)</span><span class="vv neg">−0,10</span></div>
+     <div class="kv"><span class="kk">Dal 2° mese</span><span class="vv neg">−0,20 / settimana</span></div>
+     <div class="kv"><span class="kk">Dopo 4 mesi</span><span class="vv neg">Rimozione</span></div>
+     <p class="note">Per infortunio o impegni lavorativi prolungati puoi richiedere la sospensione del conteggio al responsabile. Al rientro il conteggio riparte da zero.</p>`],
+
+  ['Abbandono e ammonizioni',
+    `<p>Se lasci il campo dopo il primo punto giocato, il risultato conta come <b>sconfitta</b> — indipendentemente dal motivo.</p>
+     <div class="kv"><span class="kk">Abbandono giustificato</span><span class="vv">Solo perdita punti</span></div>
+     <div class="kv"><span class="kk">Abbandono ingiustificato</span><span class="vv neg">−0,50 + ammonizione</span></div>
+     <div class="li">Giustificato: comunica il motivo al responsabile <b>entro 24 ore</b>, nessuna sanzione.</div>
+     <div class="li rust">Il malus −0,50 va colmato prima di poter guadagnare altri punti.</div>
+     <div class="li rust"><b>Due ammonizioni</b> in 3 mesi = squalifica di <b>2 mesi</b> dalle partite classificate.</div>`],
+
+  ['Note della Direzione',
+    `<p class="note">La Direzione si riserva il diritto di apportare modifiche al regolamento in qualsiasi momento. Eventuali modifiche non hanno valenza retroattiva.</p>
+     <p>Direzione PadelMeeting — <b>Pangurme Srl</b><br>www.padelmeeting.it</p>`],
+];
+let ruleOpen=0;
+function viewRules(){
+  return `<div class="page">
+    ${stag('Regolamento · sintesi')}
+    <div class="card" style="padding:18px 20px;margin-bottom:14px">
+      <div style="font-family:var(--serif);font-size:22px;font-style:italic">La classifica che <span class="glow">si muove</span> ad ogni partita</div>
+      <p class="c-dim" style="font-size:13px;line-height:1.6;margin-top:8px">Sintesi completa del regolamento PadelMeeting. Tocca una voce per espanderla.</p>
+    </div>
+    ${RULES.map((r,i)=>`<div class="card acc ${ruleOpen===i?'open':''}" onclick="toggleRule(${i})">
+      <div class="ah"><span class="at" style="color:${ruleOpen===i?C.neon:C.ivory}">${r[0]}</span><span class="ax">+</span></div>
+      <div class="ab">${r[1]}</div></div>`).join('')}
+    <div class="center" style="margin-top:18px;font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.14em">DIREZIONE PADELMEETING · PANGURME SRL</div>
+  </div>`;
+}
+function toggleRule(i){ruleOpen=ruleOpen===i?-1:i;render()}
+
+/* ============ ORGANIZZA ============ */
+let org = { date:'', time:'18:00', format:'classic', partner:1, opp1:3, opp2:4, sent:false };
+
+function viewOrganize(){
+  if(org.sent){
+    return `<div class="page"><div class="card rise center" style="padding:44px 24px;margin-top:16px">
+      <div style="font-size:40px;margin-bottom:8px">📅</div>
+      <div style="font-family:var(--serif);font-size:28px;font-style:italic;color:${C.gold};text-shadow:0 0 14px #EFD06A44">Inviti inviati!</div>
+      <p class="c-dim" style="font-size:13px;line-height:1.65;max-width:300px;margin:12px auto 0">I giocatori riceveranno una notifica. La partita sarà confermata quando tutti e 4 avranno accettato.</p>
+      <div style="margin-top:24px;display:flex;gap:10px;justify-content:center">
+        <button class="btnGhost" onclick="resetOrg()">Nuova</button>
+        <button class="btnSolid" onclick="go('home')">Home</button>
+      </div>
+    </div></div>`;
+  }
+
+  const others = players.filter(p => p.id !== ME);
+  const opt = (sel, exclude) => others.map(p =>
+    `<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>
+      ${esc(p.name)} · ${p.rating.toFixed(2)}
+    </option>`).join('');
+
+  const t1=[ME,org.partner], t2=[org.opp1,org.opp2];
+  const valid = new Set([...t1,...t2]).size===4;
+  const calc  = valid ? computeMatch(t1,t2,org.format,1) : null;
+
+  let preview='';
+  if(calc){
+    const col = calc.diff<=1.0?C.neon:calc.diff<=2.0?C.gold:C.rust;
+    const label = calc.diff<=1.0?'Partita equilibrata':calc.diff<=2.0?'Lieve vantaggio coppia A':'Grande differenza';
+    preview=`<div class="card rise" style="margin-top:14px;border-color:${col}44">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${col}">${label}</span>
+        <span style="font-family:var(--mono);font-size:13px;color:${col};font-weight:700">Δ ${calc.diff.toFixed(2)}</span>
+      </div>
+      <div class="mgrid">
+        <div class="mside">
+          ${[ME,org.partner].map(id=>`<div class="pl" style="color:${C.neon};font-weight:600">${esc(pName(id))}</div>`).join('')}
+          <div style="font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px">Σ ${calc.sum1.toFixed(2)}</div>
+        </div>
+        <div class="mscore" style="font-size:16px;font-family:var(--serif);font-style:italic;color:var(--rust)">vs</div>
+        <div class="mside" style="text-align:right">
+          ${[org.opp1,org.opp2].map(id=>`<div class="pl" style="color:${C.ivory}">${esc(pName(id))}</div>`).join('')}
+          <div style="font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px">Σ ${calc.sum2.toFixed(2)}</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--lineSoft);display:flex;justify-content:space-between">
+        <span style="font-size:11px;color:var(--ivoryFaint)">Vittoria coppia A vale</span>
+        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${C.neon}">${org.format==='single'?Math.abs(calc.res[ME].delta/2).toFixed(2):Math.abs(calc.res[ME].delta).toFixed(2)} pt ciascuno</span>
+      </div>
+      ${calc.diff>2.0?`<div class="warn c-rust" style="margin-top:8px">⚠ Differenza > 2.0 — richiede approvazione della coppia forte.</div>`:''}
+    </div>`;
+  }
+
+  return `<div class="page">
+    ${stag('Organizza partita')}
+
+    <div class="card rise">
+      <div style="font-size:11px;letter-spacing:.16em;font-family:var(--mono);color:var(--ivoryFaint);text-transform:uppercase;margin-bottom:10px">Quando</div>
+      <div class="org-row">
+        <input type="date" class="org-date" value="${org.date}" onchange="org.date=this.value;render()">
+        <input type="time" class="org-time" value="${org.time}" onchange="org.time=this.value;render()">
+      </div>
+    </div>
+
+    ${stag('Formato')}
+    <div class="seg">
+      <button class="segBtn ${org.format==='classic'?'active':''}" onclick="org.format='classic';render()">Classica · 2 su 3</button>
+      <button class="segBtn ${org.format==='single'?'active':''}" onclick="org.format='single';render()">Set singolo</button>
+    </div>
+
+    ${stag('Giocatori')}
+    <div class="card" style="margin-top:4px">
+      <div class="teamBlock" style="border-left:2px solid ${C.neon}">
+        <div class="tt" style="color:${C.neon}">La tua coppia</div>
+        <div class="selWrap"><span class="selLabel">Tu</span><div class="selBox fixed">${esc(pName(ME))}</div></div>
+        <div class="selWrap"><span class="selLabel">Compagno</span>
+          <select class="selBox" onchange="org.partner=+this.value;render()">${opt(org.partner,[org.opp1,org.opp2])}</select></div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="teamBlock" style="border-left:2px solid ${C.rust}">
+        <div class="tt" style="color:${C.rust}">Avversari</div>
+        <div class="selWrap"><span class="selLabel">Avversario 1</span>
+          <select class="selBox" onchange="org.opp1=+this.value;render()">${opt(org.opp1,[org.partner,org.opp2])}</select></div>
+        <div class="selWrap"><span class="selLabel">Avversario 2</span>
+          <select class="selBox" onchange="org.opp2=+this.value;render()">${opt(org.opp2,[org.partner,org.opp1])}</select></div>
+      </div>
+    </div>
+
+    ${preview}
+
+    <button class="cta" ${valid?'':'disabled'} onclick="sendOrg()">
+      <span>📅 Invia inviti</span>
+    </button>
+  </div>`;
+}
+function resetOrg(){org={date:'',time:'18:00',format:'classic',partner:1,opp1:3,opp2:4,sent:false};render()}
+function sendOrg(){if(new Set([ME,org.partner,org.opp1,org.opp2]).size===4){org.sent=true;render()}}
+
+/* ============ NAV / RENDER ============ */
+const NAV=[['home','Home','◈'],['rank','Classifica','≡'],['organize','Organizza','📅'],['play','','⚡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
+function renderNav(){
+  $('#nav').innerHTML=NAV.map(([k,l,ic])=>{
+    const active=tab===k, isPlay=k==='play';
+    return `<button class="navBtn ${active?'active':''} ${isPlay?'navPlay':''}" onclick="go('${k}')">
+      <span class="ic">${ic}</span>${isPlay?'':`<span class="nl">${l}</span>`}${active&&!isPlay?'<span class="dot"></span>':''}</button>`;
+  }).join('');
+}
+function go(t){tab=t;if(t!=='play')pl.done=false;window.scrollTo&&($('#view').scrollTop=0);render()}
+function render(){
+  const M=me();
+  $('#hdrRating').textContent=M.rating.toFixed(2);
+  $('#hdrAvatar').textContent=M.name[0];
+  const v={home:viewHome,rank:viewRank,play:viewPlay,organize:viewOrganize,matches:viewMatches,profile:viewProfile,rules:viewRules}[tab];
+  $('#view').innerHTML=v();
+  renderNav();
+}
+$('#emblem').innerHTML=emblem(42);
+render();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0E2723">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PadelMeeting">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<title>PadelMeeting — Guida alle sezioni</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:      #0B1F1C;
+  --p800:      #16403A;
+  --p700:      #1B4D45;
+  --p600:      #235C52;
+  --line:      rgba(91,240,203,.20);
+  --lineSoft:  rgba(91,240,203,.10);
+  --neon:      #5BF0CB;
+  --neonDim:   #34C9A8;
+  --ivory:     #F7F0DC;
+  --ivoryDim:  rgba(247,240,220,.78);
+  --ivoryFaint:rgba(247,240,220,.45);
+  --rust:      #E07B4A;
+  --gold:      #EFD06A;
+  --sans:  'Outfit', system-ui, sans-serif;
+  --serif: 'Cormorant Garamond', serif;
+  --mono:  'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+@page { size: A4 portrait; margin: 0; }
+
+body {
+  background: #080f0e;
+  font-family: var(--sans);
+  color: var(--ivory);
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 48px;
+}
+
+/* ── A4 SHELL ── */
+.sheet {
+  width: 794px;
+  background: var(--void);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 0 80px rgba(0,0,0,.7), 0 0 0 1px var(--line);
+}
+
+/* ── BACKGROUND ── */
+.bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--lineSoft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--lineSoft) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(ellipse 100% 55% at 50% 0%, #000 40%, transparent 80%);
+  mask-image:         radial-gradient(ellipse 100% 55% at 50% 0%, #000 40%, transparent 80%);
+}
+.glow-tl {
+  position: absolute; top: -80px; left: -40px;
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, #5BF0CB22, transparent 65%);
+  filter: blur(60px);
+}
+.glow-br {
+  position: absolute; bottom: 40px; right: -60px;
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, #E07B4A18, transparent 65%);
+  filter: blur(70px);
+}
+.scan {
+  position: absolute; inset: 0; opacity: .10;
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.18) 3px);
+}
+
+/* ── HEADER ── */
+header {
+  position: relative; z-index: 2;
+  padding: 32px 44px 28px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo-area { display: flex; align-items: center; gap: 18px; }
+.logo-txt .name {
+  font-family: var(--serif);
+  font-size: 42px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1;
+}
+.logo-txt .name b { color: var(--neon); text-shadow: 0 0 18px #5BF0CB55; font-weight: 600; }
+.logo-txt .sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  color: var(--ivoryFaint);
+  margin-top: 7px;
+}
+.hdr-badge {
+  text-align: right;
+}
+.hdr-badge .lbl {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--ivoryFaint);
+  margin-bottom: 5px;
+}
+.hdr-badge .tag {
+  display: inline-block;
+  padding: 5px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--ivoryDim);
+  text-transform: uppercase;
+}
+
+/* ── HERO BAND ── */
+.hero {
+  position: relative; z-index: 2;
+  margin: 28px 44px;
+  padding: 24px 30px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1B4D4540, #12343060);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.hero-emblem { flex-shrink: 0; }
+.hero-text .ht1 {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-style: italic;
+  line-height: 1.2;
+}
+.hero-text .ht1 em { color: var(--neon); text-shadow: 0 0 14px #5BF0CB55; font-style: italic; }
+.hero-text .ht2 {
+  font-size: 13.5px;
+  color: var(--ivoryDim);
+  line-height: 1.7;
+  margin-top: 8px;
+  max-width: 500px;
+}
+.hero-stats {
+  margin-left: auto;
+  flex-shrink: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hstat {
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--lineSoft);
+  border-radius: 10px;
+  padding: 10px 18px;
+  min-width: 100px;
+}
+.hstat .hv {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--neon);
+  text-shadow: 0 0 12px #5BF0CB44;
+}
+.hstat .hk {
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ivoryFaint);
+  margin-top: 2px;
+}
+
+/* ── SECTION TAG ── */
+.stag {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; gap: 10px;
+  margin: 4px 44px 16px;
+}
+.stag i {
+  width: 6px; height: 6px;
+  background: var(--neon);
+  box-shadow: 0 0 10px var(--neon);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+.stag span {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .30em;
+  text-transform: uppercase;
+  color: var(--neon);
+  font-weight: 600;
+}
+.stag em {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
+  font-style: normal;
+}
+
+/* ── CARDS GRID ── */
+.cards {
+  position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 0 44px;
+  padding-bottom: 4px;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(160deg, #1B4D4548, #12343070);
+  padding: 22px 24px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 14px 14px 0 0;
+}
+.card.neon::after  { background: linear-gradient(90deg, var(--neon) 0%, transparent 80%); }
+.card.rust::after  { background: linear-gradient(90deg, var(--rust) 0%, transparent 80%); }
+.card.gold::after  { background: linear-gradient(90deg, var(--gold) 0%, transparent 80%); }
+
+/* corner glow */
+.card.neon { box-shadow: inset 0 0 40px #5BF0CB08; }
+.card.rust  { box-shadow: inset 0 0 40px #E07B4A08; }
+.card.gold  { box-shadow: inset 0 0 40px #EFD06A08; }
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.card-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+.card-nav {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.neon .card-nav { color: var(--neon); border-color: #5BF0CB44; background: #5BF0CB0e; }
+.rust .card-nav { color: var(--rust); border-color: #E07B4A44; background: #E07B4A0e; }
+.gold .card-nav { color: var(--gold); border-color: #EFD06A44; background: #EFD06A0e; }
+
+.card-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.15;
+  margin-bottom: 12px;
+  color: var(--ivory);
+}
+.neon .card-title em { color: var(--neon); }
+.rust .card-title em { color: var(--rust); }
+.gold .card-title em { color: var(--gold); }
+
+.card-body {
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--ivoryDim);
+}
+.card-body b { color: var(--ivory); font-weight: 600; }
+.card-body .tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--lineSoft);
+  color: var(--ivoryFaint);
+  vertical-align: middle;
+}
+
+.card-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--lineSoft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-kv {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .1em;
+  color: var(--ivoryFaint);
+}
+.card-kv span { font-weight: 700; }
+.neon .card-kv span { color: var(--neon); }
+.rust .card-kv span { color: var(--rust); }
+.gold .card-kv span { color: var(--gold); }
+
+/* progress bar */
+.mini-bar {
+  height: 4px;
+  width: 100px;
+  background: rgba(0,0,0,.4);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--lineSoft);
+}
+.mini-fill-neon { height: 100%; background: linear-gradient(90deg, var(--neonDim), var(--neon)); border-radius: 999px; }
+.mini-fill-rust { height: 100%; background: linear-gradient(90deg, #C05020, var(--rust)); border-radius: 999px; }
+.mini-fill-gold { height: 100%; background: linear-gradient(90deg, #C09820, var(--gold)); border-radius: 999px; }
+
+/* ── FOOTER ── */
+footer {
+  position: relative; z-index: 2;
+  margin: 24px 44px 36px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.foot-l {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ivoryFaint);
+  line-height: 2;
+}
+.foot-l b { color: var(--neon); font-weight: 600; }
+.foot-r {
+  text-align: right;
+}
+.foot-url {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--neon);
+  letter-spacing: .06em;
+  text-shadow: 0 0 14px #5BF0CB44;
+}
+.foot-sub {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--ivoryFaint);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── RESPONSIVE MOBILE ── */
+@media (max-width: 600px) {
+  body { padding: 0; }
+
+  .sheet {
+    width: 100%;
+    box-shadow: none;
+    border: none;
+  }
+
+  header {
+    padding: 20px 18px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .logo-txt .name { font-size: 28px; }
+  .logo-txt .sub  { font-size: 7.5px; letter-spacing: .28em; }
+
+  .hero {
+    margin: 16px 16px;
+    padding: 18px 18px;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .hero-stats {
+    flex-direction: row;
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  .hstat { padding: 8px 14px; min-width: 80px; }
+  .hstat .hv { font-size: 18px; }
+  .hero-text .ht1 { font-size: 22px; }
+  .hero-text .ht2 { font-size: 13px; }
+
+  .stag { margin: 10px 16px 12px; }
+
+  .cards {
+    grid-template-columns: 1fr;
+    margin: 0 16px;
+    gap: 12px;
+  }
+
+  .card { padding: 18px 18px 16px; }
+  .card-title { font-size: 22px; }
+  .card-body  { font-size: 13px; line-height: 1.7; }
+  .card-nav   { font-size: 8px; }
+  .card-icon  { font-size: 26px; }
+
+  footer {
+    margin: 18px 16px 28px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .foot-r { text-align: left; }
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- BACKGROUNDS -->
+  <div class="bg">
+    <div class="bg-grid"></div>
+    <div class="glow-tl"></div>
+    <div class="glow-br"></div>
+    <div class="scan"></div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-area">
+      <svg width="62" height="62" viewBox="0 0 100 100" fill="none" style="filter:drop-shadow(0 0 10px #5BF0CB44)">
+        <circle cx="50" cy="50" r="46" stroke="#5BF0CB" stroke-width="1.6" opacity=".9"/>
+        <circle cx="50" cy="50" r="40" stroke="#E07B4A" stroke-width=".9" opacity=".7"/>
+        <circle cx="50" cy="50" r="33" stroke="#5BF0CB" stroke-width=".7" stroke-dasharray="2 3" opacity=".5"/>
+        <rect x="38" y="30" width="24" height="40" stroke="#F7F0DC" stroke-width=".8" opacity=".5"/>
+        <line x1="38" y1="50" x2="62" y2="50" stroke="#F7F0DC" stroke-width=".7" opacity=".4"/>
+        <g stroke="#5BF0CB" stroke-width="1.8" stroke-linecap="round">
+          <line x1="42" y1="66" x2="56" y2="40"/>
+          <line x1="58" y1="66" x2="44" y2="40"/>
+        </g>
+        <ellipse cx="56" cy="38" rx="6" ry="7.5" stroke="#5BF0CB" stroke-width="1.5" transform="rotate(20 56 38)"/>
+        <ellipse cx="44" cy="38" rx="6" ry="7.5" stroke="#5BF0CB" stroke-width="1.5" transform="rotate(-20 44 38)"/>
+      </svg>
+      <div class="logo-txt">
+        <div class="name">Padel<b>Meeting</b></div>
+        <div class="sub">Sport &amp; Eleganza</div>
+      </div>
+    </div>
+    <div class="hdr-badge">
+      <div class="lbl">Guida all'app</div>
+      <div class="tag">Le 6 sezioni</div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-emblem">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="20" stroke="#5BF0CB" stroke-width="1.2" opacity=".6" stroke-dasharray="3 4"/>
+        <text x="24" y="31" font-size="22" text-anchor="middle" fill="#5BF0CB" font-family="serif" opacity=".9">🎾</text>
+      </svg>
+    </div>
+    <div class="hero-text">
+      <div class="ht1">La classifica che si <em>muove</em> ad ogni partita</div>
+      <div class="ht2">PadelMeeting è la web app per giocatori amatoriali di padel. Ogni partita aggiorna in tempo reale il tuo rating personale. Installabile sul cellulare senza passare dagli store — accessibile da qualsiasi dispositivo.</div>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat"><div class="hv">11</div><div class="hk">Fasce</div></div>
+      <div class="hstat"><div class="hv">0→10</div><div class="hk">Rating</div></div>
+    </div>
+  </div>
+
+  <!-- LABEL -->
+  <div class="stag"><i></i><span>Le sezioni dell'app</span><em></em></div>
+
+  <!-- CARDS -->
+  <div class="cards">
+
+    <!-- HOME -->
+    <div class="card neon">
+      <div class="card-top">
+        <div class="card-icon">◈</div>
+        <div class="card-nav">Home · Dashboard</div>
+      </div>
+      <div class="card-title">Il tuo <em>cruscotto</em></div>
+      <div class="card-body">
+        La prima cosa che vedi. Mostra il tuo <b>rating attuale</b>, la fascia di appartenenza e la barra di avanzamento verso la fascia successiva. In evidenza anche le <b>stelle della serie vincente</b>, il fondocassa e il top 4 della classifica. Da qui il tasto rapido per registrare una partita.
+      </div>
+      <div class="card-footer">
+        <div class="card-kv">Rating · <span>5.95</span> &nbsp;·&nbsp; Fascia <span>Cinque</span></div>
+        <div class="mini-bar"><div class="mini-fill-neon" style="width:59%"></div></div>
+      </div>
+    </div>
+
+    <!-- CLASSIFICA -->
+    <div class="card neon">
+      <div class="card-top">
+        <div class="card-icon">≡</div>
+        <div class="card-nav">Classifica · Ranking</div>
+      </div>
+      <div class="card-title">Chi è <em>davanti?</em></div>
+      <div class="card-body">
+        La classifica completa di tutti i giocatori, ordinata per rating da <b>0,00 a 10,00</b> diviso in <b>11 fasce</b> (Zero → Dieci). Puoi filtrare per circolo. Una barra grafica mostra la distribuzione delle fasce: quelle alte <b>7+</b> brillano in verde. Il tuo profilo è sempre evidenziato.
+      </div>
+      <div class="card-footer">
+        <div class="card-kv">Fasce <span>0–6</span> basse &nbsp;·&nbsp; Fasce <span>7–10</span> alte</div>
+        <div class="mini-bar"><div class="mini-fill-neon" style="width:82%"></div></div>
+      </div>
+    </div>
+
+    <!-- GIOCA -->
+    <div class="card rust">
+      <div class="card-top">
+        <div class="card-icon">⚡</div>
+        <div class="card-nav">Gioca · Registra partita</div>
+      </div>
+      <div class="card-title">Inserisci il <em>risultato</em></div>
+      <div class="card-body">
+        Scegli il formato — <b>Classica 2 su 3</b> o <b>Set singolo</b> — poi seleziona il compagno e i due avversari dall'elenco. Indica chi ha vinto. Prima di confermare l'app calcola in <b>anteprima esatta</b> i punti che ogni giocatore guadagnerà o perderà, tenendo conto della differenza di coefficienti.
+      </div>
+      <div class="card-footer">
+        <div class="card-kv">Classica <span>+0,20</span> &nbsp;·&nbsp; Set singolo <span>+0,10</span></div>
+        <div class="mini-bar"><div class="mini-fill-rust" style="width:50%"></div></div>
+      </div>
+    </div>
+
+    <!-- PARTITE -->
+    <div class="card gold">
+      <div class="card-top">
+        <div class="card-icon">⊞</div>
+        <div class="card-nav">Partite · Storico</div>
+      </div>
+      <div class="card-title">Le tue <em>partite</em></div>
+      <div class="card-body">
+        Lo storico di tutte le partite che ti coinvolgono. Ogni scheda mostra giocatori, punteggio e stato: <b>in attesa di approvazione</b> (48 ore) o <b>approvata</b>. Da qui puoi <b>approvare</b> o <b>contestare</b> un risultato inserito da un avversario. In caso di contestazione decide il responsabile del circolo.
+      </div>
+      <div class="card-footer">
+        <div class="card-kv">Approvazione entro <span>48h</span> &nbsp;·&nbsp; Contestabile</div>
+        <div class="mini-bar"><div class="mini-fill-gold" style="width:70%"></div></div>
+      </div>
+    </div>
+
+    <!-- PROFILO -->
+    <div class="card neon">
+      <div class="card-top">
+        <div class="card-icon">◉</div>
+        <div class="card-nav">Profilo · Account</div>
+      </div>
+      <div class="card-title">Il tuo <em>profilo</em></div>
+      <div class="card-body">
+        Rating, <b>fondocassa</b> (riserva punti separata, max 1,00), stelle della serie, stato di affiliazione al circolo, ammonizioni attive. Vedi anche i tuoi <b>compagni di circolo</b> con i rispettivi rating. Tutto in un colpo d'occhio per sapere dove sei e quanto ti manca per salire di fascia.
+      </div>
+      <div class="card-footer">
+        <div class="card-kv">Fondocassa max <span>1,00</span> &nbsp;·&nbsp; Ammonizioni <span>0/2</span></div>
+        <div class="mini-bar"><div class="mini-fill-neon" style="width:35%"></div></div>
+      </div>
+    </div>
+
+    <!-- REGOLE -->
+    <div class="card rust">
+      <div class="card-top">
+        <div class="card-icon">§</div>
+        <div class="card-nav">Regole · Regolamento</div>
+      </div>
+      <div class="card-title">Come <em>funziona</em></div>
+      <div class="card-body">
+        Il regolamento completo in formato <b>accordion</b>: tocchi una voce e si espande. Copre registrazione, fasce, partite classificate, promozione, fondocassa, serie di vittorie <span class="tag">★ Bounty</span>, inattività e sanzioni. Sempre aggiornato, sempre in tasca. Nessun dubbio rimane senza risposta.
+      </div>
+      <div class="card-footer">
+        <div class="card-kv"><span>12</span> sezioni &nbsp;·&nbsp; Sempre <span>aggiornato</span></div>
+        <div class="mini-bar"><div class="mini-fill-rust" style="width:100%"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="foot-l">
+      Direzione PadelMeeting — <b>Pangurme Srl</b><br>
+      Web app installabile &nbsp;·&nbsp; Nessuno store necessario
+    </div>
+    <div class="foot-r">
+      <div class="foot-url">www.padelmeeting.it</div>
+      <div class="foot-sub">Accessibile da qualsiasi dispositivo</div>
+    </div>
+  </footer>
+
+</div>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
