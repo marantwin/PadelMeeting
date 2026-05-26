@@ -276,67 +276,76 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 const C = { neon:'#5BF0CB', neonDim:'#34C9A8', ivory:'#F7F0DC', ivoryDim:'rgba(247,240,220,.82)',
   ivoryFaint:'rgba(247,240,220,.55)', rust:'#E07B4A', gold:'#EFD06A', danger:'#F06A80', void:'#0A1C19' };
 
-const BANDS = ['Zero','Uno','Due','Tre','Quattro','Cinque','Sei','Sette','Otto','Nove','Dieci'];
-const bandIdx = r => r>=10?10:Math.max(0,Math.min(9,Math.floor(r)));
-const bandName = r => BANDS[bandIdx(r)];
-const isHigh = r => r>=7;
+const BANDS = [
+  {name:'Ferro',   min:0,  max:19,  color:'#7B8FA1'},
+  {name:'Bronzo',  min:20, max:39,  color:'#CD7F32'},
+  {name:'Argento', min:40, max:59,  color:'#C0C0C0'},
+  {name:'Oro',     min:60, max:74,  color:'#EFD06A'},
+  {name:'Platino', min:75, max:89,  color:'#5BF0CB'},
+  {name:'Élite',   min:90, max:100, color:'#F06A80'},
+];
+const bandIdx = r => r<20?0:r<40?1:r<60?2:r<75?3:r<90?4:5;
+const bandName = r => BANDS[bandIdx(r)].name;
+const bandColor = r => BANDS[bandIdx(r)].color;
+const isHigh = r => r>=60;
 
 let players = [
-  {id:1,name:'Ivano Casilli',club:'Padel Vesuvio',city:'Napoli',rating:9.85,fondo:0.15,streak:7},
-  {id:2,name:'Luigi Rocco',club:'Padel Vesuvio',city:'Napoli',rating:8.40,fondo:0.30,streak:4},
-  {id:3,name:'Giuliano Del Giudice',club:'Salerno Smash',city:'Salerno',rating:7.95,fondo:0.60,streak:2},
-  {id:4,name:'Marta Esposito',club:'Salerno Smash',city:'Salerno',rating:7.10,fondo:0.00,streak:9},
-  {id:5,name:'Davide Greco',club:'Padel Vesuvio',city:'Napoli',rating:6.55,fondo:0.45,streak:0,malus:0.5},
-  {id:6,name:'Chiara Ferraro',club:'Costa Padel',city:'Sorrento',rating:6.20,fondo:0.10,streak:1},
-  {id:7,name:'Antonio Russo',club:'Costa Padel',city:'Sorrento',rating:5.30,fondo:0.00,streak:3},
-  {id:8,name:'Sara Bianchi',club:'Salerno Smash',city:'Salerno',rating:4.75,fondo:0.20,streak:0},
-  {id:9,name:'Marco Romano',club:'Padel Vesuvio',city:'Napoli',rating:3.60,fondo:0.00,streak:5},
-  {id:10,name:'Elena Conti',club:'Costa Padel',city:'Sorrento',rating:2.40,fondo:0.05,streak:0},
-  {id:11,name:'Antonello Martux',club:'EVOSPORT',city:'Eboli',rating:5.95,fondo:0.35,streak:2},
-  {id:13,name:'Luca Ferretti',club:'EVOSPORT',city:'Eboli',rating:6.40,fondo:0.10,streak:1},
-  {id:14,name:'Marco De Rosa',club:'EVOSPORT',city:'Eboli',rating:5.20,fondo:0.00,streak:0},
-  {id:15,name:'Simone Aiello',club:'EVOSPORT',city:'Eboli',rating:4.85,fondo:0.20,streak:3},
-  {id:16,name:'Carmine Vitolo',club:'EVOSPORT',city:'Eboli',rating:7.10,fondo:0.55,streak:5},
-  {id:17,name:'Gianluca Serra',club:'EVOSPORT',city:'Eboli',rating:3.30,fondo:0.00,streak:0},
-  {id:18,name:'Raffaele Muto',club:'EVOSPORT',city:'Eboli',rating:6.80,fondo:0.40,streak:2},
-  {id:19,name:'Davide Amendola',club:'EVOSPORT',city:'Eboli',rating:2.15,fondo:0.05,streak:1},
-  {id:12,name:'Paolo Gallo',club:'Salerno Smash',city:'Salerno',rating:1.20,fondo:0.00,streak:0},
+  {id:1, name:'Ivano Casilli',       club:'Padel Vesuvio', city:'Napoli',  rating:82, games:65, streak:7},
+  {id:2, name:'Luigi Rocco',         club:'Padel Vesuvio', city:'Napoli',  rating:74, games:55, streak:4},
+  {id:3, name:'Giuliano Del Giudice',club:'Salerno Smash', city:'Salerno', rating:70, games:48, streak:2},
+  {id:4, name:'Marta Esposito',      club:'Salerno Smash', city:'Salerno', rating:63, games:62, streak:9},
+  {id:5, name:'Davide Greco',        club:'Padel Vesuvio', city:'Napoli',  rating:58, games:30, streak:0},
+  {id:6, name:'Chiara Ferraro',      club:'Costa Padel',   city:'Sorrento',rating:56, games:25, streak:1},
+  {id:7, name:'Antonio Russo',       club:'Costa Padel',   city:'Sorrento',rating:49, games:18, streak:3},
+  {id:8, name:'Sara Bianchi',        club:'Salerno Smash', city:'Salerno', rating:45, games:22, streak:0},
+  {id:9, name:'Marco Romano',        club:'Padel Vesuvio', city:'Napoli',  rating:36, games:40, streak:5},
+  {id:10,name:'Elena Conti',         club:'Costa Padel',   city:'Sorrento',rating:26, games:15, streak:0},
+  {id:11,name:'Antonello Martux',    club:'EVOSPORT',      city:'Eboli',   rating:53, games:20, streak:2},
+  {id:13,name:'Luca Ferretti',       club:'EVOSPORT',      city:'Eboli',   rating:60, games:28, streak:1},
+  {id:14,name:'Marco De Rosa',       club:'EVOSPORT',      city:'Eboli',   rating:48, games:12, streak:0},
+  {id:15,name:'Simone Aiello',       club:'EVOSPORT',      city:'Eboli',   rating:44, games:16, streak:3},
+  {id:16,name:'Carmine Vitolo',      club:'EVOSPORT',      city:'Eboli',   rating:64, games:45, streak:5},
+  {id:17,name:'Gianluca Serra',      club:'EVOSPORT',      city:'Eboli',   rating:33, games:8,  streak:0},
+  {id:18,name:'Raffaele Muto',       club:'EVOSPORT',      city:'Eboli',   rating:61, games:35, streak:2},
+  {id:19,name:'Davide Amendola',     club:'EVOSPORT',      city:'Eboli',   rating:23, games:6,  streak:1},
+  {id:12,name:'Paolo Gallo',         club:'Salerno Smash', city:'Salerno', rating:15, games:4,  streak:0},
 ];
 let matches = [
   {id:901,when:'Oggi · 19:30',format:'Classica',t1:[11,7],t2:[3,4],score:'6-4 / 3-6 / 7-5',status:'pending',winner:1,mover:11},
-  {id:902,when:'Ieri · 21:00',format:'Set singolo',t1:[2,5],t2:[1,6],score:'7-6',status:'approved',winner:2,mover:2},
+  {id:902,when:'Ieri · 21:00',format:'Classica',t1:[2,5],t2:[1,6],score:'6-4 / 4-6 / 7-5',status:'approved',winner:2,mover:2},
   {id:903,when:'2 giorni fa · 18:00',format:'Classica',t1:[9,12],t2:[8,10],score:'6-2 / 6-3',status:'approved',winner:1,mover:9},
 ];
 const ME = 11;
 let tab = 'home';
 // play state
-let pl = { partner:1, opp1:3, opp2:4, format:'classic', winner:1, done:false };
+let pl = { partner:1, opp1:3, opp2:4, winner:1, done:false };
 
 /* ============ HELPERS ============ */
 const $ = (s,el=document)=>el.querySelector(s);
 const me = ()=>players.find(p=>p.id===ME);
 const pName = id => (players.find(p=>p.id===id)||{}).name || '—';
-const ranked = ()=>[...players].sort((a,b)=>(b.rating+b.fondo)-(a.rating+a.fondo));
+const ranked = ()=>[...players].sort((a,b)=>b.rating-a.rating);
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
-function teamSum(ids){return ids.reduce((s,id)=>s+((players.find(p=>p.id===id)||{}).rating||0),0)}
+const dynK = games => games<=20?8:games<=50?5:3;
+function teamAvg(ids){return ids.reduce((s,id)=>s+((players.find(p=>p.id===id)||{}).rating||0),0)/ids.length}
 
 function computeMatch(t1,t2,format,winnerTeam){
-  const sum1=teamSum(t1), sum2=teamSum(t2), diff=Math.abs(sum1-sum2);
-  const strong = sum1>=sum2?1:2;
-  const f = format==='single'?0.5:1;
-  let favWin,favLose,sfvWin,sfvLose;
-  if(diff<=1.0){favWin=.2;favLose=-.2;sfvWin=.2;sfvLose=-.2;}
-  else if(diff<=2.0){favWin=.1;favLose=-.3;sfvWin=.3;sfvLose=-.1;}
-  else{favWin=0;favLose=-.4;sfvWin=.4;sfvLose=0;}
+  const avg1=teamAvg(t1), avg2=teamAvg(t2);
+  const E1=1/(1+Math.pow(10,(avg2-avg1)/40));
   const res={};
   [1,2].forEach(team=>{
-    const ids=team===1?t1:t2, isStrong=team===strong, won=team===winnerTeam;
-    let d = isStrong?(won?favWin:favLose):(won?sfvWin:sfvLose);
-    d*=f;
-    ids.forEach(id=>res[id]={delta:d,isStrong,won});
+    const ids=team===1?t1:t2;
+    const E=team===1?E1:1-E1;
+    const won=team===winnerTeam;
+    ids.forEach(id=>{
+      const p=players.find(x=>x.id===id);
+      const K=dynK(p?p.games:8);
+      const delta=+(K*((won?1:0)-E)).toFixed(1);
+      res[id]={delta,won,E:+E.toFixed(3),K};
+    });
   });
-  return {sum1,sum2,diff,strong,res};
+  return {avg1,avg2,diff:Math.abs(avg1-avg2),E1,res};
 }
 
 /* ============ EMBLEM SVG ============ */
@@ -369,7 +378,7 @@ function rankRow(p,rank,compact){
     <div class="rk" style="color:${medal||C.ivoryFaint};text-shadow:${medal?`0 0 10px ${medal}88`:'none'}">${rank}</div>
     <div class="avatarSm" style="border-color:${mine?C.neon:'var(--line)'}">${esc(p.name[0])}</div>
     <div class="nm"><div class="n1" style="font-weight:${mine?700:500}">${esc(p.name)}${star}</div><div class="n2">${esc(p.club)}</div></div>
-    <div class="rt"><div class="r1" style="color:${isHigh(p.rating)?C.neon:C.ivory};text-shadow:${isHigh(p.rating)?`0 0 8px ${C.neon}55`:'none'}">${p.rating.toFixed(2)}</div>
+    <div class="rt"><div class="r1" style="color:${isHigh(p.rating)?bandColor(p.rating):C.ivory};text-shadow:${isHigh(p.rating)?`0 0 8px ${bandColor(p.rating)}55`:'none'}">${p.rating.toFixed(1)}</div>
     <div class="r2">${bandName(p.rating).toUpperCase()}</div></div>
   </div>`;
 }
@@ -388,8 +397,7 @@ function matchMini(m){
 
 /* ============ VIEWS ============ */
 function viewHome(){
-  const M=me(), bi=bandIdx(M.rating), pos=ranked().findIndex(p=>p.id===ME)+1;
-  const toNext=((bi+1)-M.rating).toFixed(2), nextBand=BANDS[bi+1]||'Top';
+  const M=me(), pos=ranked().findIndex(p=>p.id===ME)+1;
   return `<div class="page">
     <!-- Logo -->
     <div class="rise" style="display:flex;justify-content:center;padding:28px 0 18px">
@@ -432,7 +440,7 @@ function viewHome(){
       <button class="home-tile rise" onclick="go('profile')" style="animation-delay:.25s">
         <div class="ht-icon" style="color:${C.neon}">◉</div>
         <div class="ht-title">Profilo</div>
-        <div class="ht-sub">Fondocassa · Circolo · Stelle</div>
+        <div class="ht-sub">ELO · Circolo · Serie</div>
       </button>
       <button class="home-tile rise" onclick="go('rules')" style="animation-delay:.30s">
         <div class="ht-icon" style="color:${C.rust}">§</div>
@@ -447,21 +455,18 @@ function viewRank(){
   const r=ranked();
   const clubs=['all',...new Set(r.map(p=>p.club))];
   const list = rankFilter==='all'?r:r.filter(p=>p.club===rankFilter);
-  const bandsHtml = BANDS.map((b,i)=>{
-    const hi=i>=7;
-    return `<div class="band" title="${b}" style="flex:${i===10?0.4:1};
-      background:${hi?`linear-gradient(180deg,${C.neon},${C.neonDim})`:`rgba(91,240,203,${(0.06+i*0.02).toFixed(2)})`};
-      border:1px solid ${hi?C.neon:'var(--lineSoft)'};color:${hi?C.void:C.ivoryFaint};font-weight:${hi?700:400}">${i}</div>`;
+  const bandsHtml = BANDS.map(b=>{
+    return `<div class="band" title="${b.name} ${b.min}–${b.max}" style="flex:1;background:${b.color}22;border:1px solid ${b.color}66;color:${b.color};font-weight:600;font-size:8px">${b.name.slice(0,3).toUpperCase()}</div>`;
   }).join('');
   return `<div class="page">
     ${stag('Classifica')}
     <div class="chips">${clubs.map(c=>`<button class="chip ${rankFilter===c?'active':''}" onclick="setFilter('${c.replace(/'/g,"")}')">${c==='all'?'Tutti i circoli':esc(c)}</button>`).join('')}</div>
     <div class="card" style="padding:14px 16px">
-      <div style="font-size:9px;letter-spacing:.16em;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:10px">11 FASCE · 0.00 → 10.00</div>
+      <div style="font-size:9px;letter-spacing:.16em;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:10px">6 FASCE · 0 → 100</div>
       <div class="bands">${bandsHtml}</div>
       <div style="display:flex;justify-content:space-between;margin-top:8px">
-        <span style="font-size:9px;color:var(--ivoryFaint);font-family:var(--mono)">BASSE</span>
-        <span style="font-size:9px;color:var(--neon);font-family:var(--mono);text-shadow:0 0 8px ${C.neon}">FASCE ALTE 7+</span></div>
+        <span style="font-size:9px;color:#7B8FA1;font-family:var(--mono)">FERRO · 0–19</span>
+        <span style="font-size:9px;color:#F06A80;font-family:var(--mono);text-shadow:0 0 8px #F06A8088">ÉLITE · 90–100</span></div>
     </div>
     <div class="card">${list.map(p=>rankRow(p,r.findIndex(x=>x.id===p.id)+1,false)).join('')}</div>
   </div>`;
@@ -483,32 +488,27 @@ function viewPlay(){
   const others=players.filter(p=>p.id!==ME);
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   const valid=new Set([...t1,...t2]).size===4;
-  const calc=valid?computeMatch(t1,t2,pl.format,pl.winner):null;
-  const opt=(sel,exclude)=>others.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>${esc(p.name)} · ${p.rating.toFixed(2)}</option>`).join('');
+  const calc=valid?computeMatch(t1,t2,'classic',pl.winner):null;
+  const opt=(sel,exclude)=>others.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>${esc(p.name)} · ${p.rating.toFixed(1)}</option>`).join('');
 
   let preview='';
   if(calc){
     const rows=[ME,pl.partner,pl.opp1,pl.opp2].map(id=>{
-      const r=calc.res[id], up=r.delta>0, flat=r.delta===0;
-      const col=flat?C.ivoryFaint:up?C.neon:C.danger;
-      return `<div class="prow"><span class="pn" style="color:${id===ME?C.neon:C.ivory};font-weight:${id===ME?700:500}">${esc(pName(id))} ${r.isStrong?'<span style="font-size:9px;color:var(--ivoryFaint)">· forte</span>':''}</span>
-        <span class="pd" style="color:${col}">${flat?'0.00':(up?'+':'')+r.delta.toFixed(2)}</span></div>`;
+      const r=calc.res[id], up=r.delta>0;
+      const col=up?C.neon:C.danger;
+      return `<div class="prow"><span class="pn" style="color:${id===ME?C.neon:C.ivory};font-weight:${id===ME?700:500}">${esc(pName(id))} <span style="font-size:9px;color:var(--ivoryFaint)">K=${r.K}</span></span>
+        <span class="pd" style="color:${col}">${up?'+':''}${r.delta.toFixed(1)}</span></div>`;
     }).join('');
     preview=`<div class="card rise" style="margin-top:14px">
       <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-        ${pill('Coppia A · '+calc.sum1.toFixed(2),'ghost')}${pill('Diff · '+calc.diff.toFixed(2),'ghost')}${pill('Coppia B · '+calc.sum2.toFixed(2),'ghost')}</div>
+        ${pill('Media A · '+calc.avg1.toFixed(1),'ghost')}${pill('P(A) · '+(calc.E1*100).toFixed(0)+'%','ghost')}${pill('Media B · '+calc.avg2.toFixed(1),'ghost')}</div>
       ${rows}
-      ${pl.format==='single'?`<div class="warn c-gold">⚠ Il set singolo non dà diritto alla promozione e vale metà punti.</div>`:''}
-      ${calc.diff>2.0?`<div class="warn c-rust">⚠ Differenza &gt; 2.0 — richiede approvazione esplicita della coppia forte.</div>`:''}
     </div>`;
   }
 
   return `<div class="page">
     ${stag('Registra partita')}
-    <div class="seg">
-      <button class="segBtn ${pl.format==='classic'?'active':''}" onclick="setPlay('format','classic')">Classica · 2 su 3</button>
-      <button class="segBtn ${pl.format==='single'?'active':''}" onclick="setPlay('format','single')">Set singolo</button>
-    </div>
+    <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:12px;letter-spacing:.06em">FORMATO: CLASSICA · 2 SU 3</div>
     <div class="card" style="margin-top:4px">
       <div class="teamBlock" style="border-left:2px solid ${C.neon}">
         <div class="tt" style="color:${C.neon}">La tua coppia</div>
@@ -536,18 +536,16 @@ function resetPlay(){pl.done=false;render()}
 function confirmMatch(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   if(new Set([...t1,...t2]).size!==4) return;
-  const calc=computeMatch(t1,t2,pl.format,pl.winner);
+  const calc=computeMatch(t1,t2,'classic',pl.winner);
   players=players.map(p=>{
     const r=calc.res[p.id]; if(!r) return p;
-    let {rating,fondo,streak}=p; let d=r.delta;
-    if(d>=0){rating=Math.min(10,rating+d);}
-    else{const fromFondo=Math.min(fondo,-d);fondo=+(fondo-fromFondo).toFixed(2);rating=Math.max(0,rating+(d+fromFondo));}
-    if(pl.format==='classic') streak = r.won?streak+1:0;
-    return {...p,rating:+rating.toFixed(2),fondo:+fondo.toFixed(2),streak};
+    const rating=+Math.max(0,Math.min(100,p.rating+r.delta)).toFixed(1);
+    const streak=r.won?p.streak+1:0;
+    const games=p.games+1;
+    return {...p,rating,streak,games};
   });
   matches.unshift({id:900+matches.length+Math.floor(Math.random()*1000),when:'Adesso',
-    format:pl.format==='classic'?'Classica':'Set singolo',t1,t2,
-    score:pl.format==='classic'?'6-3 / 4-6 / 6-2':'7-5',status:'pending',winner:pl.winner,mover:ME});
+    format:'Classica',t1,t2,score:'6-3 / 4-6 / 6-2',status:'pending',winner:pl.winner,mover:ME});
   pl.done=true; render();
 }
 
@@ -584,58 +582,66 @@ function viewProfile(){
       <div class="avatarBig" style="margin:0 auto">${esc(M.name[0])}</div>
       <div style="font-family:var(--serif);font-size:26px;font-style:italic;margin-top:12px">${esc(M.name)}</div>
       <div style="font-size:11.5px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.1em;margin-top:2px">${esc(M.club).toUpperCase()} · ${esc(M.city)}</div>
-      <div style="display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap">${pill('Fascia '+bandName(M.rating),'neon')}${pill('★ '+M.streak+' di fila','gold')}</div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <span class="pill" style="background:${bandColor(M.rating)}1f;border:1px solid ${bandColor(M.rating)}66;color:${bandColor(M.rating)}">${bandName(M.rating)}</span>
+        ${pill('★ '+M.streak+' di fila','gold')}
+      </div>
     </div>
     <div class="stats3">
-      ${statCard('Rating',M.rating.toFixed(2),bandName(M.rating),C.neon)}
-      ${statCard('Fondocassa',M.fondo.toFixed(2),'riserva',C.gold)}
-      ${statCard('Stelle',M.streak,'serie',C.rust)}
+      ${statCard('Rating',M.rating.toFixed(1),bandName(M.rating),bandColor(M.rating))}
+      ${statCard('Partite',''+M.games,'giocate',C.gold)}
+      ${statCard('Serie',M.streak,'vittorie',C.rust)}
     </div>
     ${stag('Stato profilo')}
     <div class="card">
       <div class="irow"><span class="k">Circolo</span><span class="v">${esc(M.club)} (affiliato)</span></div>
-      <div class="irow"><span class="k">Valutazione iniziale</span><span class="v">Completata · 1 set</span></div>
+      <div class="irow"><span class="k">Valutazione iniziale</span><span class="v">Completata</span></div>
       <div class="irow"><span class="k">Stato classifica</span><span class="v c-good">Attivo</span></div>
       <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
-      <div class="irow"><span class="k">Bounty disponibili</span><span class="v c-gold">Sì — batti chi è in serie</span></div>
+      <div class="irow"><span class="k">K-factor attuale</span><span class="v c-gold">K=${M.games<=20?8:M.games<=50?5:3} (${M.games} partite)</span></div>
     </div>
     ${stag('Compagni di circolo')}
     <div class="card">${tm.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
       <div class="avatarSm">${esc(p.name[0])}</div><span style="flex:1;font-size:13px">${esc(p.name)}</span>
-      <span style="font-family:var(--mono);font-size:13px;color:${isHigh(p.rating)?C.neon:C.ivoryDim}">${p.rating.toFixed(2)}</span></div>`).join('')}</div>
+      <span style="font-family:var(--mono);font-size:13px;color:${isHigh(p.rating)?bandColor(p.rating):C.ivoryDim}">${p.rating.toFixed(1)}</span></div>`).join('')}</div>
   </div>`;
 }
 
 const RULES=[
   ['Registrazione e valutazione iniziale',
-    `<p>Registrati su <b>www.padelmeeting.it</b>, tramite invito di un altro giocatore o del responsabile del circolo. Indica nome del circolo e città — non serve che sia già affiliato a PadelMeeting.</p>
-     <p>Dopo la registrazione il profilo è <b>in attesa di valutazione</b>. Il responsabile del circolo ti osserva durante <b>1 set</b> e ti assegna il rating iniziale (massimo <b>8,00</b>). Da quel momento sei in classifica e le tue partite muovono il punteggio.</p>
-     <p class="note">Se il circolo non è ancora affiliato, il profilo resta in attesa finché non si iscrive: nel frattempo non puoi partecipare a partite classificate.</p>
+    `<p>Registrati su <b>www.padelmeeting.it</b>, tramite invito di un altro giocatore o del responsabile del circolo. Indica nome del circolo e città.</p>
+     <p>Dopo la registrazione il responsabile del circolo ti osserva durante <b>1 set</b> e ti assegna il <b>rating iniziale</b> (massimo <b>70</b>). Da quel momento sei in classifica e le tue partite muovono il punteggio.</p>
      <p class="note">Le partite giocate prima della valutazione non possono essere inserite retroattivamente.</p>`],
 
   ['Fasce e classifica',
-    `<p>La classifica va da <b>0,00 a 10,00</b>, divisa in <b>11 fasce</b>: Zero, Uno, Due, Tre, Quattro, Cinque, Sei, Sette, Otto, Nove, Dieci.</p>
-     <div class="li">La fascia del <b>Dieci</b> può contenere un solo giocatore alla volta.</div>
-     <div class="li">Le fasce dalla <b>7 alla 10</b> sono dette "alte" e hanno regole aggiuntive per avanzare.</div>`],
+    `<p>La classifica va da <b>0 a 100</b>, divisa in <b>6 fasce</b>:</p>
+     <div class="kv"><span class="kk" style="color:#7B8FA1">Ferro</span><span class="vv" style="color:#7B8FA1">0 – 19</span></div>
+     <div class="kv"><span class="kk" style="color:#CD7F32">Bronzo</span><span class="vv" style="color:#CD7F32">20 – 39</span></div>
+     <div class="kv"><span class="kk" style="color:#C0C0C0">Argento</span><span class="vv" style="color:#C0C0C0">40 – 59</span></div>
+     <div class="kv"><span class="kk" style="color:#EFD06A">Oro</span><span class="vv" style="color:#EFD06A">60 – 74</span></div>
+     <div class="kv"><span class="kk" style="color:#5BF0CB">Platino</span><span class="vv" style="color:#5BF0CB">75 – 89</span></div>
+     <div class="kv"><span class="kk" style="color:#F06A80">Élite</span><span class="vv" style="color:#F06A80">90 – 100</span></div>
+     <p style="margin-top:8px">Le fasce si aggiornano <b>automaticamente</b> in base al punteggio — nessuna procedura di promozione.</p>`],
+
+  ['Sistema ELO',
+    `<p>Il rating di ogni giocatore cambia dopo ogni partita secondo la formula ELO:</p>
+     <div class="kv"><span class="kk">Prob. attesa (squadra A)</span><span class="vv">E = 1 / (1 + 10^((⌀B − ⌀A) / 40))</span></div>
+     <div class="kv"><span class="kk">Variazione</span><span class="vv">Δ = K × (Risultato − E)</span></div>
+     <p style="margin-top:8px"><b>Risultato</b> = 1 per vittoria, 0 per sconfitta. <b>⌀</b> = media dei rating dei due compagni di coppia.</p>
+     <div class="sub">K-factor dinamico</div>
+     <div class="kv"><span class="kk">Prime 20 partite</span><span class="vv pos">K = 8 · calibrazione rapida</span></div>
+     <div class="kv"><span class="kk">Partite 21 – 50</span><span class="vv">K = 5</span></div>
+     <div class="kv"><span class="kk">Oltre 50 partite</span><span class="vv">K = 3 · rating stabile</span></div>
+     <p class="note">Con K=3, D=40: una vittoria inaspettata (E≈15%) vale ~2.5 pt; una vittoria scontata (E≈85%) vale ~0.5 pt.</p>`],
 
   ['Partite classificate',
     `<p>Una partita muove la classifica solo se dichiarata <b>classificata prima del primo 15</b> giocato, con accordo verbale di tutti e 4 i giocatori, e se tutti e 4 sono registrati con un rating assegnato.</p>
-     <div class="sub">Classica · 2 set su 3 (Punto Secco + tie-break)</div>
-     <div class="kv"><span class="kk">Diff. 0,0 – 1,0</span><span class="vv">+0,20 / −0,20 ciascuno</span></div>
-     <div class="kv"><span class="kk">Diff. 1,05 – 2,0 · favoriti</span><span class="vv">+0,10 / −0,30</span></div>
-     <div class="kv"><span class="kk">Diff. 1,05 – 2,0 · sfavoriti</span><span class="vv">+0,30 / −0,10</span></div>
-     <div class="kv"><span class="kk">Diff. &gt; 2,0 · forti*</span><span class="vv">0 / −0,40</span></div>
-     <div class="kv"><span class="kk">Diff. &gt; 2,0 · deboli</span><span class="vv">+0,40 / 0</span></div>
-     <p class="note">*Con approvazione esplicita della coppia forte.</p>
-     <div class="sub rust">Set singolo · Punto Secco, diff. max 2,0</div>
-     <p>Punti <b>dimezzati</b> rispetto alla classica.</p>
-     <p class="note">Il set singolo non dà mai diritto alla promozione. La sconfitta in un set classificato può invece far retrocedere.</p>
-     <p>Quando gli stessi 4 giocatori con le stesse coppie giocano nella stessa prenotazione, si gioca <b>sempre e solo la classica</b> (2 su 3): non è possibile optare per set singoli separati.</p>`],
+     <p>Si gioca <b>solo il formato Classica</b>: al meglio dei 3 set, con Punto Secco e tie-break. Il formato "set singolo" non esiste in PadelMeeting.</p>`],
 
   ['Inserimento e approvazione del risultato',
-    `<p>Al termine della partita uno dei 4 giocatori inserisce il risultato nell'app, identificando gli altri 3 per <b>username o numero di telefono</b>. Almeno un giocatore della squadra avversaria deve approvare entro <b>48 ore</b>.</p>
+    `<p>Al termine della partita uno dei 4 giocatori inserisce il risultato nell'app. Almeno un giocatore della squadra avversaria deve approvare entro <b>48 ore</b>.</p>
      <div class="li">Se nessuno approva entro 48 ore, il risultato passa al <b>responsabile del circolo</b> per validazione manuale.</div>
-     <div class="li rust">Se un avversario contesta, la partita viene bloccata e decide il responsabile del circolo: la sua decisione è definitiva.</div>`],
+     <div class="li rust">Se un avversario contesta, la partita viene bloccata e decide il responsabile: la sua decisione è definitiva.</div>`],
 
   ['Punto Secco',
     `<p>Dal primo <b>40 pari</b> in poi si gioca con il Punto Secco, in tre fasi:</p>
@@ -643,67 +649,26 @@ const RULES=[
      <div class="li"><span><b>2° vantaggio:</b> chi lo vince chiude il game, chi lo perde passa al Punto Secco.</span></div>
      <div class="li"><span><b>Punto Secco:</b> un unico punto decisivo — chi lo vince si aggiudica il game.</span></div>`],
 
-  ['Promozione',
-    `<p>Per salire di fascia devi soddisfare <b>tutte</b> queste condizioni in una partita classica:</p>
-     <div class="li">Vincere la partita (il set singolo non conta).</div>
-     <div class="li">Battere almeno un giocatore della fascia superiore.</div>
-     <div class="li">Ricevere <b style="white-space:nowrap">+0,20 o +0,30</b> (non essere nella coppia con oltre 1,05 di vantaggio).</div>
-     <div class="li">La somma dei coefficienti degli avversari deve raggiungere la soglia minima.</div>
-     <div class="sub">Soglia somma avversari</div>
-     <div class="grid2">
-       <div class="cell"><span>Fascia 6</span><span class="vv">≥ 11</span></div>
-       <div class="cell"><span>Fascia 7</span><span class="vv">≥ 13</span></div>
-       <div class="cell"><span>Fascia 8</span><span class="vv">≥ 15</span></div>
-       <div class="cell"><span>Fascia 9</span><span class="vv">≥ 17</span></div>
-     </div>`],
-
-  ['Avanzamento nelle fasce alte (6+)',
-    `<p>Nelle fasce alte vinci punti per il <b>rating ufficiale</b> solo se la somma degli avversari raggiunge la soglia minima. Altrimenti i punti vinti vanno nel <b>fondocassa</b>.</p>
-     <div class="grid2">
-       <div class="cell"><span>6,00–6,45</span><span class="vv">≥ 11,0</span></div>
-       <div class="cell"><span>6,50–6,95</span><span class="vv">≥ 12,0</span></div>
-       <div class="cell"><span>7,00–7,45</span><span class="vv">≥ 13,0</span></div>
-       <div class="cell"><span>7,50–7,95</span><span class="vv">≥ 14,0</span></div>
-       <div class="cell"><span>8,00–8,45</span><span class="vv">≥ 15,0</span></div>
-       <div class="cell"><span>8,50–8,95</span><span class="vv">≥ 16,0</span></div>
-       <div class="cell"><span>9,00–9,45</span><span class="vv">≥ 17,0</span></div>
-       <div class="cell"><span>9,50–9,95</span><span class="vv">≥ 18,0</span></div>
-     </div>`],
-
-  ['Fondocassa',
-    `<p>Il fondocassa è una <b>riserva separata</b> dal rating ufficiale, massimo <b>1,00 punto</b>. I punti vi finiscono quando non hai i requisiti per la promozione, o quando sei nelle fasce alte e la somma degli avversari è sotto soglia.</p>
-     <div class="li">Quando perdi punti, vengono sottratti <b>prima dal fondocassa</b> e poi dal rating.</div>
-     <div class="li">Nel calcolo dei coefficienti, al giocatore col punteggio <b>più alto in campo</b> si sommano anche i suoi punti fondocassa.</div>
-     <p class="note">Alla promozione il fondocassa viene decurtato fino a 0,20 massimo.</p>`],
-
   ['Serie di vittorie ★',
-    `<p>Vinci partite classiche di fila e accumuli <b>stelle</b> con bonus:</p>
-     <div class="kv"><span class="kk">3 vittorie consecutive</span><span class="vv pos">+0,10</span></div>
-     <div class="kv"><span class="kk">5 vittorie consecutive</span><span class="vv pos">+0,20 aggiuntivi</span></div>
-     <div class="kv"><span class="kk">10 vittorie consecutive</span><span class="vv pos">+0,50 aggiuntivi</span></div>
-     <p>Le stelle si perdono <b>tutte</b> alla prima sconfitta in una classica.</p>
-     <p class="note">Una vittoria non conta per la serie se sei nella coppia favorita con differenza superiore a 1,0, o se nelle fasce alte non rispetti la soglia minima degli avversari.</p>`],
-
-  ['Bounty 🎯',
-    `<p>Se batti un giocatore in serie di vittorie, <b>entrambi</b> i giocatori della coppia vincitrice ricevono un bonus in fondocassa:</p>
-     <div class="kv"><span class="kk">Gioca per la 3ª stella (ne ha 2)</span><span class="vv gold">+0,05 ciascuno</span></div>
-     <div class="kv"><span class="kk">Gioca per la 5ª stella (ne ha 4)</span><span class="vv gold">+0,10 ciascuno</span></div>
-     <div class="kv"><span class="kk">Gioca per la 10ª stella (ne ha 9)</span><span class="vv gold">+0,20 ciascuno</span></div>`],
+    `<p>Vinci partite classiche di fila e accumuli <b>stelle</b> con bonus ELO aggiuntivi:</p>
+     <div class="kv"><span class="kk">3 vittorie consecutive</span><span class="vv pos">+1 pt bonus</span></div>
+     <div class="kv"><span class="kk">5 vittorie consecutive</span><span class="vv pos">+2 pt bonus aggiuntivi</span></div>
+     <div class="kv"><span class="kk">10 vittorie consecutive</span><span class="vv pos">+5 pt bonus aggiuntivi</span></div>
+     <p>Le stelle si perdono <b>tutte</b> alla prima sconfitta.</p>`],
 
   ['Inattività',
     `<p>Se non giochi partite classificate per <b>30 giorni consecutivi</b>, perdi punti. Ricevi una notifica 7 giorni prima del primo malus.</p>
-     <div class="kv"><span class="kk">30° giorno</span><span class="vv neg">−0,10</span></div>
-     <div class="kv"><span class="kk">Ogni settimana succ. (1° mese)</span><span class="vv neg">−0,10</span></div>
-     <div class="kv"><span class="kk">Dal 2° mese</span><span class="vv neg">−0,20 / settimana</span></div>
+     <div class="kv"><span class="kk">30° giorno</span><span class="vv neg">−1 pt</span></div>
+     <div class="kv"><span class="kk">Ogni settimana succ. (1° mese)</span><span class="vv neg">−1 pt</span></div>
+     <div class="kv"><span class="kk">Dal 2° mese</span><span class="vv neg">−2 pt / settimana</span></div>
      <div class="kv"><span class="kk">Dopo 4 mesi</span><span class="vv neg">Rimozione</span></div>
-     <p class="note">Per infortunio o impegni lavorativi prolungati puoi richiedere la sospensione del conteggio al responsabile. Al rientro il conteggio riparte da zero.</p>`],
+     <p class="note">Per infortunio puoi richiedere la sospensione del conteggio al responsabile. Al rientro il conteggio riparte da zero.</p>`],
 
   ['Abbandono e ammonizioni',
-    `<p>Se lasci il campo dopo il primo punto giocato, il risultato conta come <b>sconfitta</b> — indipendentemente dal motivo.</p>
-     <div class="kv"><span class="kk">Abbandono giustificato</span><span class="vv">Solo perdita punti</span></div>
-     <div class="kv"><span class="kk">Abbandono ingiustificato</span><span class="vv neg">−0,50 + ammonizione</span></div>
-     <div class="li">Giustificato: comunica il motivo al responsabile <b>entro 24 ore</b>, nessuna sanzione.</div>
-     <div class="li rust">Il malus −0,50 va colmato prima di poter guadagnare altri punti.</div>
+    `<p>Se lasci il campo dopo il primo punto giocato, il risultato conta come <b>sconfitta</b>.</p>
+     <div class="kv"><span class="kk">Abbandono giustificato</span><span class="vv">Solo perdita ELO normale</span></div>
+     <div class="kv"><span class="kk">Abbandono ingiustificato</span><span class="vv neg">−5 pt + ammonizione</span></div>
+     <div class="li">Giustificato: comunica il motivo al responsabile <b>entro 24 ore</b>.</div>
      <div class="li rust"><b>Due ammonizioni</b> in 3 mesi = squalifica di <b>2 mesi</b> dalle partite classificate.</div>`],
 
   ['Note della Direzione',
@@ -727,7 +692,7 @@ function viewRules(){
 function toggleRule(i){ruleOpen=ruleOpen===i?-1:i;render()}
 
 /* ============ ORGANIZZA ============ */
-let org = { date:'', time:'18:00', format:'classic', partner:1, opp1:3, opp2:4, sent:false };
+let org = { date:'', time:'18:00', partner:1, opp1:3, opp2:4, sent:false };
 
 function viewOrganize(){
   if(org.sent){
@@ -745,38 +710,39 @@ function viewOrganize(){
   const others = players.filter(p => p.id !== ME);
   const opt = (sel, exclude) => others.map(p =>
     `<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>
-      ${esc(p.name)} · ${p.rating.toFixed(2)}
+      ${esc(p.name)} · ${p.rating.toFixed(1)}
     </option>`).join('');
 
   const t1=[ME,org.partner], t2=[org.opp1,org.opp2];
   const valid = new Set([...t1,...t2]).size===4;
-  const calc  = valid ? computeMatch(t1,t2,org.format,1) : null;
+  const calc  = valid ? computeMatch(t1,t2,'classic',1) : null;
 
   let preview='';
   if(calc){
-    const col = calc.diff<=1.0?C.neon:calc.diff<=2.0?C.gold:C.rust;
-    const label = calc.diff<=1.0?'Partita equilibrata':calc.diff<=2.0?'Lieve vantaggio coppia A':'Grande differenza';
+    const pA=calc.E1, pctA=(pA*100).toFixed(0);
+    const col = pA>=0.45&&pA<=0.55?C.neon:pA>=0.38&&pA<=0.62?C.gold:C.rust;
+    const label = pA>=0.45&&pA<=0.55?'Partita equilibrata':pA>=0.38&&pA<=0.62?'Lieve vantaggio coppia A':'Grande differenza';
     preview=`<div class="card rise" style="margin-top:14px;border-color:${col}44">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <span style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${col}">${label}</span>
-        <span style="font-family:var(--mono);font-size:13px;color:${col};font-weight:700">Δ ${calc.diff.toFixed(2)}</span>
+        <span style="font-family:var(--mono);font-size:13px;color:${col};font-weight:700">P(A) ${pctA}%</span>
       </div>
       <div class="mgrid">
         <div class="mside">
           ${[ME,org.partner].map(id=>`<div class="pl" style="color:${C.neon};font-weight:600">${esc(pName(id))}</div>`).join('')}
-          <div style="font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px">Σ ${calc.sum1.toFixed(2)}</div>
+          <div style="font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px">⌀ ${calc.avg1.toFixed(1)}</div>
         </div>
         <div class="mscore" style="font-size:16px;font-family:var(--serif);font-style:italic;color:var(--rust)">vs</div>
         <div class="mside" style="text-align:right">
           ${[org.opp1,org.opp2].map(id=>`<div class="pl" style="color:${C.ivory}">${esc(pName(id))}</div>`).join('')}
-          <div style="font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px">Σ ${calc.sum2.toFixed(2)}</div>
+          <div style="font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px">⌀ ${calc.avg2.toFixed(1)}</div>
         </div>
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--lineSoft);display:flex;justify-content:space-between">
         <span style="font-size:11px;color:var(--ivoryFaint)">Vittoria coppia A vale</span>
-        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${C.neon}">${org.format==='single'?Math.abs(calc.res[ME].delta/2).toFixed(2):Math.abs(calc.res[ME].delta).toFixed(2)} pt ciascuno</span>
+        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${C.neon}">${Math.abs(calc.res[ME].delta).toFixed(1)} pt ciascuno</span>
       </div>
-      ${calc.diff>2.0?`<div class="warn c-rust" style="margin-top:8px">⚠ Differenza > 2.0 — richiede approvazione della coppia forte.</div>`:''}
+      ${pA<0.3||pA>0.7?`<div class="warn c-rust" style="margin-top:8px">⚠ Squilibrio marcato — considera coppie diverse.</div>`:''}
     </div>`;
   }
 
@@ -789,12 +755,6 @@ function viewOrganize(){
         <input type="date" class="org-date" value="${org.date}" onchange="org.date=this.value;render()">
         <input type="time" class="org-time" value="${org.time}" onchange="org.time=this.value;render()">
       </div>
-    </div>
-
-    ${stag('Formato')}
-    <div class="seg">
-      <button class="segBtn ${org.format==='classic'?'active':''}" onclick="org.format='classic';render()">Classica · 2 su 3</button>
-      <button class="segBtn ${org.format==='single'?'active':''}" onclick="org.format='single';render()">Set singolo</button>
     </div>
 
     ${stag('Giocatori')}
@@ -822,7 +782,7 @@ function viewOrganize(){
     </button>
   </div>`;
 }
-function resetOrg(){org={date:'',time:'18:00',format:'classic',partner:1,opp1:3,opp2:4,sent:false};render()}
+function resetOrg(){org={date:'',time:'18:00',partner:1,opp1:3,opp2:4,sent:false};render()}
 function sendOrg(){if(new Set([ME,org.partner,org.opp1,org.opp2]).size===4){org.sent=true;render()}}
 
 /* ============ NAV / RENDER ============ */
