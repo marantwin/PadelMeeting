@@ -462,23 +462,11 @@ function viewRank(){
       <span style="font-family:var(--mono);font-size:13px;color:var(--ivoryFaint)">${b.min} – ${b.max}</span>
     </div>`).join('');
 
-  const bandsGrid = BANDS.map(b=>`
-    <div style="border-radius:12px;border:1px solid ${b.color}55;background:${b.color}11;padding:12px 10px;text-align:center">
-      <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${b.color};letter-spacing:.06em">${b.name.toUpperCase()}</div>
-      <div style="font-family:var(--mono);font-size:12px;color:var(--ivoryFaint);margin-top:5px">${b.min}–${b.max}</div>
-    </div>`).join('');
-
   return `<div class="page">
     ${stag('Classifica')}
     <div class="chips">${clubs.map(c=>`<button class="chip ${rankFilter===c?'active':''}" onclick="setFilter('${c.replace(/'/g,"")}')">${c==='all'?'Tutti i circoli':esc(c)}</button>`).join('')}</div>
-
-    <div style="font-size:10px;letter-spacing:.18em;color:var(--neon);font-family:var(--mono);margin:14px 0 6px">OPZIONE A — LISTA</div>
     <div class="card" style="padding:6px 16px">${bandsList}</div>
-
-    <div style="font-size:10px;letter-spacing:.18em;color:var(--neon);font-family:var(--mono);margin:14px 0 6px">OPZIONE B — CARD</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${bandsGrid}</div>
-
-    <div class="card" style="margin-top:16px">${list.map(p=>rankRow(p,r.findIndex(x=>x.id===p.id)+1,false)).join('')}</div>
+    <div class="card" style="margin-top:10px">${list.map(p=>rankRow(p,r.findIndex(x=>x.id===p.id)+1,false)).join('')}</div>
   </div>`;
 }
 let rankFilter='all';
