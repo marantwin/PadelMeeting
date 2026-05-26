@@ -487,7 +487,7 @@ function viewPlay(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   const valid=new Set([...t1,...t2]).size===4;
   const calc=valid?computeMatch(t1,t2,'classic',pl.winner):null;
-  const opt=(sel,exclude)=>others.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>${esc(p.name)} · ${p.rating.toFixed(1)}</option>`).join('');
+  const opt=(sel,exclude)=>others.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}</option>`).join('');
 
   let preview='';
   if(calc){
@@ -708,7 +708,7 @@ function viewOrganize(){
   const others = players.filter(p => p.id !== ME);
   const opt = (sel, exclude) => others.map(p =>
     `<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>
-      ${esc(p.name)} · ${p.rating.toFixed(1)}
+      ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}
     </option>`).join('');
 
   const t1=[ME,org.partner], t2=[org.opp1,org.opp2];
