@@ -290,30 +290,30 @@ const bandColor = r => BANDS[bandIdx(r)].color;
 const isHigh = r => r>=66;
 
 let players = [
-  {id:1, name:'Ivano Casilli',       club:'Padel Vesuvio', city:'Napoli',  rating:82, games:65, streak:7},
-  {id:2, name:'Luigi Rocco',         club:'Padel Vesuvio', city:'Napoli',  rating:74, games:55, streak:4},
-  {id:3, name:'Giuliano Del Giudice',club:'Salerno Smash', city:'Salerno', rating:70, games:48, streak:2},
-  {id:4, name:'Marta Esposito',      club:'Salerno Smash', city:'Salerno', rating:63, games:62, streak:9},
-  {id:5, name:'Davide Greco',        club:'Padel Vesuvio', city:'Napoli',  rating:58, games:30, streak:0},
-  {id:6, name:'Chiara Ferraro',      club:'Costa Padel',   city:'Sorrento',rating:56, games:25, streak:1},
-  {id:7, name:'Antonio Russo',       club:'Costa Padel',   city:'Sorrento',rating:49, games:18, streak:3},
-  {id:8, name:'Sara Bianchi',        club:'Salerno Smash', city:'Salerno', rating:45, games:22, streak:0},
-  {id:9, name:'Marco Romano',        club:'Padel Vesuvio', city:'Napoli',  rating:36, games:40, streak:5},
-  {id:10,name:'Elena Conti',         club:'Costa Padel',   city:'Sorrento',rating:26, games:15, streak:0},
-  {id:11,name:'Antonello Martux',    club:'EVOSPORT',      city:'Eboli',   rating:53, games:20, streak:2},
-  {id:13,name:'Luca Ferretti',       club:'EVOSPORT',      city:'Eboli',   rating:60, games:28, streak:1},
-  {id:14,name:'Marco De Rosa',       club:'EVOSPORT',      city:'Eboli',   rating:48, games:12, streak:0},
-  {id:15,name:'Simone Aiello',       club:'EVOSPORT',      city:'Eboli',   rating:44, games:16, streak:3},
-  {id:16,name:'Carmine Vitolo',      club:'EVOSPORT',      city:'Eboli',   rating:64, games:45, streak:5},
-  {id:17,name:'Gianluca Serra',      club:'EVOSPORT',      city:'Eboli',   rating:33, games:8,  streak:0},
-  {id:18,name:'Raffaele Muto',       club:'EVOSPORT',      city:'Eboli',   rating:61, games:35, streak:2},
-  {id:19,name:'Davide Amendola',     club:'EVOSPORT',      city:'Eboli',   rating:23, games:6,  streak:1},
-  {id:12,name:'Paolo Gallo',         club:'Salerno Smash', city:'Salerno', rating:15, games:4,  streak:0},
+  {id:1, name:'Ivano Casilli',       club:'Padel Vesuvio', city:'Napoli',   provincia:'NA', rating:82, games:65, streak:7},
+  {id:2, name:'Luigi Rocco',         club:'Padel Vesuvio', city:'Napoli',   provincia:'NA', rating:74, games:55, streak:4},
+  {id:5, name:'Davide Greco',        club:'Padel Vesuvio', city:'Napoli',   provincia:'NA', rating:58, games:30, streak:0},
+  {id:9, name:'Marco Romano',        club:'Padel Vesuvio', city:'Napoli',   provincia:'NA', rating:36, games:40, streak:5},
+  {id:6, name:'Chiara Ferraro',      club:'Costa Padel',   city:'Sorrento', provincia:'NA', rating:56, games:25, streak:1},
+  {id:7, name:'Antonio Russo',       club:'Costa Padel',   city:'Sorrento', provincia:'NA', rating:49, games:18, streak:3},
+  {id:10,name:'Elena Conti',         club:'Costa Padel',   city:'Sorrento', provincia:'NA', rating:26, games:15, streak:0},
+  {id:16,name:'Carmine Vitolo',      club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:64, games:45, streak:5},
+  {id:18,name:'Raffaele Muto',       club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:61, games:35, streak:2},
+  {id:13,name:'Luca Ferretti',       club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:60, games:28, streak:1},
+  {id:11,name:'Antonello Martux',    club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:53, games:20, streak:2},
+  {id:14,name:'Marco De Rosa',       club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:48, games:12, streak:0},
+  {id:15,name:'Simone Aiello',       club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:44, games:16, streak:3},
+  {id:17,name:'Gianluca Serra',      club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:33, games:8,  streak:0},
+  {id:19,name:'Davide Amendola',     club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:23, games:6,  streak:1},
+  {id:3, name:'Giuliano Del Giudice',club:'Salerno Smash', city:'Salerno',  provincia:'SA', rating:70, games:48, streak:2},
+  {id:4, name:'Marta Esposito',      club:'Salerno Smash', city:'Salerno',  provincia:'SA', rating:63, games:62, streak:9},
+  {id:8, name:'Sara Bianchi',        club:'Salerno Smash', city:'Salerno',  provincia:'SA', rating:45, games:22, streak:0},
+  {id:12,name:'Paolo Gallo',         club:'Salerno Smash', city:'Salerno',  provincia:'SA', rating:15, games:4,  streak:0},
 ];
 let matches = [
-  {id:901,when:'Oggi · 19:30',format:'Classica',t1:[11,7],t2:[3,4],score:'6-4 / 3-6 / 7-5',status:'pending',winner:1,mover:11},
-  {id:902,when:'Ieri · 21:00',format:'Classica',t1:[2,5],t2:[1,6],score:'6-4 / 4-6 / 7-5',status:'approved',winner:2,mover:2},
-  {id:903,when:'2 giorni fa · 18:00',format:'Classica',t1:[9,12],t2:[8,10],score:'6-2 / 6-3',status:'approved',winner:1,mover:9},
+  {id:901,when:'Oggi · 19:30',  format:'Classica',venue:'Salerno Smash', t1:[11,7],t2:[3,4], score:'6-4 / 3-6 / 7-5',status:'pending', winner:1,mover:11},
+  {id:902,when:'Ieri · 21:00',  format:'Classica',venue:'Padel Vesuvio', t1:[2,5], t2:[1,6], score:'6-4 / 4-6 / 7-5',status:'approved',winner:2,mover:2},
+  {id:903,when:'2 gg fa · 18:00',format:'Classica',venue:'Costa Padel',  t1:[9,12],t2:[8,10],score:'6-2 / 6-3',    status:'approved',winner:1,mover:9},
 ];
 const ME = 11;
 let tab = 'home';
@@ -377,7 +377,7 @@ function rankRow(p,rank,compact){
   return `<div class="rrow ${mine?'me':''} ${compact?'compact':''}">
     <div class="rk" style="color:${medal||C.ivoryFaint};text-shadow:${medal?`0 0 10px ${medal}88`:'none'}">${rank}</div>
     <div class="avatarSm" style="border-color:${mine?C.neon:'var(--line)'}">${esc(p.name[0])}</div>
-    <div class="nm"><div class="n1" style="font-weight:${mine?700:500}">${esc(p.name)}${star}</div><div class="n2">${esc(p.club)}</div></div>
+    <div class="nm"><div class="n1" style="font-weight:${mine?700:500}">${esc(p.name)}${star}</div><div class="n2">${esc(p.club)} · ${esc(p.provincia)}</div></div>
     <div class="rt"><div class="r1" style="color:${isHigh(p.rating)?bandColor(p.rating):C.ivory};text-shadow:${isHigh(p.rating)?`0 0 8px ${bandColor(p.rating)}55`:'none'}">${p.rating.toFixed(1)}</div>
     <div class="r2">${bandName(p.rating).toUpperCase()}</div></div>
   </div>`;
@@ -484,10 +484,16 @@ function viewPlay(){
     </div></div>`;
   }
   const others=players.filter(p=>p.id!==ME);
+  const sortedOthers=others.slice().sort((a,b)=>{
+    const p=a.provincia.localeCompare(b.provincia); if(p!==0) return p;
+    const c=a.club.localeCompare(b.club); if(c!==0) return c;
+    const f=bandIdx(b.rating)-bandIdx(a.rating); if(f!==0) return f;
+    return a.name.split(' ').pop().localeCompare(b.name.split(' ').pop());
+  });
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   const valid=new Set([...t1,...t2]).size===4;
   const calc=valid?computeMatch(t1,t2,'classic',pl.winner):null;
-  const opt=(sel,exclude)=>others.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}</option>`).join('');
+  const opt=(sel,exclude)=>sortedOthers.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>(${p.provincia}) ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}</option>`).join('');
 
   let preview='';
   if(calc){
@@ -543,7 +549,7 @@ function confirmMatch(){
     return {...p,rating,streak,games};
   });
   matches.unshift({id:900+matches.length+Math.floor(Math.random()*1000),when:'Adesso',
-    format:'Classica',t1,t2,score:'6-3 / 4-6 / 6-2',status:'pending',winner:pl.winner,mover:ME});
+    format:'Classica',venue:me().club,t1,t2,score:'6-3 / 4-6 / 6-2',status:'pending',winner:pl.winner,mover:ME});
   pl.done=true; render();
 }
 
@@ -579,7 +585,7 @@ function viewProfile(){
     <div class="card rise center" style="padding:28px 20px">
       <div class="avatarBig" style="margin:0 auto">${esc(M.name[0])}</div>
       <div style="font-family:var(--serif);font-size:26px;font-style:italic;margin-top:12px">${esc(M.name)}</div>
-      <div style="font-size:11.5px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.1em;margin-top:2px">${esc(M.club).toUpperCase()} · ${esc(M.city)}</div>
+      <div style="font-size:11.5px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.1em;margin-top:2px">${esc(M.club).toUpperCase()} · ${esc(M.city).toUpperCase()} (${esc(M.provincia)})</div>
       <div style="display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap">
         <span class="pill" style="background:${bandColor(M.rating)}1f;border:1px solid ${bandColor(M.rating)}66;color:${bandColor(M.rating)}">${bandName(M.rating)}</span>
         ${pill('★ '+M.streak+' di fila','gold')}
@@ -593,6 +599,7 @@ function viewProfile(){
     ${stag('Stato profilo')}
     <div class="card">
       <div class="irow"><span class="k">Circolo</span><span class="v">${esc(M.club)} (affiliato)</span></div>
+      <div class="irow"><span class="k">Provincia</span><span class="v">${esc(M.provincia)} · ${esc(M.city)}</span></div>
       <div class="irow"><span class="k">Valutazione iniziale</span><span class="v">Completata</span></div>
       <div class="irow"><span class="k">Stato classifica</span><span class="v c-good">Attivo</span></div>
       <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
@@ -690,13 +697,14 @@ function viewRules(){
 function toggleRule(i){ruleOpen=ruleOpen===i?-1:i;render()}
 
 /* ============ ORGANIZZA ============ */
-let org = { date:'', time:'18:00', partner:1, opp1:3, opp2:4, sent:false };
+let org = { date:'', time:'18:00', venue:'', venueCustom:'', partner:1, opp1:3, opp2:4, sent:false };
 
 function viewOrganize(){
   if(org.sent){
     return `<div class="page"><div class="card rise center" style="padding:44px 24px;margin-top:16px">
       <div style="font-size:40px;margin-bottom:8px">📅</div>
       <div style="font-family:var(--serif);font-size:28px;font-style:italic;color:${C.gold};text-shadow:0 0 14px #EFD06A44">Inviti inviati!</div>
+      ${(org.venue&&org.venue!=='__altro__')||org.venueCustom?`<div style="font-size:13px;color:${C.ivoryFaint};font-family:var(--mono);margin-top:6px">${esc(org.venue==='__altro__'?org.venueCustom:org.venue)}</div>`:''}
       <p class="c-dim" style="font-size:13px;line-height:1.65;max-width:300px;margin:12px auto 0">I giocatori riceveranno una notifica. La partita sarà confermata quando tutti e 4 avranno accettato.</p>
       <div style="margin-top:24px;display:flex;gap:10px;justify-content:center">
         <button class="btnGhost" onclick="resetOrg()">Nuova</button>
@@ -706,9 +714,15 @@ function viewOrganize(){
   }
 
   const others = players.filter(p => p.id !== ME);
-  const opt = (sel, exclude) => others.map(p =>
+  const sortedOthers = others.slice().sort((a,b)=>{
+    const p=a.provincia.localeCompare(b.provincia); if(p!==0) return p;
+    const c=a.club.localeCompare(b.club); if(c!==0) return c;
+    const f=bandIdx(b.rating)-bandIdx(a.rating); if(f!==0) return f;
+    return a.name.split(' ').pop().localeCompare(b.name.split(' ').pop());
+  });
+  const opt = (sel, exclude) => sortedOthers.map(p =>
     `<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>
-      ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}
+      (${p.provincia}) ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}
     </option>`).join('');
 
   const t1=[ME,org.partner], t2=[org.opp1,org.opp2];
@@ -755,6 +769,21 @@ function viewOrganize(){
       </div>
     </div>
 
+    <div class="card rise" style="margin-top:10px">
+      <div style="font-size:11px;letter-spacing:.16em;font-family:var(--mono);color:var(--ivoryFaint);text-transform:uppercase;margin-bottom:10px">Dove</div>
+      <select class="org-date" onchange="org.venue=this.value;org.venueCustom='';render()">
+        <option value="">Seleziona circolo…</option>
+        ${[...new Map(players.map(p=>[p.club,p.provincia]))].sort((a,b)=>a[1].localeCompare(b[1])||a[0].localeCompare(b[0])).map(([c,pr])=>`<option value="${c}" ${org.venue===c?'selected':''}>(${pr}) ${esc(c)}</option>`).join('')}
+        <option value="__altro__" ${org.venue==='__altro__'?'selected':''}>Altro circolo (non affiliato)…</option>
+      </select>
+      ${org.venue==='__altro__'?`
+        <input type="text" class="org-date" style="margin-top:8px" placeholder="Nome del circolo" value="${esc(org.venueCustom)}" oninput="org.venueCustom=this.value">
+        <div style="font-size:11px;color:${C.neon};margin-top:8px;font-family:var(--mono);letter-spacing:.04em">✓ Partita classificata — tutti i giocatori sono iscritti a PadelMeeting</div>
+      `:org.venue?`
+        <div style="font-size:11px;color:${C.neonDim};margin-top:8px;font-family:var(--mono);letter-spacing:.04em">✓ Circolo affiliato PadelMeeting</div>
+      `:''}
+    </div>
+
     ${stag('Giocatori')}
     <div class="card" style="margin-top:4px">
       <div class="teamBlock" style="border-left:2px solid ${C.neon}">
@@ -780,7 +809,7 @@ function viewOrganize(){
     </button>
   </div>`;
 }
-function resetOrg(){org={date:'',time:'18:00',partner:1,opp1:3,opp2:4,sent:false};render()}
+function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:1,opp1:3,opp2:4,sent:false};render()}
 function sendOrg(){if(new Set([ME,org.partner,org.opp1,org.opp2]).size===4){org.sent=true;render()}}
 
 /* ============ NAV / RENDER ============ */
