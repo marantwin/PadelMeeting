@@ -455,20 +455,30 @@ function viewRank(){
   const r=ranked();
   const clubs=['all',...new Set(r.map(p=>p.club))];
   const list = rankFilter==='all'?r:r.filter(p=>p.club===rankFilter);
-  const bandsHtml = BANDS.map(b=>{
-    return `<div class="band" title="${b.name} ${b.min}–${b.max}" style="flex:1;background:${b.color}22;border:1px solid ${b.color}66;color:${b.color};font-weight:600;font-size:8px">${b.short}</div>`;
-  }).join('');
+  const bandsList = BANDS.map(b=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
+      <div style="width:10px;height:10px;border-radius:50%;background:${b.color};box-shadow:0 0 8px ${b.color}88;flex-shrink:0"></div>
+      <span style="flex:1;font-size:15px;font-weight:600;color:${b.color}">${b.name}</span>
+      <span style="font-family:var(--mono);font-size:13px;color:var(--ivoryFaint)">${b.min} – ${b.max}</span>
+    </div>`).join('');
+
+  const bandsGrid = BANDS.map(b=>`
+    <div style="border-radius:12px;border:1px solid ${b.color}55;background:${b.color}11;padding:12px 10px;text-align:center">
+      <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${b.color};letter-spacing:.06em">${b.name.toUpperCase()}</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--ivoryFaint);margin-top:5px">${b.min}–${b.max}</div>
+    </div>`).join('');
+
   return `<div class="page">
     ${stag('Classifica')}
     <div class="chips">${clubs.map(c=>`<button class="chip ${rankFilter===c?'active':''}" onclick="setFilter('${c.replace(/'/g,"")}')">${c==='all'?'Tutti i circoli':esc(c)}</button>`).join('')}</div>
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:9px;letter-spacing:.16em;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:10px">6 FASCE · 0 → 100</div>
-      <div class="bands">${bandsHtml}</div>
-      <div style="display:flex;justify-content:space-between;margin-top:8px">
-        <span style="font-size:9px;color:#7B8FA1;font-family:var(--mono)">FERRO · 0–25</span>
-        <span style="font-size:9px;color:#F06A80;font-family:var(--mono);text-shadow:0 0 8px #F06A8088">ÉLITE · 96–100</span></div>
-    </div>
-    <div class="card">${list.map(p=>rankRow(p,r.findIndex(x=>x.id===p.id)+1,false)).join('')}</div>
+
+    <div style="font-size:10px;letter-spacing:.18em;color:var(--neon);font-family:var(--mono);margin:14px 0 6px">OPZIONE A — LISTA</div>
+    <div class="card" style="padding:6px 16px">${bandsList}</div>
+
+    <div style="font-size:10px;letter-spacing:.18em;color:var(--neon);font-family:var(--mono);margin:14px 0 6px">OPZIONE B — CARD</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${bandsGrid}</div>
+
+    <div class="card" style="margin-top:16px">${list.map(p=>rankRow(p,r.findIndex(x=>x.id===p.id)+1,false)).join('')}</div>
   </div>`;
 }
 let rankFilter='all';
