@@ -455,7 +455,7 @@ function viewRank(){
   const r=ranked();
   const clubs=['all',...new Set(r.map(p=>p.club))];
   const list = rankFilter==='all'?r:r.filter(p=>p.club===rankFilter);
-  const bandsList = BANDS.map(b=>`
+  const bandsList = [...BANDS].reverse().map(b=>`
     <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
       <div style="width:10px;height:10px;border-radius:50%;background:${b.color};box-shadow:0 0 8px ${b.color}88;flex-shrink:0"></div>
       <span style="flex:1;font-size:15px;font-weight:600;color:${b.color}">${b.name}</span>
