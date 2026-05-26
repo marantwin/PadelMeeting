@@ -400,14 +400,14 @@ function viewHome(){
   const M=me(), pos=ranked().findIndex(p=>p.id===ME)+1;
   return `<div class="page">
     <!-- Logo -->
-    <div class="rise" style="display:flex;justify-content:center;padding:28px 0 18px">
+    <div class="rise" style="display:flex;justify-content:center;padding:14px 0 10px">
       <img src="/Logo_PadelMeeting.png" alt="PadelMeeting"
-           style="width:220px;height:auto;filter:drop-shadow(0 0 18px #5BF0CB33)">
+           style="height:62px;width:auto;filter:drop-shadow(0 0 14px #5BF0CB33)">
     </div>
 
     <!-- TILE PRINCIPALE: Organizza -->
-    <button class="home-tile-main rise" onclick="go('organize')" style="animation-delay:.05s">
-      <div class="htm-icon">📅</div>
+    <button class="home-tile-main rise" onclick="go('organize')" style="animation-delay:.05s;padding:14px 18px">
+      <div class="htm-icon" style="font-size:28px">📅</div>
       <div class="htm-body">
         <div class="htm-title">Organizza partita</div>
         <div class="htm-sub">Pianifica · Invita · Bilancia le coppie</div>
@@ -416,8 +416,8 @@ function viewHome(){
     </button>
 
     <!-- TILE SECONDARIO: Registra -->
-    <button class="home-tile-main rise" onclick="go('play')" style="animation-delay:.10s">
-      <div class="htm-icon">⚡</div>
+    <button class="home-tile-main rise" onclick="go('play')" style="animation-delay:.10s;padding:14px 18px">
+      <div class="htm-icon" style="font-size:28px">⚡</div>
       <div class="htm-body">
         <div class="htm-title">Registra partita</div>
         <div class="htm-sub">Inserisci il risultato · calcola i punti</div>
@@ -426,24 +426,24 @@ function viewHome(){
     </button>
 
     <!-- GRIGLIA 2×2 -->
-    <div class="home-grid">
-      <button class="home-tile rise" onclick="go('rank')" style="animation-delay:.15s">
-        <div class="ht-icon" style="color:${C.neon}">≡</div>
+    <div class="home-grid" style="margin-top:8px">
+      <button class="home-tile rise" onclick="go('rank')" style="animation-delay:.15s;padding:14px 14px 12px">
+        <div class="ht-icon" style="color:${C.neon};font-size:26px;margin-bottom:8px">≡</div>
         <div class="ht-title">Classifica</div>
         <div class="ht-sub">Rating · Fasce · Circoli</div>
       </button>
-      <button class="home-tile rise" onclick="go('matches')" style="animation-delay:.20s">
-        <div class="ht-icon" style="color:${C.gold}">⊞</div>
+      <button class="home-tile rise" onclick="go('matches')" style="animation-delay:.20s;padding:14px 14px 12px">
+        <div class="ht-icon" style="color:${C.gold};font-size:26px;margin-bottom:8px">⊞</div>
         <div class="ht-title">Partite</div>
         <div class="ht-sub">Storico · Approva · Contesta</div>
       </button>
-      <button class="home-tile rise" onclick="go('profile')" style="animation-delay:.25s">
-        <div class="ht-icon" style="color:${C.neon}">◉</div>
+      <button class="home-tile rise" onclick="go('profile')" style="animation-delay:.25s;padding:14px 14px 12px">
+        <div class="ht-icon" style="color:${C.neon};font-size:26px;margin-bottom:8px">◉</div>
         <div class="ht-title">Profilo</div>
         <div class="ht-sub">ELO · Circolo · Serie</div>
       </button>
-      <button class="home-tile rise" onclick="go('rules')" style="animation-delay:.30s">
-        <div class="ht-icon" style="color:${C.rust}">§</div>
+      <button class="home-tile rise" onclick="go('rules')" style="animation-delay:.30s;padding:14px 14px 12px">
+        <div class="ht-icon" style="color:${C.rust};font-size:26px;margin-bottom:8px">§</div>
         <div class="ht-title">Regole</div>
         <div class="ht-sub">Regolamento completo</div>
       </button>
