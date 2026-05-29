@@ -11,6 +11,7 @@
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <title>PadelMeeting — Sport & Eleganza</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -256,11 +257,66 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .c-good{color:var(--neon)} .c-danger{color:var(--danger)}
 .glow{color:var(--neon);text-shadow:0 0 12px #5BF0CB66}
 .center{text-align:center}
+
+/* ====== AUTH GATE ====== */
+#auth-gate{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
+  padding:24px 18px;overflow-y:auto;
+  background:linear-gradient(160deg,#2A9470 0%,#1A6B52 35%,#0F4438 70%,#0A2C24 100%)}
+.ag-glow-a{position:fixed;top:-5%;left:-5%;width:600px;height:600px;
+  background:radial-gradient(circle,#5BF0CB50,transparent 60%);filter:blur(70px);pointer-events:none}
+.ag-glow-b{position:fixed;bottom:-10%;right:-5%;width:450px;height:450px;
+  background:radial-gradient(circle,#EFD06A35,transparent 60%);filter:blur(60px);pointer-events:none}
+.ag-glow-c{position:fixed;top:35%;left:50%;transform:translateX(-50%);width:700px;height:350px;
+  background:radial-gradient(ellipse,#5BF0CB22,transparent 65%);filter:blur(50px);pointer-events:none}
+.auth-card{position:relative;width:100%;max-width:420px;z-index:1;
+  background:rgba(255,255,255,0.10);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
+  border:1px solid rgba(91,240,203,.50);border-radius:24px;padding:38px 30px 34px;
+  box-shadow:0 0 100px rgba(91,240,203,.15),0 32px 80px rgba(0,0,0,.30);overflow:hidden}
+.auth-card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.05),transparent);
+  transform:translateX(-120%);animation:sweep 4s ease-in-out infinite}
+.auth-tabs{display:flex;background:rgba(0,0,0,.20);border-radius:14px;padding:5px;margin-bottom:28px}
+.auth-tab{flex:1;padding:11px;border-radius:10px;font-family:var(--mono);font-size:14px;font-weight:700;
+  letter-spacing:.05em;color:rgba(247,240,220,.55);transition:all .22s ease;border:none;background:none;cursor:pointer}
+.auth-tab.active{background:rgba(91,240,203,.20);color:var(--neon);
+  box-shadow:0 0 20px rgba(91,240,203,.20);text-shadow:0 0 10px rgba(91,240,203,.6)}
+.auth-label{font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:rgba(247,240,220,.80);margin-bottom:7px;display:block}
+.auth-input{width:100%;padding:14px 16px;border-radius:12px;
+  border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);
+  color:#fff;font-size:16px;font-family:var(--sans);outline:none;
+  transition:border-color .18s,box-shadow .18s,background .18s;-webkit-appearance:none;appearance:none}
+.auth-input:focus{border-color:var(--neon);background:rgba(255,255,255,.18);
+  box-shadow:0 0 20px rgba(91,240,203,.20)}
+.auth-input::placeholder{color:rgba(255,255,255,.35)}
+.auth-field{margin-bottom:16px}
+.auth-btn{width:100%;padding:16px;border-radius:14px;margin-top:8px;
+  background:linear-gradient(135deg,#5BF0CB,#2ED4A8);color:#071E18;
+  font-family:var(--mono);font-size:15px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  border:none;cursor:pointer;box-shadow:0 4px 40px rgba(91,240,203,.50),0 2px 0 rgba(255,255,255,.2) inset;
+  transition:transform .12s,box-shadow .18s}
+.auth-btn:hover{box-shadow:0 4px 60px rgba(91,240,203,.70)}
+.auth-btn:active{transform:scale(.98)}
+.auth-err{color:#ff8fa3;font-size:13px;font-family:var(--sans);font-weight:500;
+  margin-top:12px;text-align:center;min-height:20px}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:20px 0 16px}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.20)}
+.auth-divider span{font-size:11px;font-family:var(--mono);color:rgba(247,240,220,.65);
+  letter-spacing:.1em;white-space:nowrap}
+.auth-role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.auth-role-btn{padding:18px 12px;border-radius:14px;border:1.5px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.08);color:rgba(247,240,220,.75);font-family:var(--sans);font-size:13px;
+  font-weight:600;text-align:center;cursor:pointer;transition:all .20s}
+.auth-role-btn.sel{border-color:var(--neon);background:rgba(91,240,203,.18);
+  color:#fff;box-shadow:0 0 24px rgba(91,240,203,.20)}
+.auth-role-icon{font-size:26px;margin-bottom:8px;display:block}
+select option{background:#0E2723;color:var(--ivory)}
 </style>
 </head>
 <body>
 <div class="backdrop"><div class="grid"></div><div class="glowA"></div><div class="glowB"></div><div class="scan"></div></div>
-<div class="shell">
+<div id="auth-gate"></div>
+<div class="shell" id="app-shell">
   <header>
     <div class="logo-wrap">
       <img src="/PadelMeeting_header.png" alt="PadelMeeting"
@@ -596,6 +652,7 @@ function viewProfile(){
     <div class="card">
       <div class="irow"><span class="k">Circolo</span><span class="v">${esc(M.club)} (affiliato)</span></div>
       <div class="irow"><span class="k">Provincia</span><span class="v">${esc(M.provincia)} · ${esc(M.city)}</span></div>
+      <div class="irow"><span class="k">Account</span><span class="v">${auth.user?esc(auth.user.email):'—'}</span></div>
       <div class="irow"><span class="k">Valutazione iniziale</span><span class="v">Completata</span></div>
       <div class="irow"><span class="k">Stato classifica</span><span class="v c-good">Attivo</span></div>
       <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
@@ -605,6 +662,25 @@ function viewProfile(){
     <div class="card">${tm.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
       <div class="avatarSm">${esc(p.name[0])}</div><span style="flex:1;font-size:13px">${esc(p.name)}</span>
       <span style="font-family:var(--mono);font-size:13px;color:${isHigh(p.rating)?bandColor(p.rating):C.ivoryDim}">${p.rating.toFixed(1)}</span></div>`).join('')}</div>
+    ${auth.user&&auth.user.role==='admin'?`
+    ${stag('Pannello Admin')}
+    <div class="card" id="admin-panel">
+      <div style="font-size:12px;color:var(--ivoryFaint);margin-bottom:12px">Richieste responsabile circolo in attesa</div>
+      ${adminPending.length===0
+        ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:12px 0">Nessuna richiesta in attesa</div>`
+        :adminPending.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--lineSoft)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600">${esc(p.full_name||'—')}</div>
+            <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${esc(p.email)} · ${esc(p.club||'—')}</div>
+          </div>
+          <button class="btnSolidSm" onclick="adminSetStatus('${p.id}','active')">Approva</button>
+          <button class="btnGhostSm" onclick="adminSetStatus('${p.id}','rejected')">Rifiuta</button>
+        </div>`).join('')}
+      <button class="btnGhost" style="margin-top:12px;width:100%" onclick="adminLoadPending()">Aggiorna</button>
+    </div>`:''}
+    <button class="cta" onclick="doLogout()" style="margin-top:18px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
+      Esci dall'account
+    </button>
   </div>`;
 }
 
@@ -823,7 +899,150 @@ function render(){
   $('#view').innerHTML=v();
   renderNav();
 }
-render();
+
+/* ============ SUPABASE + AUTH ============ */
+const sb = supabase.createClient(
+  'https://yhcmsrsqrvnzsdgsqwul.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloY21zcnNxcnZuenNkZ3Nxd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNDExMDksImV4cCI6MjA5NTYxNzEwOX0.w3gNnmkzE5sd5BLAzIkdNwvZDEBtTEPJaU4GCl8xWGI'
+);
+
+let auth = { tab:'login', role:'player', err:'', loading:false, user:null, loggedIn:false };
+let adminPending = [];
+
+function showGate(){ $('#auth-gate').style.display='flex'; $('#app-shell').style.display='none'; renderAuth(); }
+function hideGate(){ $('#auth-gate').style.display='none'; $('#app-shell').style.display=''; render(); }
+function setAuthTab(t){ auth.tab=t; auth.err=''; auth.registered=null; auth.pendingProfile=null; renderAuth(); }
+function setAuthRole(r){ auth.role=r; renderAuth(); }
+function renderAuth(){ $('#auth-gate').innerHTML=viewAuth(); }
+
+async function loadProfile(user){
+  const {data:profile} = await sb.from('pm_profiles').select('*').eq('id',user.id).single();
+  if(!profile){ showGate(); return; }
+  if(profile.status==='pending'){ auth.pendingProfile=profile; showGate(); return; }
+  if(profile.status==='rejected'){ auth.rejectedProfile=profile; showGate(); return; }
+  auth.user={...user,...profile}; auth.loggedIn=true; hideGate();
+}
+
+async function doLogin(){
+  const email=$('#ai-email').value.trim(), pass=$('#ai-pass').value;
+  if(!email||!pass){ auth.err='Compila tutti i campi'; renderAuth(); return; }
+  auth.loading=true; renderAuth();
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  auth.loading=false;
+  if(error){ auth.err=error.message==='Invalid login credentials'?'Email o password errati':error.message; renderAuth(); return; }
+  await loadProfile(data.user);
+}
+
+async function doRegister(){
+  const nome=$('#ar-nome').value.trim(), cognome=$('#ar-cognome').value.trim();
+  const email=$('#ar-email').value.trim(), pass=$('#ar-pass').value, club=$('#ar-club').value;
+  if(!nome||!cognome||!email||!pass||!club){ auth.err='Compila tutti i campi'; renderAuth(); return; }
+  if(pass.length<6){ auth.err='Password minimo 6 caratteri'; renderAuth(); return; }
+  auth.loading=true; renderAuth();
+  const {error}=await sb.auth.signUp({email,password:pass,
+    options:{data:{full_name:nome+' '+cognome, role:auth.role, club}}});
+  auth.loading=false;
+  if(error){ auth.err=error.message; renderAuth(); return; }
+  auth.registered=auth.role==='manager'?'pending':'verify'; renderAuth();
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  auth={tab:'login',role:'player',err:'',loading:false,user:null,loggedIn:false};
+  showGate();
+}
+
+async function adminLoadPending(){
+  const {data}=await sb.rpc('pm_get_pending_managers');
+  adminPending=data||[]; render();
+}
+async function adminSetStatus(id,status){
+  await sb.rpc('pm_set_profile_status',{profile_id:id,new_status:status});
+  adminLoadPending();
+}
+
+function viewAuth(){
+  const isLogin=auth.tab==='login';
+  const clubs=[...new Set(players.map(p=>p.club))].sort();
+  const clubOpts=clubs.map(c=>`<option value="${c}">${esc(c)}</option>`).join('');
+  const logo=`<div style="text-align:center;margin-bottom:26px">
+    <img src="/Logo_PadelMeeting.png" alt="PadelMeeting" style="width:190px;height:auto;filter:drop-shadow(0 0 24px #5BF0CB55)">
+    <div style="font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ivoryFaint);margin-top:6px;letter-spacing:.06em">Sport & Eleganza</div></div>`;
+  const glows=`<div class="ag-glow-a"></div><div class="ag-glow-b"></div><div class="ag-glow-c"></div>`;
+  const spinner=`<div style="text-align:center;padding:8px;font-family:var(--mono);font-size:12px;color:var(--neon);letter-spacing:.1em">…</div>`;
+
+  if(auth.registered==='pending') return `${glows}<div class="auth-card rise" style="text-align:center">
+    ${logo}<div style="font-size:44px;margin-bottom:10px">⏳</div>
+    <div style="font-family:var(--serif);font-size:22px;font-style:italic;color:${C.gold};margin-bottom:10px">Richiesta inviata</div>
+    <p style="color:var(--ivoryDim);font-size:13px;line-height:1.65">La tua registrazione come <b>Responsabile Circolo</b> è in attesa di approvazione. Riceverai conferma via email.</p>
+    <button class="auth-btn" style="margin-top:20px;background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none" onclick="setAuthTab('login')">Torna al login</button></div>`;
+
+  if(auth.registered==='verify') return `${glows}<div class="auth-card rise" style="text-align:center">
+    ${logo}<div style="font-size:44px;margin-bottom:10px">📧</div>
+    <div style="font-family:var(--serif);font-size:22px;font-style:italic;color:${C.neon};margin-bottom:10px">Controlla la tua email</div>
+    <p style="color:var(--ivoryDim);font-size:13px;line-height:1.65">Abbiamo inviato un link di conferma. Clicca il link per attivare l'account.</p>
+    <button class="auth-btn" style="margin-top:20px;background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none" onclick="setAuthTab('login')">Torna al login</button></div>`;
+
+  if(auth.pendingProfile) return `${glows}<div class="auth-card rise" style="text-align:center">
+    ${logo}<div style="font-size:44px;margin-bottom:10px">⏳</div>
+    <div style="font-family:var(--serif);font-size:22px;font-style:italic;color:${C.gold};margin-bottom:10px">In attesa di approvazione</div>
+    <p style="color:var(--ivoryDim);font-size:13px;line-height:1.65">Il tuo account come Responsabile Circolo è in corso di verifica da parte dell'amministratore.</p>
+    <button class="auth-btn" style="margin-top:20px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none" onclick="doLogout()">Esci</button></div>`;
+
+  if(auth.rejectedProfile) return `${glows}<div class="auth-card rise" style="text-align:center">
+    ${logo}<div style="font-size:44px;margin-bottom:10px">❌</div>
+    <div style="font-family:var(--serif);font-size:22px;font-style:italic;color:${C.danger};margin-bottom:10px">Richiesta non approvata</div>
+    <p style="color:var(--ivoryDim);font-size:13px;line-height:1.65">La tua richiesta non è stata approvata. Contatta l'amministratore.</p>
+    <button class="auth-btn" style="margin-top:20px;background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none" onclick="doLogout()">Torna al login</button></div>`;
+
+  const loginForm=`
+    <div class="auth-field"><label class="auth-label">Email</label>
+      <input id="ai-email" type="email" class="auth-input" placeholder="la-tua@email.it"></div>
+    <div class="auth-field"><label class="auth-label">Password</label>
+      <input id="ai-pass" type="password" class="auth-input" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')doLogin()"></div>
+    ${auth.loading?spinner:`<button class="auth-btn" onclick="doLogin()">Accedi</button>`}
+    <div class="auth-err">${auth.err}</div>`;
+
+  const regForm=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px">
+      <div><label class="auth-label">Nome</label><input id="ar-nome" type="text" class="auth-input" placeholder="Mario"></div>
+      <div><label class="auth-label">Cognome</label><input id="ar-cognome" type="text" class="auth-input" placeholder="Rossi"></div>
+    </div>
+    <div class="auth-field"><label class="auth-label">Email</label>
+      <input id="ar-email" type="email" class="auth-input" placeholder="mario@email.it"></div>
+    <div class="auth-field"><label class="auth-label">Password</label>
+      <input id="ar-pass" type="password" class="auth-input" placeholder="••••••••"></div>
+    <div class="auth-field"><label class="auth-label">Circolo</label>
+      <select id="ar-club" class="auth-input">
+        <option value="">Seleziona circolo…</option>${clubOpts}
+        <option value="__altro__">Altro / Non affiliato</option>
+      </select></div>
+    <div class="auth-divider"><span>Tipo di account</span></div>
+    <div class="auth-role-grid">
+      <button class="auth-role-btn ${auth.role==='player'?'sel':''}" onclick="setAuthRole('player')">
+        <span class="auth-role-icon">🎾</span>Giocatore</button>
+      <button class="auth-role-btn ${auth.role==='manager'?'sel':''}" onclick="setAuthRole('manager')">
+        <span class="auth-role-icon">🏟️</span>Responsabile<br>Circolo</button>
+    </div>
+    ${auth.loading?spinner:`<button class="auth-btn" style="margin-top:18px" onclick="doRegister()">Crea account</button>`}
+    <div class="auth-err">${auth.err}</div>`;
+
+  return `${glows}<div class="auth-card rise">${logo}
+    <div class="auth-tabs">
+      <button class="auth-tab ${isLogin?'active':''}" onclick="setAuthTab('login')">Accedi</button>
+      <button class="auth-tab ${!isLogin?'active':''}" onclick="setAuthTab('registrati')">Registrati</button>
+    </div>
+    ${isLogin?loginForm:regForm}</div>`;
+}
+
+async function initAuth(){
+  showGate();
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){ await loadProfile(session.user); }
+  else { renderAuth(); }
+}
+initAuth();
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
