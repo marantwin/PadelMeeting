@@ -1057,7 +1057,7 @@ function viewAuth(){
         : `<select id="ar-club" class="auth-input"><option value="">Seleziona circolo…</option>${clubOpts}<option value="__altro__">Altro / Non affiliato</option></select>`
       }</div>
     ${auth.role==='manager'?`<div class="auth-field"><label class="auth-label">Provincia</label>
-      <input id="ar-provincia" type="text" class="auth-input" placeholder="Es. NA, SA, RM" maxlength="3" style="text-transform:uppercase"></div>`:''}
+      <input id="ar-provincia" type="text" class="auth-input" placeholder="Es. NA, SA, RM" maxlength="3"></div>`:''}
     <div class="auth-divider"><span>Tipo di account</span></div>
     <div class="auth-role-grid">
       <button class="auth-role-btn ${auth.role==='player'?'sel':''}" onclick="setAuthRole('player')">
