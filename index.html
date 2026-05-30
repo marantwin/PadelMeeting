@@ -285,18 +285,18 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
   transform:translateX(-120%);animation:sweep 5s ease-in-out infinite}
 .auth-tabs{display:flex;background:rgba(0,0,0,.35);border-radius:12px;padding:4px;margin-bottom:26px}
 .auth-tab{flex:1;padding:9px;border-radius:9px;font-family:var(--mono);font-size:13px;font-weight:600;
-  letter-spacing:.06em;color:rgba(247,240,220,.38);transition:all .22s ease;border:none;background:none;cursor:pointer}
+  letter-spacing:.06em;color:rgba(255,255,255,.80);transition:all .22s ease;border:none;background:none;cursor:pointer}
 .auth-tab.active{background:rgba(91,240,203,.16);color:var(--neon);
   box-shadow:0 0 14px rgba(91,240,203,.16);text-shadow:0 0 8px rgba(91,240,203,.55)}
 .auth-label{font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.13em;
-  text-transform:uppercase;color:rgba(247,240,220,.58);margin-bottom:6px;display:block}
+  text-transform:uppercase;color:rgba(255,255,255,.90);margin-bottom:6px;display:block}
 .auth-input{width:100%;padding:13px 14px;border-radius:10px;
   border:1.5px solid rgba(91,240,203,.16);background:rgba(0,0,0,.32);
   color:var(--ivory);font-size:15px;font-family:var(--sans);outline:none;
   transition:border-color .18s,box-shadow .18s,background .18s;-webkit-appearance:none;appearance:none}
 .auth-input:focus{border-color:var(--neon);background:rgba(91,240,203,.05);
   box-shadow:0 0 0 3px rgba(91,240,203,.12),0 0 22px rgba(91,240,203,.10)}
-.auth-input::placeholder{color:rgba(247,240,220,.28)}
+.auth-input::placeholder{color:rgba(255,255,255,.45)}
 .auth-input-wrap{position:relative;display:flex;align-items:center}
 .auth-input-wrap .auth-input{padding-right:46px}
 .auth-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);
@@ -315,11 +315,11 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
   margin-top:10px;text-align:center;min-height:18px}
 .auth-divider{display:flex;align-items:center;gap:12px;margin:18px 0 14px}
 .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(91,240,203,.14)}
-.auth-divider span{font-size:10px;font-family:var(--mono);color:rgba(247,240,220,.52);
+.auth-divider span{font-size:10px;font-family:var(--mono);color:rgba(255,255,255,.75);
   letter-spacing:.1em;white-space:nowrap}
 .auth-role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .auth-role-btn{padding:16px 10px;border-radius:12px;border:1.5px solid rgba(91,240,203,.16);
-  background:rgba(0,0,0,.28);color:rgba(247,240,220,.72);font-family:var(--mono);font-size:11px;
+  background:rgba(0,0,0,.28);color:rgba(255,255,255,.85);font-family:var(--mono);font-size:11px;
   font-weight:600;letter-spacing:.05em;text-align:center;cursor:pointer;transition:all .20s}
 .auth-role-btn.sel{border-color:var(--neon);background:rgba(91,240,203,.14);
   color:var(--ivory);box-shadow:0 0 20px rgba(91,240,203,.18)}
@@ -990,9 +990,8 @@ function viewAuth(){
   const clubs=[...new Set(players.map(p=>p.club))].sort();
   const clubOpts=clubs.map(c=>`<option value="${c}">${esc(c)}</option>`).join('');
   const logo=`<div style="text-align:center;margin-bottom:26px">
-    <div style="display:flex;justify-content:center;margin-bottom:14px;opacity:.60">${emblem(40)}</div>
     <img src="/Logo_PadelMeeting.png" alt="PadelMeeting" style="width:190px;height:auto;filter:drop-shadow(0 0 30px rgba(91,240,203,.58))">
-    <div style="font-family:var(--serif);font-style:italic;font-size:14px;color:rgba(247,240,220,.48);margin-top:6px;letter-spacing:.06em">Sport & Eleganza</div></div>`;
+  </div>`;
   const glows=`<div class="ag-grid"></div><div class="ag-scan"></div><div class="ag-glow-a"></div><div class="ag-glow-b"></div><div class="ag-glow-c"></div>`;
   const spinner=`<div style="text-align:center;padding:14px 0"><span style="display:inline-flex;gap:6px;align-items:center">
     <span style="width:7px;height:7px;border-radius:50%;background:var(--neon);animation:dotpulse .9s ease-in-out 0s infinite both;display:inline-block"></span>
