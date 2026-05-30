@@ -1049,10 +1049,10 @@ function viewAuth(){
         <button type="button" class="auth-eye" onclick="toggleEye('ar-pass',this)" tabindex="-1">${eyeOpen}</button>
       </div></div>
     <div class="auth-field"><label class="auth-label">Circolo</label>
-      <select id="ar-club" class="auth-input">
-        <option value="">Seleziona circolo…</option>${clubOpts}
-        <option value="__altro__">Altro / Non affiliato</option>
-      </select></div>
+      ${auth.role==='manager'
+        ? `<input id="ar-club" type="text" class="auth-input" placeholder="Inserisci il nome del circolo" autocomplete="organization">`
+        : `<select id="ar-club" class="auth-input"><option value="">Seleziona circolo…</option>${clubOpts}<option value="__altro__">Altro / Non affiliato</option></select>`
+      }</div>
     <div class="auth-divider"><span>Tipo di account</span></div>
     <div class="auth-role-grid">
       <button class="auth-role-btn ${auth.role==='player'?'sel':''}" onclick="setAuthRole('player')">
