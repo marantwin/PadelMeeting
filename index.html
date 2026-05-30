@@ -260,24 +260,25 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 
 /* ====== AUTH GATE ====== */
 #auth-gate{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
-  padding:24px 18px;overflow-y:auto;background:#06100D}
+  padding:24px 18px;overflow-y:auto;
+  background:linear-gradient(160deg,#0D3028 0%,#091C16 55%,#050C09 100%)}
 .ag-grid{position:fixed;inset:0;pointer-events:none;
-  background-image:linear-gradient(rgba(91,240,203,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(91,240,203,.05) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(91,240,203,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(91,240,203,.07) 1px,transparent 1px);
   background-size:44px 44px;
-  -webkit-mask-image:radial-gradient(ellipse 100% 65% at 50% 0%,#000,transparent 80%);
-  mask-image:radial-gradient(ellipse 100% 65% at 50% 0%,#000,transparent 80%)}
-.ag-scan{position:fixed;inset:0;pointer-events:none;opacity:.10;
+  -webkit-mask-image:radial-gradient(ellipse 100% 70% at 50% 0%,#000,transparent 80%);
+  mask-image:radial-gradient(ellipse 100% 70% at 50% 0%,#000,transparent 80%)}
+.ag-scan{position:fixed;inset:0;pointer-events:none;opacity:.12;
   background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 3px)}
-.ag-glow-a{position:fixed;top:-18%;left:50%;transform:translateX(-50%);width:700px;height:700px;
-  background:radial-gradient(circle,rgba(91,240,203,.20),transparent 55%);filter:blur(65px);pointer-events:none}
-.ag-glow-b{position:fixed;bottom:-14%;right:-6%;width:480px;height:480px;
-  background:radial-gradient(circle,rgba(224,123,74,.16),transparent 60%);filter:blur(58px);pointer-events:none}
-.ag-glow-c{position:fixed;top:42%;left:50%;transform:translateX(-50%);width:700px;height:280px;
-  background:radial-gradient(ellipse,rgba(91,240,203,.05),transparent 65%);filter:blur(50px);pointer-events:none}
+.ag-glow-a{position:fixed;top:-18%;left:50%;transform:translateX(-50%);width:750px;height:750px;
+  background:radial-gradient(circle,rgba(91,240,203,.38),transparent 55%);filter:blur(65px);pointer-events:none}
+.ag-glow-b{position:fixed;bottom:-14%;right:-6%;width:520px;height:520px;
+  background:radial-gradient(circle,rgba(224,123,74,.28),transparent 58%);filter:blur(55px);pointer-events:none}
+.ag-glow-c{position:fixed;top:40%;left:50%;transform:translateX(-50%);width:720px;height:300px;
+  background:radial-gradient(ellipse,rgba(91,240,203,.10),transparent 62%);filter:blur(50px);pointer-events:none}
 .auth-card{position:relative;width:100%;max-width:420px;z-index:1;
-  background:rgba(11,47,42,.75);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
-  border:1px solid rgba(91,240,203,.22);border-radius:24px;padding:38px 30px 34px;
-  box-shadow:0 0 0 1px rgba(91,240,203,.06),0 0 80px rgba(91,240,203,.09),0 32px 80px rgba(0,0,0,.65);
+  background:rgba(10,50,42,.70);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
+  border:1px solid rgba(91,240,203,.38);border-radius:24px;padding:38px 30px 34px;
+  box-shadow:0 0 0 1px rgba(91,240,203,.10),0 0 100px rgba(91,240,203,.16),0 32px 80px rgba(0,0,0,.55);
   overflow:hidden}
 .auth-card::before{content:'';position:absolute;inset:0;
   background:linear-gradient(120deg,transparent,rgba(91,240,203,.07),transparent);
