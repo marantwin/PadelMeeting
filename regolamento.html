@@ -350,11 +350,10 @@ K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
 <table class="k-table">
   <tr><th>Partite giocate</th><th>Peso K</th><th>Effetto</th></tr>
 
-  <tr><td>Prime 50 partite</td><td><strong>K = 5</strong></td><td>Il PR si assesta — il rating iniziale è già valutato</td></tr>
-  <tr><td>Oltre 50 partite</td><td><strong>K = 3</strong></td><td>PR stabile — cambia poco per partita</td></tr>
+  <tr><td>Tutte le partite</td><td><strong>K = 4</strong></td><td>Uniforme per tutti — nessuna fase di calibrazione</td></tr>
 </table>
 
-<div class="why"><strong>Perché il peso K diminuisce con l'esperienza?</strong> In PadelMeeting il PR iniziale è già valutato dal responsabile del circolo — non è un'assunzione arbitraria. Per questo non serve un K alto nelle prime partite: il punto di partenza è già affidabile. Si usa K=5 fin dall'inizio e si scende a K=3 dopo 50 partite, quando il rating è consolidato e movimenti grandi sarebbero destabilizzanti.</div>
+<div class="why"><strong>Perché K fisso a 4?</strong> In PadelMeeting il PR iniziale è già valutato dal responsabile del circolo — non è una stima arbitraria. Non serve quindi una fase di calibrazione con K diverso. K=4 è uniforme per tutti: abbastanza alto da rendere visibile il movimento del PR, abbastanza basso da mantenere stabilità. In una partita 50/50 si guadagnano o perdono esattamente 2.0 punti — simmetrico e intuitivo.</div>
 
 <div class="example">
   <div class="example-title">Esempio 3 — Stesso risultato, diverso peso K</div>

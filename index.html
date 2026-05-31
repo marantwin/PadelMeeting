@@ -396,7 +396,7 @@ const pName = id => (players.find(p=>p.id===id)||{}).name || '—';
 const ranked = ()=>[...players].sort((a,b)=>b.rating-a.rating);
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
-const dynK = games => games<=50?5:3;
+const dynK = games => 4;
 function teamAvg(ids){return ids.reduce((s,id)=>s+((players.find(p=>p.id===id)||{}).rating||0),0)/ids.length}
 
 function computeMatch(t1,t2,format,winnerTeam){
@@ -816,7 +816,7 @@ function viewProfile(){
       <div class="irow"><span class="k">Valutazione iniziale</span><span class="v">Completata</span></div>
       <div class="irow"><span class="k">Stato classifica</span><span class="v c-good">Attivo</span></div>
       <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
-      <div class="irow"><span class="k">K-factor attuale</span><span class="v c-gold">K=${M.games<=50?5:3} (${M.games} partite)</span></div>
+      <div class="irow"><span class="k">K-factor attuale</span><span class="v c-gold">K=4</span></div>
     </div>
     ${stag('Compagni di circolo')}
     <div class="card">${tm.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
