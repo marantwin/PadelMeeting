@@ -1112,10 +1112,9 @@ async function doResetRequest(){
   const email=$('#ar-reset-email').value.trim();
   if(!email){ auth.err='Inserisci la tua email'; renderAuth(); return; }
   auth.loading=true; renderAuth();
-  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'?reset=1'});
   auth.loading=false;
   if(error){ auth.err=error.message; renderAuth(); return; }
-  sessionStorage.setItem('pmPasswordReset','1');
   auth.tab='reset-sent'; renderAuth();
 }
 async function doResetPassword(){
@@ -1282,11 +1281,10 @@ async function initAuth(){
   const params=new URLSearchParams(window.location.search);
   const code=params.get('code');
   if(code){
-    const isReset=sessionStorage.getItem('pmPasswordReset')==='1';
+    const isReset=params.get('reset')==='1';
     const {data,error}=await sb.auth.exchangeCodeForSession(code);
     history.replaceState({},'',window.location.pathname);
     if(isReset){
-      sessionStorage.removeItem('pmPasswordReset');
       auth.tab='reset-password'; auth.err='';
       showGate(); renderAuth(); return;
     }
