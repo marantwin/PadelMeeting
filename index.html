@@ -1279,6 +1279,17 @@ function viewAuth(){
 async function initAuth(){
   showGate();
   const params=new URLSearchParams(window.location.search);
+  const hash=new URLSearchParams(window.location.hash.slice(1));
+  // Gestisce errori Supabase nel hash (es. link scaduto)
+  if(hash.get('error')){
+    history.replaceState({},'',window.location.pathname);
+    const isReset=params.get('reset')==='1';
+    auth.tab=isReset?'reset-request':'login';
+    auth.err=hash.get('error_code')==='otp_expired'
+      ? (isReset?'Il link è scaduto. Richiedine uno nuovo.':'Il link è scaduto. Riprova il login.')
+      : (hash.get('error_description')||'Si è verificato un errore.').replace(/\+/g,' ');
+    renderAuth(); return;
+  }
   const code=params.get('code');
   if(code){
     const isReset=params.get('reset')==='1';
