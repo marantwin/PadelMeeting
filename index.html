@@ -1299,7 +1299,7 @@ async function initAuth(){
       : (hash.get('error_description')||'Errore.').replace(/\+/g,' ');
     renderAuth(); return;
   }
-  // Reset password: lascia che onAuthStateChange PASSWORD_RECOVERY gestisca tutto
+  // Reset password: aspetta PASSWORD_RECOVERY, non caricare l'app
   if(params.get('reset')==='1'){
     renderAuth(); return;
   }
