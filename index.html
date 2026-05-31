@@ -645,6 +645,101 @@ function viewMatches(){
 }
 function actMatch(id,status){matches=matches.map(m=>m.id===id?{...m,status}:m);render()}
 
+function viewCircolo(){
+  const u=auth.user||{};
+  const clubName=u.club||'';
+
+  // Giocatori del circolo (da dati demo)
+  const clubPlayers=ranked().filter(p=>p.club===clubName);
+
+  // Partite contestate che coinvolgono giocatori del circolo
+  const clubIds=new Set(clubPlayers.map(p=>p.id));
+  const disputed=matches.filter(m=>m.status==='disputed'&&[...m.t1,...m.t2].some(id=>clubIds.has(id)));
+
+  const giocatoriSection=clubPlayers.length===0
+    ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessun giocatore registrato nel circolo</div>`
+    :clubPlayers.map((p,i)=>{
+      const rank=ranked().findIndex(x=>x.id===p.id)+1;
+      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--lineSoft)">
+        <div style="width:24px;text-align:center;font-family:var(--mono);font-size:13px;color:var(--ivoryFaint)">${rank}</div>
+        <div class="avatarSm" style="border-color:var(--line)">${esc(p.name[0])}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
+          <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${bandName(p.rating)} · ${p.games} partite</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--mono);font-size:17px;font-weight:700;color:${isHigh(p.rating)?bandColor(p.rating):C.ivory}">${p.rating.toFixed(1)}</div>
+          <div style="font-size:10px;color:var(--ivoryFaint);font-family:var(--mono)">${bandName(p.rating).toUpperCase()}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  const contestateSection=disputed.length===0
+    ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita contestata in attesa</div>`
+    :disputed.map(m=>{
+      const nm=id=>esc(pName(id));
+      return `<div style="padding:12px 0;border-bottom:1px solid var(--lineSoft)">
+        <div style="font-size:13px;margin-bottom:6px">
+          <span style="color:${C.neon}">${m.t1.map(nm).join(' & ')}</span>
+          <span style="font-style:italic;color:${C.rust}"> vs </span>
+          <span>${m.t2.map(nm).join(' & ')}</span>
+        </div>
+        <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:10px">${m.when} · ${m.score}</div>
+        <div style="display:flex;gap:8px">
+          <button class="btnSolidSm" onclick="actMatch(${m.id},'approved')">Convalida</button>
+          <button class="btnGhostSm" onclick="actMatch(${m.id},'rejected')">Annulla</button>
+        </div>
+      </div>`;
+    }).join('');
+
+  return `<div class="page">
+    ${stag(esc(clubName)||'Circolo')}
+    <div class="card" style="margin-bottom:4px;padding:14px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:16px;font-weight:700">${esc(clubName)||'—'}</div>
+          <div style="font-size:12px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:2px">${esc(u.provincia||'—')} · ${esc(u.indirizzo||'—')}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:${C.neon}">${clubPlayers.length}</div>
+          <div style="font-size:10px;color:var(--ivoryFaint);font-family:var(--mono)">GIOCATORI</div>
+        </div>
+      </div>
+    </div>
+
+    ${stag('Giocatori')}
+    <div class="card">${giocatoriSection}</div>
+
+    ${stag('Partite contestate')}
+    <div class="card">${contestateSection}</div>
+
+    ${stag('Valutazione iniziale')}
+    <div class="card">
+      <div style="font-size:13px;color:var(--ivoryDim);line-height:1.6;margin-bottom:14px">
+        Osserva il giocatore durante <b>1 set</b> e assegna il rating iniziale (max <span style="color:${C.neon};font-family:var(--mono);font-weight:700">70</span>).
+      </div>
+      <div class="seg" style="margin-bottom:14px">
+        ${clubPlayers.map(p=>`<button class="segBtn ${valTarget===p.id?'active':''}" onclick="setValTarget(${p.id})" style="flex:0 0 auto;padding:8px 14px;font-size:12px">${esc(p.name.split(' ')[0])}</button>`).join('')}
+      </div>
+      ${valTarget?`
+        <div style="font-size:13px;color:var(--ivoryDim);margin-bottom:10px">Rating iniziale per <b style="color:${C.ivory}">${esc(pName(valTarget))}</b> (attuale: ${(players.find(p=>p.id===valTarget)||{}).rating||'—'})</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <input id="val-rating" type="number" min="1" max="70" class="auth-input" style="width:100px;padding:10px 12px;font-size:18px;font-family:var(--mono);font-weight:700;text-align:center" placeholder="0–70">
+          <button class="btnSolid" onclick="submitValutazione()">Assegna</button>
+        </div>
+      `:`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Seleziona un giocatore sopra</div>`}
+    </div>
+  </div>`;
+}
+let valTarget=null;
+function setValTarget(id){valTarget=id;render()}
+function submitValutazione(){
+  const v=parseInt($('#val-rating').value);
+  if(!valTarget||isNaN(v)||v<1||v>70){alert('Inserisci un valore tra 1 e 70');return;}
+  players=players.map(p=>p.id===valTarget?{...p,rating:v}:p);
+  valTarget=null; render();
+}
+
 function viewProfileManager(){
   const u=auth.user;
   const initials=(u.full_name||u.email||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
@@ -933,9 +1028,11 @@ function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:1,
 function sendOrg(){if(new Set([ME,org.partner,org.opp1,org.opp2]).size===4){org.sent=true;render()}}
 
 /* ============ NAV / RENDER ============ */
-const NAV=[['home','Home','◈'],['rank','Classifica','≡'],['organize','Organizza','📅'],['play','','⚡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
+const NAV_PLAYER=[['home','Home','◈'],['rank','Classifica','≡'],['organize','Organizza','📅'],['play','','⚡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
+const NAV_MANAGER=[['home','Home','◈'],['rank','Classifica','≡'],['circolo','Circolo','🏟️'],['play','','⚡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
 function renderNav(){
-  $('#nav').innerHTML=NAV.map(([k,l,ic])=>{
+  const nav=auth.user&&auth.user.role==='manager'?NAV_MANAGER:NAV_PLAYER;
+  $('#nav').innerHTML=nav.map(([k,l,ic])=>{
     const active=tab===k, isPlay=k==='play';
     return `<button class="navBtn ${active?'active':''} ${isPlay?'navPlay':''}" onclick="go('${k}')">
       <span class="ic">${ic}</span>${isPlay?'':`<span class="nl">${l}</span>`}${active&&!isPlay?'<span class="dot"></span>':''}</button>`;
@@ -943,7 +1040,7 @@ function renderNav(){
 }
 function go(t){tab=t;if(t!=='play')pl.done=false;window.scrollTo&&($('#view').scrollTop=0);render()}
 function render(){
-  const v={home:viewHome,rank:viewRank,play:viewPlay,organize:viewOrganize,matches:viewMatches,profile:viewProfile,rules:viewRules}[tab];
+  const v={home:viewHome,rank:viewRank,play:viewPlay,organize:viewOrganize,matches:viewMatches,profile:viewProfile,rules:viewRules,circolo:viewCircolo}[tab];
   $('#view').innerHTML=v();
   renderNav();
 }
