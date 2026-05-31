@@ -1289,7 +1289,7 @@ async function initAuth(){
   showGate();
   const params=new URLSearchParams(window.location.search);
   const hash=new URLSearchParams(window.location.hash.slice(1));
-  // Gestisce errori Supabase nel hash (es. link scaduto)
+  // Errori Supabase nel hash (link scaduto ecc.)
   if(hash.get('error')){
     history.replaceState({},'',window.location.pathname);
     const isReset=params.get('reset')==='1';
@@ -1299,18 +1299,15 @@ async function initAuth(){
       : (hash.get('error_description')||'Errore.').replace(/\+/g,' ');
     renderAuth(); return;
   }
-  // Attende che Supabase processi eventuali token nel hash (es. PASSWORD_RECOVERY)
-  await new Promise(r=>setTimeout(r,150));
-  if(pendingRecovery) return;
+  // Reset password: lascia che onAuthStateChange PASSWORD_RECOVERY gestisca tutto
+  if(params.get('reset')==='1'){
+    renderAuth(); return;
+  }
+  // Conferma email (PKCE)
   const code=params.get('code');
   if(code){
-    const isReset=params.get('reset')==='1';
     const {data,error}=await sb.auth.exchangeCodeForSession(code);
     history.replaceState({},'',window.location.pathname);
-    if(isReset){
-      auth.tab='reset-password'; auth.err='';
-      showGate(); renderAuth(); return;
-    }
     if(!error && data.session){ await loadProfile(data.session.user); return; }
   }
   const {data:{session}}=await sb.auth.getSession();
