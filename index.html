@@ -1031,8 +1031,8 @@ function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:1,
 function sendOrg(){if(new Set([ME,org.partner,org.opp1,org.opp2]).size===4){org.sent=true;render()}}
 
 /* ============ NAV / RENDER ============ */
-const NAV_PLAYER=[['home','Home','◈'],['rank','Classifica','≡'],['organize','Organizza','📅'],['play','Registra','⚡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
-const NAV_MANAGER=[['home','Home','◈'],['rank','Classifica','≡'],['circolo','Circolo','🏟️'],['play','Registra','⚡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
+const NAV_PLAYER=[['home','Home','◈'],['organize','Organizza','📅'],['play','Registra','⚡'],['rank','Classifica','≡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
+const NAV_MANAGER=[['home','Home','◈'],['circolo','Circolo','🏟️'],['play','Registra','⚡'],['rank','Classifica','≡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
 function renderNav(){
   const nav=auth.user&&auth.user.role==='manager'?NAV_MANAGER:NAV_PLAYER;
   $('#nav').innerHTML=nav.map(([k,l,ic])=>{
