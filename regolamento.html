@@ -272,8 +272,8 @@
 <h3>K — quanto muove ogni partita</h3>
 <p>K è un moltiplicatore che determina l'ampiezza massima del cambiamento di PR per partita.</p>
 <ul>
-  <li>K=5 → puoi guadagnare o perdere <strong>al massimo 5 punti</strong> per partita</li>
-  <li>K=3 → al massimo 3 punti</li>
+  <li>K=4 → puoi guadagnare o perdere <strong>al massimo 4 punti</strong> per partita</li>
+  <li>Uguale per tutti i giocatori, indipendentemente dall'esperienza</li>
 </ul>
 <p>K alto → il PR cambia in fretta, reagisce bene ai miglioramenti ma è instabile.<br>
 K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
@@ -316,16 +316,16 @@ K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
   </div>
 
   <div style="background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:14px 16px;margin:12px 0;font-size:14px;">
-    <div style="font-weight:700;color:#2a4a8a;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;">Calcolo dei punti (K=5, giocatori con meno di 50 partite)</div>
+    <div style="font-weight:700;color:#2a4a8a;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;">Calcolo dei punti (K=4, uguale per tutti)</div>
     <div style="font-family:monospace;font-size:13px;line-height:2;color:#1a2a4a;">
-      Se A vince → Δ = K × (1 − E) = 5 × (1 − 0.61) = 5 × 0.39 = <strong style="color:#1a7a50;">+2.0 pt</strong><br>
-      Se A perde → Δ = K × (0 − E) = 5 × (0 − 0.61) = 5 × (−0.61) = <strong style="color:#c0392b;">−3.0 pt</strong>
+      Se A vince → Δ = K × (1 − E) = 4 × (1 − 0.61) = 4 × 0.39 = <strong style="color:#1a7a50;">+1.6 pt</strong><br>
+      Se A perde → Δ = K × (0 − E) = 4 × (0 − 0.61) = 4 × (−0.61) = <strong style="color:#c0392b;">−2.4 pt</strong>
     </div>
   </div>
 
   <div class="stakes">
-    <div class="stake-box win"><div class="label">Se A vince</div><div class="pts">+2.0</div><div class="sub">punti ciascuno</div></div>
-    <div class="stake-box lose"><div class="label">Se A perde</div><div class="pts">−3.0</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box win"><div class="label">Se A vince</div><div class="pts">+1.6</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box lose"><div class="label">Se A perde</div><div class="pts">−2.4</div><div class="sub">punti ciascuno</div></div>
   </div>
   <div class="example-row"><span class="label" style="font-style:italic">A era favorita → guadagna poco se vince, perde molto se cade</span><span class="value"></span></div>
 </div>
@@ -357,9 +357,9 @@ K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
 
 <div class="example">
   <div class="example-title">Esempio 3 — Stesso risultato, diverso peso K</div>
-  <div class="example-row"><span class="label">Giocatore alla 20ª partita (K=5) vince partita 50/50</span><span class="value pos">+2.5 pt</span></div>
-  <div class="example-row"><span class="label">Giocatore alla 35ª partita (K=5) stessa partita</span><span class="value pos">+2.5 pt</span></div>
-  <div class="example-row"><span class="label">Giocatore alla 70ª partita (K=3) stessa partita</span><span class="value pos">+1.5 pt</span></div>
+  <div class="example-row"><span class="label">Qualsiasi giocatore (K=4) vince partita 50/50</span><span class="value pos">+2.0 pt</span></div>
+  <div class="example-row"><span class="label">Qualsiasi giocatore (K=4) perde partita 50/50</span><span class="value neg">−2.0 pt</span></div>
+  <div class="example-row"><span class="label">Stesso K per tutti → stessi punti per tutti nella stessa squadra</span><span class="value">✓</span></div>
 </div>
 
 <h3>I punti in gioco — visibili prima della partita</h3>
