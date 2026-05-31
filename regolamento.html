@@ -267,6 +267,32 @@
 <h2><span class="num">6</span>Come funziona il PR — PadelMeeting Rating</h2>
 <p>Dopo ogni partita classificata, il PR di ogni giocatore cambia in base a due fattori: <strong>chi era favorito</strong> e <strong>quanto vale la partita</strong> (il peso K).</p>
 
+<div class="note">Il sistema PR si basa sulla formula matematica sviluppata da <strong>Árpád Elo</strong>, fisico e professore universitario ungherese-americano (1903–1992). Elo creò questo metodo per classificare i giocatori di scacchi in modo equo e oggettivo. Oggi la stessa formula — adattata — è usata negli scacchi, nel calcio FIFA, nei videogiochi online e, con il nome PR, in PadelMeeting.</div>
+
+<h3>K — quanto muove ogni partita</h3>
+<p>K è un moltiplicatore che determina l'ampiezza massima del cambiamento di PR per partita.</p>
+<ul>
+  <li>K=5 → puoi guadagnare o perdere <strong>al massimo 5 punti</strong> per partita</li>
+  <li>K=3 → al massimo 3 punti</li>
+</ul>
+<p>K alto → il PR cambia in fretta, reagisce bene ai miglioramenti ma è instabile.<br>
+K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
+
+<h3>D — quanto pesa la differenza di livello</h3>
+<p>D risponde a una domanda concreta: <strong>quanti punti di differenza bastano per avere 9 probabilità su 10 di vincere?</strong> In PadelMeeting D=40.</p>
+
+<table class="band-table">
+  <tr><th>Differenza media tra squadre</th><th>Probabilità della squadra più forte</th></tr>
+  <tr><td>0 punti</td><td>50% — partita aperta</td></tr>
+  <tr><td>10 punti</td><td>64% — lieve vantaggio</td></tr>
+  <tr><td>20 punti</td><td>76% — vantaggio netto</td></tr>
+  <tr><td><strong>40 punti</strong></td><td><strong>90% — quasi certo</strong></td></tr>
+  <tr><td>60 punti</td><td>97% — quasi impossibile recuperare</td></tr>
+</table>
+
+<p>Se D fosse 80 invece di 40, queste stesse probabilità richiederebbero il doppio della differenza: servirebbero 80 punti di scarto per arrivare al 90%.</p>
+<div class="why"><strong>Perché D=40?</strong> Con una scala da 0 a 100, una differenza di 40 punti tra due squadre è già molto marcata — rappresenta circa due fasce di livello. D=40 fa sì che quella differenza corrisponda a una probabilità del 90%, che è intuitivamente corretta: una squadra molto più forte dovrebbe vincere quasi sempre, ma non sempre.</div>
+
 <h3>Il principio di base</h3>
 <p>Prima della partita il sistema calcola quanto è probabile che vinca ciascuna squadra, basandosi sulla media dei PR dei due giocatori per squadra. Più la vittoria è inaspettata, più punti si guadagnano. Più la vittoria è scontata, meno vale.</p>
 
@@ -332,7 +358,7 @@
 
 <div class="example">
   <div class="example-title">Esempio 3 — Stesso risultato, diverso peso K</div>
-  <div class="example-row"><span class="label">Giocatore alla 8ª partita (K=8) vince partita 50/50</span><span class="value pos">+4.0 pt</span></div>
+  <div class="example-row"><span class="label">Giocatore alla 20ª partita (K=5) vince partita 50/50</span><span class="value pos">+2.5 pt</span></div>
   <div class="example-row"><span class="label">Giocatore alla 35ª partita (K=5) stessa partita</span><span class="value pos">+2.5 pt</span></div>
   <div class="example-row"><span class="label">Giocatore alla 70ª partita (K=3) stessa partita</span><span class="value pos">+1.5 pt</span></div>
 </div>
