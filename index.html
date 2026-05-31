@@ -513,8 +513,8 @@ function viewHome(){
       </button>
       <button class="home-tile rise" onclick="go('rules')" style="animation-delay:.30s">
         <div class="ht-icon" style="color:${C.rust}">§</div>
-        <div class="ht-title">Regole</div>
-        <div class="ht-sub">Regolamento completo</div>
+        <div class="ht-title">Sintesi Regole</div>
+        <div class="ht-sub">Regole essenziali · Regolamento completo</div>
       </button>
     </div>
   </div>`;
@@ -864,16 +864,13 @@ const RULES=[
      <div class="kv"><span class="kk" style="color:#F06A80">Élite</span><span class="vv" style="color:#F06A80">96 – 100</span></div>
      <p style="margin-top:8px">Le fasce si aggiornano <b>automaticamente</b> in base al punteggio — nessuna procedura di promozione.</p>`],
 
-  ['Sistema ELO',
-    `<p>Il rating di ogni giocatore cambia dopo ogni partita secondo la formula ELO:</p>
-     <div class="kv"><span class="kk">Prob. attesa (squadra A)</span><span class="vv">E = 1 / (1 + 10^((⌀B − ⌀A) / 40))</span></div>
-     <div class="kv"><span class="kk">Variazione</span><span class="vv">Δ = K × (Risultato − E)</span></div>
-     <p style="margin-top:8px"><b>Risultato</b> = 1 per vittoria, 0 per sconfitta. <b>⌀</b> = media dei rating dei due compagni di coppia.</p>
-     <div class="sub">K-factor dinamico</div>
-
-     <div class="kv"><span class="kk">Partite 21 – 50</span><span class="vv">K = 5</span></div>
-     <div class="kv"><span class="kk">Oltre 50 partite</span><span class="vv">K = 3 · rating stabile</span></div>
-     <p class="note">Con K=3, D=40: una vittoria inaspettata (E≈15%) vale ~2.5 pt; una vittoria scontata (E≈85%) vale ~0.5 pt.</p>`],
+  ['PR — PadelMeeting Rating',
+    `<p>Il PR di ogni giocatore cambia dopo ogni partita in base al livello degli avversari: una vittoria contro una squadra più forte vale più punti, una vittoria scontata vale poco.</p>
+     <div class="kv"><span class="kk">Prime 50 partite</span><span class="vv">K = 5 · fino a 5 pt per partita</span></div>
+     <div class="kv"><span class="kk">Oltre 50 partite</span><span class="vv">K = 3 · PR stabile</span></div>
+     <p style="margin-top:10px">Prima di ogni partita l'app mostra esattamente quanti punti guadagni se vinci e quanti perdi se perdi.</p>
+     <p class="note">Il sistema PR si basa sulla formula di Árpád Elo, fisico ungherese-americano che la sviluppò per gli scacchi. Oggi è usata in tutto il mondo per classificare giocatori in modo equo e oggettivo.</p>
+     <p style="margin-top:10px"><a href="/regolamento.html" target="_blank" style="color:var(--neon);font-family:var(--mono);font-size:13px;letter-spacing:.04em">→ Leggi il regolamento completo con tutti i calcoli</a></p>`],
 
   ['Partite classificate',
     `<p>Una partita muove la classifica solo se dichiarata <b>classificata prima del primo 15</b> giocato, con accordo verbale di tutti e 4 i giocatori, e se tutti e 4 sono registrati con un rating assegnato.</p>
@@ -919,7 +916,7 @@ const RULES=[
 let ruleOpen=0;
 function viewRules(){
   return `<div class="page">
-    ${stag('Regolamento · sintesi')}
+    ${stag('Sintesi Regole')}
     <div class="card" style="padding:18px 20px;margin-bottom:14px">
       <div style="font-family:var(--serif);font-size:22px;font-style:italic">La classifica che <span class="glow">si muove</span> ad ogni partita</div>
       <p class="c-dim" style="font-size:13px;line-height:1.6;margin-top:8px">Sintesi completa del regolamento PadelMeeting. Tocca una voce per espanderla.</p>
