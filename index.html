@@ -762,7 +762,8 @@ function viewProfileManager(){
       <div class="irow"><span class="k">Account</span><span class="v">${esc(u.email||'—')}</span></div>
       <div class="irow"><span class="k">Stato</span><span class="v c-good">Attivo</span></div>
     </div>
-    <button class="cta" onclick="doLogout()" style="margin-top:18px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
+    ${changePasswordSection()}
+    <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
       Esci dall'account
     </button>
   </div>`;
@@ -821,7 +822,8 @@ function viewProfile(){
         </div>`).join('')}
       <button class="btnGhost" style="margin-top:12px;width:100%" onclick="adminLoadPending()">Aggiorna</button>
     </div>`:''}
-    <button class="cta" onclick="doLogout()" style="margin-top:18px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
+    ${changePasswordSection()}
+    <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
       Esci dall'account
     </button>
   </div>`;
@@ -1127,6 +1129,44 @@ async function doResetPassword(){
   auth.loading=false;
   if(error){ auth.err=error.message; renderAuth(); return; }
   auth.tab='login'; auth.err=''; renderAuth();
+}
+
+let changingPassword=false;
+let changePwErr='';
+function toggleChangePassword(){changingPassword=!changingPassword;changePwErr='';render()}
+async function doChangePassword(){
+  const p1=$('#cp-pass1').value, p2=$('#cp-pass2').value;
+  if(!p1||!p2){changePwErr='Compila tutti i campi';render();return;}
+  if(p1.length<6){changePwErr='Minimo 6 caratteri';render();return;}
+  if(p1!==p2){changePwErr='Le password non coincidono';render();return;}
+  changePwErr='...'; render();
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error){changePwErr=error.message;render();return;}
+  changingPassword=false; changePwErr=''; render();
+}
+function changePasswordSection(){
+  const eyeSvg=`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  if(!changingPassword) return `<button class="btnGhost" style="width:100%;margin-top:10px" onclick="toggleChangePassword()">🔑 Cambia password</button>`;
+  return `<div class="card" style="margin-top:10px;padding:18px">
+    <div style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--neon);font-family:var(--mono);letter-spacing:.06em">CAMBIA PASSWORD</div>
+    <div class="auth-field"><label class="auth-label">Nuova password</label>
+      <div class="auth-input-wrap">
+        <input id="cp-pass1" type="password" class="auth-input" placeholder="••••••••">
+        <button type="button" class="auth-eye" onclick="toggleEye('cp-pass1',this)" tabindex="-1">${eyeSvg}</button>
+      </div></div>
+    <div class="auth-field"><label class="auth-label">Conferma password</label>
+      <div class="auth-input-wrap">
+        <input id="cp-pass2" type="password" class="auth-input" placeholder="••••••••">
+        <button type="button" class="auth-eye" onclick="toggleEye('cp-pass2',this)" tabindex="-1">${eyeSvg}</button>
+      </div></div>
+    ${changePwErr==='...'
+      ? `<div style="text-align:center;padding:8px;font-family:var(--mono);font-size:12px;color:var(--neon)">…</div>`
+      : `<div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btnSolid" style="flex:1" onclick="doChangePassword()">Salva</button>
+          <button class="btnGhost" style="flex:1" onclick="toggleChangePassword()">Annulla</button>
+        </div>`}
+    ${changePwErr&&changePwErr!=='...'?`<div style="color:var(--danger);font-size:12px;margin-top:8px;text-align:center">${esc(changePwErr)}</div>`:''}
+  </div>`;
 }
 
 async function doLogout(){
