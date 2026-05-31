@@ -967,7 +967,7 @@ async function doRegister(){
   auth.loading=true; renderAuth();
   const meta={full_name:nome+' '+cognome, role:auth.role, club};
   if(provincia) meta.provincia=provincia;
-  const {error}=await sb.auth.signUp({email,password:pass,options:{data:meta}});
+  const {error}=await sb.auth.signUp({email,password:pass,options:{data:meta,emailRedirectTo:window.location.origin}});
   auth.loading=false;
   if(error){ auth.err=error.message; renderAuth(); return; }
   auth.registered=auth.role==='manager'?'pending':'verify'; renderAuth();
@@ -1078,6 +1078,14 @@ function viewAuth(){
 
 async function initAuth(){
   showGate();
+  // Gestisce il redirect dopo conferma email (code nella URL)
+  const params=new URLSearchParams(window.location.search);
+  const code=params.get('code');
+  if(code){
+    const {data,error}=await sb.auth.exchangeCodeForSession(code);
+    history.replaceState({},'',window.location.pathname);
+    if(!error && data.session){ await loadProfile(data.session.user); return; }
+  }
   const {data:{session}}=await sb.auth.getSession();
   if(session){ await loadProfile(session.user); }
   else { renderAuth(); }
