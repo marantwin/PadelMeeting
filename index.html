@@ -645,7 +645,36 @@ function viewMatches(){
 }
 function actMatch(id,status){matches=matches.map(m=>m.id===id?{...m,status}:m);render()}
 
+function viewProfileManager(){
+  const u=auth.user;
+  const initials=(u.full_name||u.email||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  return `<div class="page">
+    ${stag('Profilo')}
+    <div class="card rise center" style="padding:28px 20px">
+      <div class="avatarBig" style="margin:0 auto">${esc(initials)}</div>
+      <div style="font-family:var(--serif);font-size:26px;font-style:italic;margin-top:12px">${esc(u.full_name||'—')}</div>
+      <div style="font-size:11.5px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.1em;margin-top:2px">${esc((u.club||'—').toUpperCase())} · ${esc((u.provincia||'—').toUpperCase())}</div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-top:14px">
+        ${pill('Responsabile Circolo','neon')}
+      </div>
+    </div>
+    ${stag('Dati circolo')}
+    <div class="card">
+      <div class="irow"><span class="k">Circolo</span><span class="v">${esc(u.club||'—')}</span></div>
+      <div class="irow"><span class="k">Provincia</span><span class="v">${esc(u.provincia||'—')}</span></div>
+      <div class="irow"><span class="k">Indirizzo</span><span class="v">${esc(u.indirizzo||'—')}</span></div>
+      <div class="irow"><span class="k">Telefono</span><span class="v">${esc(u.telefono||'—')}</span></div>
+      <div class="irow"><span class="k">Account</span><span class="v">${esc(u.email||'—')}</span></div>
+      <div class="irow"><span class="k">Stato</span><span class="v c-good">Attivo</span></div>
+    </div>
+    <button class="cta" onclick="doLogout()" style="margin-top:18px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
+      Esci dall'account
+    </button>
+  </div>`;
+}
+
 function viewProfile(){
+  if(auth.user && auth.user.role==='manager') return viewProfileManager();
   const M=me();
   const tm=players.filter(p=>p.club===M.club && p.id!==ME);
   return `<div class="page">
