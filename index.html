@@ -684,13 +684,16 @@ function viewProfile(){
       <div style="font-size:12px;color:var(--ivoryFaint);margin-bottom:12px">Richieste responsabile circolo in attesa</div>
       ${adminPending.length===0
         ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:12px 0">Nessuna richiesta in attesa</div>`
-        :adminPending.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--lineSoft)">
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:600">${esc(p.full_name||'—')}</div>
-            <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${esc(p.email)} · ${esc(p.club||'—')}</div>
+        :adminPending.map(p=>`<div style="padding:12px 0;border-bottom:1px solid var(--lineSoft)">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">${esc(p.full_name||'—')}</div>
+          <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:2px">${esc(p.email)}</div>
+          <div style="font-size:12px;color:var(--ivoryDim);margin-bottom:2px">🏟 ${esc(p.club||'—')} · ${esc(p.provincia||'—')}</div>
+          <div style="font-size:12px;color:var(--ivoryDim);margin-bottom:2px">📍 ${esc(p.indirizzo||'—')}</div>
+          <div style="font-size:12px;color:var(--ivoryDim);margin-bottom:10px">📞 ${esc(p.telefono||'—')}</div>
+          <div style="display:flex;gap:8px">
+            <button class="btnSolidSm" onclick="adminSetStatus('${p.id}','active')">Approva</button>
+            <button class="btnGhostSm" onclick="adminSetStatus('${p.id}','rejected')">Rifiuta</button>
           </div>
-          <button class="btnSolidSm" onclick="adminSetStatus('${p.id}','active')">Approva</button>
-          <button class="btnGhostSm" onclick="adminSetStatus('${p.id}','rejected')">Rifiuta</button>
         </div>`).join('')}
       <button class="btnGhost" style="margin-top:12px;width:100%" onclick="adminLoadPending()">Aggiorna</button>
     </div>`:''}
@@ -962,13 +965,17 @@ async function doRegister(){
   const email=$('#ar-email').value.trim(), pass=$('#ar-pass').value, club=$('#ar-club').value;
   const pass2=$('#ar-pass2').value;
   const provincia=auth.role==='manager'?$('#ar-provincia').value.trim().toUpperCase():'';
-  if(!nome||!cognome||!email||!pass||!pass2||!club||(auth.role==='manager'&&!provincia)){
+  const indirizzo=auth.role==='manager'?$('#ar-indirizzo').value.trim():'';
+  const telefono=auth.role==='manager'?$('#ar-telefono').value.trim():'';
+  if(!nome||!cognome||!email||!pass||!pass2||!club||(auth.role==='manager'&&(!provincia||!indirizzo||!telefono))){
     auth.err='Compila tutti i campi'; renderAuth(); return; }
   if(pass.length<6){ auth.err='Password minimo 6 caratteri'; renderAuth(); return; }
   if(pass!==pass2){ auth.err='Le password non coincidono'; renderAuth(); return; }
   auth.loading=true; renderAuth();
   const meta={full_name:nome+' '+cognome, role:auth.role, club};
   if(provincia) meta.provincia=provincia;
+  if(indirizzo) meta.indirizzo=indirizzo;
+  if(telefono) meta.telefono=telefono;
   const {error}=await sb.auth.signUp({email,password:pass,options:{data:meta,emailRedirectTo:window.location.origin}});
   auth.loading=false;
   if(error){ auth.err=error.message; renderAuth(); return; }
@@ -1064,7 +1071,11 @@ function viewAuth(){
         : `<select id="ar-club" class="auth-input"><option value="">Seleziona circolo…</option>${clubOpts}<option value="__altro__">Altro / Non affiliato</option></select>`
       }</div>
     ${auth.role==='manager'?`<div class="auth-field"><label class="auth-label">Provincia</label>
-      <input id="ar-provincia" type="text" class="auth-input" placeholder="Es. NA, SA, RM" maxlength="3"></div>`:''}
+      <input id="ar-provincia" type="text" class="auth-input" placeholder="Es. NA, SA, RM" maxlength="3"></div>
+    <div class="auth-field"><label class="auth-label">Indirizzo circolo</label>
+      <input id="ar-indirizzo" type="text" class="auth-input" placeholder="Via Roma 1, Napoli" autocomplete="street-address"></div>
+    <div class="auth-field"><label class="auth-label">Telefono</label>
+      <input id="ar-telefono" type="tel" class="auth-input" placeholder="+39 081 123456" autocomplete="tel"></div>`:''}
     <div class="auth-divider"><span>Tipo di account</span></div>
     <div class="auth-role-grid">
       <button class="auth-role-btn ${auth.role==='player'?'sel':''}" onclick="setAuthRole('player')">
