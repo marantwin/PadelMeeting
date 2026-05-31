@@ -960,10 +960,12 @@ async function doLogin(){
 async function doRegister(){
   const nome=$('#ar-nome').value.trim(), cognome=$('#ar-cognome').value.trim();
   const email=$('#ar-email').value.trim(), pass=$('#ar-pass').value, club=$('#ar-club').value;
+  const pass2=$('#ar-pass2').value;
   const provincia=auth.role==='manager'?$('#ar-provincia').value.trim().toUpperCase():'';
-  if(!nome||!cognome||!email||!pass||!club||(auth.role==='manager'&&!provincia)){
+  if(!nome||!cognome||!email||!pass||!pass2||!club||(auth.role==='manager'&&!provincia)){
     auth.err='Compila tutti i campi'; renderAuth(); return; }
   if(pass.length<6){ auth.err='Password minimo 6 caratteri'; renderAuth(); return; }
+  if(pass!==pass2){ auth.err='Le password non coincidono'; renderAuth(); return; }
   auth.loading=true; renderAuth();
   const meta={full_name:nome+' '+cognome, role:auth.role, club};
   if(provincia) meta.provincia=provincia;
@@ -1050,6 +1052,11 @@ function viewAuth(){
       <div class="auth-input-wrap">
         <input id="ar-pass" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
         <button type="button" class="auth-eye" onclick="toggleEye('ar-pass',this)" tabindex="-1">${eyeOpen}</button>
+      </div></div>
+    <div class="auth-field"><label class="auth-label">Conferma password</label>
+      <div class="auth-input-wrap">
+        <input id="ar-pass2" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+        <button type="button" class="auth-eye" onclick="toggleEye('ar-pass2',this)" tabindex="-1">${eyeOpen}</button>
       </div></div>
     <div class="auth-field"><label class="auth-label">Circolo</label>
       ${auth.role==='manager'
