@@ -1108,6 +1108,27 @@ async function doRegister(){
   auth.registered=auth.role==='manager'?'pending':'verify'; renderAuth();
 }
 
+async function doResetRequest(){
+  const email=$('#ar-reset-email').value.trim();
+  if(!email){ auth.err='Inserisci la tua email'; renderAuth(); return; }
+  auth.loading=true; renderAuth();
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+  auth.loading=false;
+  if(error){ auth.err=error.message; renderAuth(); return; }
+  auth.tab='reset-sent'; renderAuth();
+}
+async function doResetPassword(){
+  const pass=$('#ar-newpass').value, pass2=$('#ar-newpass2').value;
+  if(!pass||!pass2){ auth.err='Compila tutti i campi'; renderAuth(); return; }
+  if(pass.length<6){ auth.err='Password minimo 6 caratteri'; renderAuth(); return; }
+  if(pass!==pass2){ auth.err='Le password non coincidono'; renderAuth(); return; }
+  auth.loading=true; renderAuth();
+  const {error}=await sb.auth.updateUser({password:pass});
+  auth.loading=false;
+  if(error){ auth.err=error.message; renderAuth(); return; }
+  auth.tab='login'; auth.err=''; renderAuth();
+}
+
 async function doLogout(){
   await sb.auth.signOut();
   auth={tab:'login',role:'player',err:'',loading:false,user:null,loggedIn:false};
@@ -1137,6 +1158,40 @@ function viewAuth(){
     <span style="width:7px;height:7px;border-radius:50%;background:var(--neon);animation:dotpulse .9s ease-in-out .36s infinite both;display:inline-block"></span>
   </span></div>`;
   const eyeOpen=`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+  if(auth.tab==='reset-request') return `${glows}<div class="auth-card rise">
+    ${logo}
+    <div style="font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--ivory);margin-bottom:18px">Recupera password</div>
+    <div class="auth-field"><label class="auth-label">La tua email</label>
+      <input id="ar-reset-email" type="email" class="auth-input" placeholder="la-tua@email.it" autocomplete="email"></div>
+    ${auth.loading?spinner:`<button class="auth-btn" onclick="doResetRequest()">Invia link →</button>`}
+    <div class="auth-err">${auth.err}</div>
+    <button class="linkBtn" onclick="setAuthTab('login')">← Torna al login</button>
+  </div>`;
+
+  if(auth.tab==='reset-sent') return `${glows}<div class="auth-card rise" style="text-align:center">
+    ${logo}<div style="font-size:44px;margin-bottom:10px">📧</div>
+    <div style="font-family:var(--serif);font-size:22px;font-style:italic;color:${C.neon};margin-bottom:10px">Controlla la tua email</div>
+    <p style="color:var(--ivoryDim);font-size:13px;line-height:1.65">Abbiamo inviato un link per reimpostare la password. Il link scade tra 1 ora.</p>
+    <button class="auth-btn" style="margin-top:20px;background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none" onclick="setAuthTab('login')">Torna al login</button>
+  </div>`;
+
+  if(auth.tab==='reset-password') return `${glows}<div class="auth-card rise">
+    ${logo}
+    <div style="font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.06em;color:${C.neon};margin-bottom:18px">Nuova password</div>
+    <div class="auth-field"><label class="auth-label">Nuova password</label>
+      <div class="auth-input-wrap">
+        <input id="ar-newpass" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+        <button type="button" class="auth-eye" onclick="toggleEye('ar-newpass',this)" tabindex="-1">${eyeOpen}</button>
+      </div></div>
+    <div class="auth-field"><label class="auth-label">Conferma password</label>
+      <div class="auth-input-wrap">
+        <input id="ar-newpass2" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+        <button type="button" class="auth-eye" onclick="toggleEye('ar-newpass2',this)" tabindex="-1">${eyeOpen}</button>
+      </div></div>
+    ${auth.loading?spinner:`<button class="auth-btn" onclick="doResetPassword()">Salva nuova password →</button>`}
+    <div class="auth-err">${auth.err}</div>
+  </div>`;
 
   if(auth.registered==='pending') return `${glows}<div class="auth-card rise" style="text-align:center">
     ${logo}<div style="font-size:44px;margin-bottom:10px">⏳</div>
@@ -1172,7 +1227,8 @@ function viewAuth(){
         <button type="button" class="auth-eye" onclick="toggleEye('ai-pass',this)" tabindex="-1">${eyeOpen}</button>
       </div></div>
     ${auth.loading?spinner:`<button class="auth-btn" onclick="doLogin()">Accedi →</button>`}
-    <div class="auth-err">${auth.err}</div>`;
+    <div class="auth-err">${auth.err}</div>
+    <button class="linkBtn" style="font-size:12px;opacity:.7" onclick="setAuthTab('reset-request')">Password dimenticata?</button>`;
 
   const regForm=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px">
@@ -1220,9 +1276,15 @@ function viewAuth(){
     ${isLogin?loginForm:regForm}</div>`;
 }
 
+sb.auth.onAuthStateChange((event)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    auth.tab='reset-password'; auth.err='';
+    showGate(); renderAuth();
+  }
+});
+
 async function initAuth(){
   showGate();
-  // Gestisce il redirect dopo conferma email (code nella URL)
   const params=new URLSearchParams(window.location.search);
   const code=params.get('code');
   if(code){
