@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regolamento PadelMeeting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #0E2723;
+    --teal: #1B4D45;
+    --neon: #2a9d75;
+    --text: #1a1a1a;
+    --muted: #555;
+    --border: #d0e8e0;
+    --bg-note: #f0faf6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    background: #fff;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 40px;
+  }
+
+  /* COVER */
+  .cover {
+    text-align: center;
+    padding: 60px 0 50px;
+    border-bottom: 3px solid var(--green);
+    margin-bottom: 48px;
+  }
+  .cover-logo {
+    display: inline-block;
+    background: var(--green);
+    padding: 18px 32px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+  }
+  .cover-logo span { font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 3px; color: #fff; }
+  .cover-logo span em { color: #5BF0CB; font-style: normal; }
+  .cover h1 { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+  .cover p { color: var(--muted); font-size: 14px; }
+
+  /* SECTIONS */
+  h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--green);
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  h2 .num {
+    display: inline-block;
+    background: var(--green);
+    color: #5BF0CB;
+    font-size: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 4px;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--green);
+    margin: 24px 0 8px;
+  }
+  p { margin-bottom: 12px; }
+  ul { margin: 8px 0 12px 20px; }
+  li { margin-bottom: 6px; }
+  strong { font-weight: 600; }
+
+  /* NOTE / HIGHLIGHT */
+  .note {
+    background: var(--bg-note);
+    border-left: 4px solid var(--neon);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 14px;
+    color: #2a5a46;
+  }
+  .warn {
+    background: #fff8f0;
+    border-left: 4px solid #e07b4a;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 14px;
+    color: #7a3a10;
+  }
+
+  /* EXAMPLE BOXES */
+  .example {
+    background: #f7fdfa;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 16px 0;
+  }
+  .example-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--neon);
+    margin-bottom: 10px;
+  }
+  .example-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .example-row:last-child { border-bottom: none; }
+  .example-row .label { color: var(--muted); }
+  .example-row .value { font-weight: 600; }
+  .value.pos { color: #1a7a50; }
+  .value.neg { color: #c0392b; }
+
+  /* BAND TABLE */
+  .band-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  .band-table th { background: var(--green); color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; font-size: 13px; }
+  .band-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .band-table tr:nth-child(even) td { background: #f7fdfb; }
+  .band-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+
+  /* SCORE TABLE */
+  .score-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  .score-table th { background: var(--teal); color: #fff; padding: 8px 12px; text-align: center; font-size: 13px; }
+  .score-table td { padding: 8px 12px; border: 1px solid var(--border); text-align: center; }
+  .score-table td.left { text-align: left; }
+
+  /* K TABLE */
+  .k-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  .k-table th { background: var(--teal); color: #fff; padding: 8px 12px; text-align: left; font-size: 13px; }
+  .k-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  /* PRINT */
+  @media print {
+    body { padding: 20px 30px; font-size: 13px; }
+    h2 { page-break-before: always; }
+    h2:first-of-type { page-break-before: avoid; }
+    .example, .note, .warn { page-break-inside: avoid; }
+    .cover { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-logo"><span><em>PADEL</em>MEETING</span></div>
+  <h1>Regolamento Ufficiale</h1>
+  <p>Sistema di classifica ELO per il padel amatoriale &nbsp;·&nbsp; padelmeeting.it</p>
+</div>
+
+
+<!-- 1. COS'È PADELMEETING -->
+<h2><span class="num">1</span>Cos'è PadelMeeting</h2>
+<p>PadelMeeting è una classifica digitale per giocatori amatoriali di padel. Ogni giocatore ha un <strong>rating personale</strong> (da 0 a 100) che si aggiorna automaticamente dopo ogni partita classificata.</p>
+<p>L'app è accessibile da <strong>www.padelmeeting.it</strong> su qualsiasi dispositivo e può essere installata sul cellulare senza passare dagli store.</p>
+
+
+<!-- 2. REGISTRAZIONE -->
+<h2><span class="num">2</span>Registrazione</h2>
+<p>La registrazione va fatta su <strong>www.padelmeeting.it</strong>. Durante la registrazione si inserisce nome, cognome, email, password e il circolo di appartenenza.</p>
+
+<h3>Valutazione iniziale</h3>
+<p>Dopo la registrazione il profilo è in stato <em>"in attesa di valutazione"</em>. Il responsabile del circolo assegna il <strong>rating iniziale</strong> (massimo 70) dopo aver osservato il giocatore. Da quel momento il giocatore è in classifica.</p>
+<div class="note">Le partite giocate prima della valutazione non possono essere inserite retroattivamente.</div>
+
+
+<!-- 3. CLASSIFICA E FASCE -->
+<h2><span class="num">3</span>La classifica e le fasce</h2>
+<p>La classifica va da <strong>0 a 100</strong> ed è divisa in 6 fasce:</p>
+
+<table class="band-table">
+  <tr><th>Fascia</th><th>Punteggio</th><th>Descrizione</th></tr>
+  <tr><td><span class="band-dot" style="background:#7B8FA1"></span>Ferro</td><td>0 – 25</td><td>Principianti e neofiti</td></tr>
+  <tr><td><span class="band-dot" style="background:#CD7F32"></span>Bronzo</td><td>26 – 45</td><td>Giocatori in crescita</td></tr>
+  <tr><td><span class="band-dot" style="background:#C0C0C0"></span>Argento</td><td>46 – 65</td><td>Livello intermedio</td></tr>
+  <tr><td><span class="band-dot" style="background:#D4A800"></span>Oro</td><td>66 – 80</td><td>Giocatori esperti</td></tr>
+  <tr><td><span class="band-dot" style="background:#5BF0CB"></span>Platino</td><td>81 – 95</td><td>Livello avanzato</td></tr>
+  <tr><td><span class="band-dot" style="background:#F06A80"></span>Élite</td><td>96 – 100</td><td>I migliori del circolo</td></tr>
+</table>
+
+<p>Le fasce si aggiornano <strong>automaticamente</strong> in base al punteggio — non servono procedure di promozione.</p>
+
+
+<!-- 4. COME SI CALCOLANO I PUNTI -->
+<h2><span class="num">4</span>Come si calcolano i punti (sistema ELO)</h2>
+<p>Dopo ogni partita classificata, il punteggio di ogni giocatore cambia in base a tre fattori:</p>
+<ul>
+  <li><strong>Chi era favorito</strong> — se batti avversari più forti, guadagni di più</li>
+  <li><strong>Chi era sfavorito</strong> — se perdi contro avversari più forti, perdi poco</li>
+  <li><strong>Il K-factor</strong> — quanto "pesano" le partite in base all'esperienza</li>
+</ul>
+
+<h3>La logica di base</h3>
+<p>Prima di ogni partita il sistema calcola la <strong>probabilità di vittoria</strong> di ciascuna squadra. La probabilità si basa sulla media dei rating dei due giocatori per squadra. Più è alta la differenza di rating, più la vittoria della squadra forte è "scontata" e vale pochi punti.</p>
+
+<div class="example">
+  <div class="example-title">Esempio 1 — Partita equilibrata</div>
+  <div class="example-row"><span class="label">Squadra A (Marco 60 + Chiara 45)</span><span class="value">media 52.5</span></div>
+  <div class="example-row"><span class="label">Squadra B (Luca 50 + Andrea 40)</span><span class="value">media 45.0</span></div>
+  <div class="example-row"><span class="label">Probabilità di vittoria squadra A</span><span class="value">~61%</span></div>
+  <div class="example-row"><span class="label">Se A vince → punti guadagnati ciascuno</span><span class="value pos">+2.0 pt</span></div>
+  <div class="example-row"><span class="label">Se A perde → punti persi ciascuno</span><span class="value neg">−3.0 pt</span></div>
+</div>
+
+<div class="example">
+  <div class="example-title">Esempio 2 — Colpo gobbo (sfavoriti vincono)</div>
+  <div class="example-row"><span class="label">Squadra A — sfavorita (media 40)</span><span class="value">probabilità ~15%</span></div>
+  <div class="example-row"><span class="label">Squadra B — favorita (media 70)</span><span class="value">probabilità ~85%</span></div>
+  <div class="example-row"><span class="label">Se A vince (sorpresa!) → guadagnano ciascuno</span><span class="value pos">+4.2 pt</span></div>
+  <div class="example-row"><span class="label">Se A perde (previsto) → perdono ciascuno</span><span class="value neg">−0.8 pt</span></div>
+  <div class="example-row"><span class="label">Se B vince (previsto) → guadagnano ciascuno</span><span class="value pos">+0.8 pt</span></div>
+  <div class="example-row"><span class="label">Se B perde (sorpresa!) → perdono ciascuno</span><span class="value neg">−4.2 pt</span></div>
+</div>
+
+<div class="note"><strong>Regola semplice:</strong> più la tua vittoria è inaspettata, più punti guadagni. Più la tua sconfitta è inaspettata, più punti perdi.</div>
+
+<h3>Il K-factor — quanto cambiano i punti</h3>
+<p>Il K-factor determina l'ampiezza massima delle variazioni. Diminuisce con l'esperienza: i nuovi giocatori si calibrano velocemente, i veterani hanno rating più stabili.</p>
+
+<table class="k-table">
+  <tr><th>Partite giocate</th><th>K-factor</th><th>Effetto</th></tr>
+  <tr><td>Prime 20 partite</td><td><strong>K = 8</strong></td><td>Rating si calibra rapidamente</td></tr>
+  <tr><td>Partite 21 – 50</td><td><strong>K = 5</strong></td><td>Movimento moderato</td></tr>
+  <tr><td>Oltre 50 partite</td><td><strong>K = 3</strong></td><td>Rating stabile, cambia poco</td></tr>
+</table>
+
+<div class="example">
+  <div class="example-title">Esempio K-factor — stessa partita, diversa esperienza</div>
+  <div class="example-row"><span class="label">Giocatore alla partita 10 (K=8) vince una partita 50/50</span><span class="value pos">+4.0 pt</span></div>
+  <div class="example-row"><span class="label">Giocatore alla partita 35 (K=5) stessa partita</span><span class="value pos">+2.5 pt</span></div>
+  <div class="example-row"><span class="label">Giocatore alla partita 80 (K=3) stessa partita</span><span class="value pos">+1.5 pt</span></div>
+</div>
+
+
+<!-- 5. PARTITE CLASSIFICATE -->
+<h2><span class="num">5</span>Partite classificate</h2>
+<p>Una partita muove la classifica solo se dichiarata <strong>classificata prima del primo 15</strong> giocato, con accordo verbale di tutti e 4 i giocatori. La conferma nell'app può avvenire anche subito dopo.</p>
+
+<h3>Condizioni obbligatorie</h3>
+<ul>
+  <li>Tutti e 4 i giocatori sono registrati in PadelMeeting con rating assegnato</li>
+  <li>Il formato è quello previsto dal regolamento: <strong>partita classica 2 su 3</strong></li>
+  <li>La partita è dichiarata classificata prima del primo 15 giocato</li>
+</ul>
+<div class="warn">Se anche solo una condizione non è soddisfatta, la partita non è classificata e nessun punteggio viene modificato.</div>
+
+<h3>Formato classica</h3>
+<p>Al meglio dei 3 set, con <strong>Punto Secco</strong> e tie-break in caso di 6 game pari.</p>
+
+
+<!-- 6. INSERIMENTO E APPROVAZIONE -->
+<h2><span class="num">6</span>Inserimento e approvazione del risultato</h2>
+<p>Al termine della partita, uno qualsiasi dei 4 giocatori inserisce il risultato nell'app. Almeno un giocatore della squadra avversaria deve <strong>approvare entro 48 ore</strong>.</p>
+
+<ul>
+  <li>Se nessuno approva entro 48 ore → il responsabile del circolo valida manualmente</li>
+  <li>Se un avversario <strong>contesta</strong> il risultato → decide il responsabile del circolo (decisione definitiva)</li>
+</ul>
+
+<div class="example">
+  <div class="example-title">Esempio — Flusso di approvazione</div>
+  <div class="example-row"><span class="label">Marco inserisce il risultato</span><span class="value">ore 20:00</span></div>
+  <div class="example-row"><span class="label">Luca (avversario) riceve notifica e approva</span><span class="value">ore 21:30</span></div>
+  <div class="example-row"><span class="label">La classifica si aggiorna</span><span class="value pos">✓ Automatico</span></div>
+</div>
+
+
+<!-- 7. PUNTO SECCO -->
+<h2><span class="num">7</span>Punto Secco</h2>
+<p>Il Punto Secco entra in funzione dal primo pareggio (40-40) e si articola in tre fasi:</p>
+<ul>
+  <li><strong>1° vantaggio:</strong> chi vince il punto chiude il game. Chi perde torna a 40-40.</li>
+  <li><strong>2° vantaggio:</strong> chi vince il punto chiude il game. Chi perde si gioca il Punto Secco.</li>
+  <li><strong>Punto Secco:</strong> un unico punto decisivo — chi lo vince si aggiudica il game.</li>
+</ul>
+
+
+<!-- 8. SERIE DI VITTORIE -->
+<h2><span class="num">8</span>Serie di vittorie</h2>
+<p>Chi vince partite classiche consecutive accumula <strong>stelle</strong> e riceve bonus di rating:</p>
+
+<table class="score-table">
+  <tr><th>Vittorie consecutive</th><th>Bonus</th></tr>
+  <tr><td>3 vittorie</td><td><strong>+1 punto</strong></td></tr>
+  <tr><td>5 vittorie</td><td><strong>+2 punti aggiuntivi</strong></td></tr>
+  <tr><td>10 vittorie</td><td><strong>+5 punti aggiuntivi</strong></td></tr>
+</table>
+
+<p>Le stelle si perdono <strong>tutte</strong> alla prima sconfitta.</p>
+
+<div class="example">
+  <div class="example-title">Esempio — Serie di vittorie</div>
+  <div class="example-row"><span class="label">Anna vince 3 partite di fila</span><span class="value pos">+1 pt bonus</span></div>
+  <div class="example-row"><span class="label">Anna vince altre 2 (totale 5 di fila)</span><span class="value pos">+2 pt bonus aggiuntivi</span></div>
+  <div class="example-row"><span class="label">Anna perde la partita successiva</span><span class="value neg">Serie azzerata ★→0</span></div>
+</div>
+
+
+<!-- 9. INATTIVITÀ -->
+<h2><span class="num">9</span>Inattività</h2>
+<p>Un giocatore che non disputa partite classificate per <strong>30 giorni consecutivi</strong> inizia a perdere punti. Il sistema invia una notifica 7 giorni prima del primo malus.</p>
+
+<table class="score-table">
+  <tr><th>Periodo di inattività</th><th>Malus</th></tr>
+  <tr><td>30° giorno</td><td>−1 punto</td></tr>
+  <tr><td>Ogni settimana successiva (1° mese)</td><td>−1 punto/settimana</td></tr>
+  <tr><td>Dal 2° mese in poi</td><td>−2 punti/settimana</td></tr>
+  <tr><td>Dopo 4 mesi totali</td><td>Rimozione dalla classifica</td></tr>
+</table>
+
+<div class="note">In caso di infortunio il responsabile del circolo può sospendere il conteggio dell'inattività. Al rientro il conteggio riparte da zero.</div>
+
+
+<!-- 10. ABBANDONO E AMMONIZIONI -->
+<h2><span class="num">10</span>Abbandono e ammonizioni</h2>
+<p>Se un giocatore lascia il campo dopo il primo punto giocato, la partita viene registrata come <strong>sconfitta</strong>.</p>
+
+<h3>Abbandono giustificato</h3>
+<p>Solo perdita ELO normale. Il giocatore deve comunicare il motivo al responsabile entro <strong>24 ore</strong>.</p>
+
+<h3>Abbandono ingiustificato</h3>
+<p>Se non viene comunicato alcun motivo valido entro 24 ore:</p>
+<ul>
+  <li><strong>−5 punti</strong> aggiuntivi sul rating</li>
+  <li><strong>Ammonizione</strong> registrata sul profilo</li>
+</ul>
+
+<h3>Ammonizioni e squalifica</h3>
+<p><strong>2 ammonizioni</strong> nell'arco di 3 mesi = squalifica automatica di <strong>2 mesi</strong> dalle partite classificate.</p>
+
+<div class="example">
+  <div class="example-title">Esempio — Abbandono ingiustificato</div>
+  <div class="example-row"><span class="label">Rating di Giorgio prima dell'abbandono</span><span class="value">52.0</span></div>
+  <div class="example-row"><span class="label">Perdita ELO normale dalla partita</span><span class="value neg">−2.5 pt</span></div>
+  <div class="example-row"><span class="label">Malus abbandono ingiustificato</span><span class="value neg">−5.0 pt</span></div>
+  <div class="example-row"><span class="label">Rating finale di Giorgio</span><span class="value neg">44.5</span></div>
+</div>
+
+
+<!-- 11. RESPONSABILE CIRCOLO -->
+<h2><span class="num">11</span>Il Responsabile del Circolo</h2>
+<p>Ogni circolo affiliato ha un <strong>Responsabile</strong> con poteri speciali nell'app:</p>
+<ul>
+  <li>Assegna il <strong>rating iniziale</strong> ai nuovi giocatori (massimo 70)</li>
+  <li>Approva o rifiuta le richieste di registrazione dei Responsabili di altri circoli</li>
+  <li>Valida manualmente i risultati non approvati entro 48 ore</li>
+  <li>Risolve le partite <strong>contestate</strong> — la sua decisione è definitiva</li>
+  <li>Applica ammonizioni e gestisce le sospensioni per inattività</li>
+</ul>
+
+
+<!-- NOTE FINALI -->
+<h2><span class="num">12</span>Note finali</h2>
+<p>Eventuali modifiche al regolamento non hanno valenza retroattiva.</p>
+<p>Per qualsiasi chiarimento contattare il responsabile del proprio circolo o la direzione di PadelMeeting tramite l'app.</p>
+
+<div class="footer">
+  <strong>Direzione PadelMeeting — Pangurme Srl</strong><br>
+  www.padelmeeting.it
+</div>
+
+</body>
+</html>
