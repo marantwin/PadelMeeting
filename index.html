@@ -68,12 +68,13 @@ select option{background:var(--p900);color:var(--ivory)}
 .home-tile{
   display:flex;flex-direction:column;align-items:flex-start;
   padding:20px 18px 18px;border-radius:14px;text-align:left;
-  border:1px solid var(--line);
-  background:linear-gradient(160deg,#1B4D4555,#12343080);
+  border:1px solid rgba(91,240,203,.35);
+  background:linear-gradient(160deg,var(--p600),var(--p800));
   color:var(--ivory);
+  box-shadow:0 0 18px rgba(91,240,203,.10),inset 0 0 16px rgba(91,240,203,.06);
   transition:border-color .18s,box-shadow .18s;
 }
-.home-tile:active{border-color:var(--neon);box-shadow:0 0 16px #5BF0CB22}
+.home-tile:active{border-color:var(--neon);box-shadow:0 0 24px rgba(91,240,203,.30)}
 .ht-icon{font-size:34px;margin-bottom:10px;line-height:1}
 .ht-title{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:.04em}
 .ht-sub{font-size:12px;color:var(--ivoryFaint);margin-top:5px;line-height:1.5}
