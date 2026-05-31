@@ -1276,8 +1276,10 @@ function viewAuth(){
     ${isLogin?loginForm:regForm}</div>`;
 }
 
+let isPasswordRecovery=false;
 sb.auth.onAuthStateChange((event)=>{
   if(event==='PASSWORD_RECOVERY'){
+    isPasswordRecovery=true;
     auth.tab='reset-password'; auth.err='';
     showGate(); renderAuth();
   }
@@ -1290,6 +1292,9 @@ async function initAuth(){
   if(code){
     const {data,error}=await sb.auth.exchangeCodeForSession(code);
     history.replaceState({},'',window.location.pathname);
+    // Lascia un tick affinché onAuthStateChange possa intercettare PASSWORD_RECOVERY
+    await new Promise(r=>setTimeout(r,0));
+    if(isPasswordRecovery) return;
     if(!error && data.session){ await loadProfile(data.session.user); return; }
   }
   const {data:{session}}=await sb.auth.getSession();
