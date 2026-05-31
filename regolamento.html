@@ -279,19 +279,18 @@
 K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
 
 <h3>D — quanto pesa la differenza di livello</h3>
-<p>D risponde a una domanda concreta: <strong>quanti punti di differenza bastano per avere 9 probabilità su 10 di vincere?</strong> In PadelMeeting D=40.</p>
+<p>D risponde a una domanda concreta: <strong>quanti punti di differenza bastano per avere 9 probabilità su 10 di vincere?</strong> In PadelMeeting D=50.</p>
 
 <table class="band-table">
   <tr><th>Differenza media tra squadre</th><th>Probabilità della squadra più forte</th></tr>
   <tr><td>0 punti</td><td>50% — partita aperta</td></tr>
-  <tr><td>10 punti</td><td>64% — lieve vantaggio</td></tr>
-  <tr><td>20 punti</td><td>76% — vantaggio netto</td></tr>
-  <tr><td><strong>40 punti</strong></td><td><strong>90% — quasi certo</strong></td></tr>
-  <tr><td>60 punti</td><td>97% — quasi impossibile recuperare</td></tr>
+  <tr><td>10 punti</td><td>61% — lieve vantaggio</td></tr>
+  <tr><td>20 punti</td><td>72% — vantaggio netto</td></tr>
+  <tr><td><strong>50 punti</strong></td><td><strong>91% — quasi certo</strong></td></tr>
+  <tr><td>70 punti</td><td>96% — quasi impossibile recuperare</td></tr>
 </table>
 
-<p>Se D fosse 80 invece di 40, queste stesse probabilità richiederebbero il doppio della differenza: servirebbero 80 punti di scarto per arrivare al 90%.</p>
-<div class="why"><strong>Perché D=40?</strong> Con una scala da 0 a 100, una differenza di 40 punti tra due squadre è già molto marcata — rappresenta circa due fasce di livello. D=40 fa sì che quella differenza corrisponda a una probabilità del 90%, che è intuitivamente corretta: una squadra molto più forte dovrebbe vincere quasi sempre, ma non sempre.</div>
+<div class="why"><strong>Perché D=50?</strong> La scala del PR va da 0 a 100. Con D=50, esattamente metà della scala — 50 punti di distanza — corrisponde a 9 probabilità su 10 di vincere. È una scelta coerente con la scala: chi è "a metà scala sopra" gli avversari ha quasi certamente la partita in pugno, ma non è invincibile.</div>
 
 <h3>Il principio di base</h3>
 <p>Prima della partita il sistema calcola quanto è probabile che vinca ciascuna squadra, basandosi sulla media dei PR dei due giocatori per squadra. Più la vittoria è inaspettata, più punti si guadagnano. Più la vittoria è scontata, meno vale.</p>
@@ -307,40 +306,40 @@ K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
   <div style="background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:14px 16px;margin:12px 0;font-size:14px;">
     <div style="font-weight:700;color:#2a4a8a;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;">Calcolo della probabilità</div>
     <div style="font-family:monospace;font-size:13px;line-height:2;color:#1a2a4a;">
-      E = 1 / (1 + 10<sup>−7.5/40</sup>)<br>
-      E = 1 / (1 + 10<sup>−0.1875</sup>)<br>
-      E = 1 / (1 + 0.649)<br>
-      E = 1 / 1.649<br>
-      E = <strong>0.61 → 61%</strong>
+      E = 1 / (1 + 10<sup>−7.5/50</sup>)<br>
+      E = 1 / (1 + 10<sup>−0.15</sup>)<br>
+      E = 1 / (1 + 0.708)<br>
+      E = 1 / 1.708<br>
+      E = <strong>0.59 → 59%</strong>
     </div>
   </div>
 
   <div style="background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:14px 16px;margin:12px 0;font-size:14px;">
     <div style="font-weight:700;color:#2a4a8a;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;">Calcolo dei punti (K=4, uguale per tutti)</div>
     <div style="font-family:monospace;font-size:13px;line-height:2;color:#1a2a4a;">
-      Se A vince → Δ = K × (1 − E) = 4 × (1 − 0.61) = 4 × 0.39 = <strong style="color:#1a7a50;">+1.6 pt</strong><br>
-      Se A perde → Δ = K × (0 − E) = 4 × (0 − 0.61) = 4 × (−0.61) = <strong style="color:#c0392b;">−2.4 pt</strong>
+      Se A vince → Δ = K × (1 − E) = 4 × (1 − 0.59) = 4 × 0.41 = <strong style="color:#1a7a50;">+1.7 pt</strong><br>
+      Se A perde → Δ = K × (0 − E) = 4 × (0 − 0.59) = 4 × (−0.59) = <strong style="color:#c0392b;">−2.3 pt</strong>
     </div>
   </div>
 
   <div class="stakes">
-    <div class="stake-box win"><div class="label">Se A vince</div><div class="pts">+1.6</div><div class="sub">punti ciascuno</div></div>
-    <div class="stake-box lose"><div class="label">Se A perde</div><div class="pts">−2.4</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box win"><div class="label">Se A vince</div><div class="pts">+1.7</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box lose"><div class="label">Se A perde</div><div class="pts">−2.3</div><div class="sub">punti ciascuno</div></div>
   </div>
   <div class="example-row"><span class="label" style="font-style:italic">A era favorita → guadagna poco se vince, perde molto se cade</span><span class="value"></span></div>
 </div>
 
 <div class="example">
   <div class="example-title">Esempio 2 — Colpo gobbo (sfavoriti vincono)</div>
-  <div class="example-row"><span class="label">Squadra A — sfavorita (media PR 40)</span><span class="value">prob. ~15%</span></div>
-  <div class="example-row"><span class="label">Squadra B — favorita (media PR 70)</span><span class="value">prob. ~85%</span></div>
+  <div class="example-row"><span class="label">Squadra A — sfavorita (media PR 40)</span><span class="value">prob. ~20%</span></div>
+  <div class="example-row"><span class="label">Squadra B — favorita (media PR 70)</span><span class="value">prob. ~80%</span></div>
   <div class="stakes">
-    <div class="stake-box win"><div class="label">A vince (sorpresa)</div><div class="pts">+4.2</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box win"><div class="label">A vince (sorpresa)</div><div class="pts">+3.2</div><div class="sub">punti ciascuno</div></div>
     <div class="stake-box lose"><div class="label">A perde (previsto)</div><div class="pts">−0.8</div><div class="sub">punti ciascuno</div></div>
   </div>
   <div class="stakes">
     <div class="stake-box win"><div class="label">B vince (previsto)</div><div class="pts">+0.8</div><div class="sub">punti ciascuno</div></div>
-    <div class="stake-box lose"><div class="label">B perde (sorpresa)</div><div class="pts">−4.2</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box lose"><div class="label">B perde (sorpresa)</div><div class="pts">−3.2</div><div class="sub">punti ciascuno</div></div>
   </div>
 </div>
 

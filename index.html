@@ -401,7 +401,7 @@ function teamAvg(ids){return ids.reduce((s,id)=>s+((players.find(p=>p.id===id)||
 
 function computeMatch(t1,t2,format,winnerTeam){
   const avg1=teamAvg(t1), avg2=teamAvg(t2);
-  const E1=1/(1+Math.pow(10,(avg2-avg1)/40));
+  const E1=1/(1+Math.pow(10,(avg2-avg1)/50));
   const res={};
   [1,2].forEach(team=>{
     const ids=team===1?t1:t2;
