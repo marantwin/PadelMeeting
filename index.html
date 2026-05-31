@@ -1276,6 +1276,15 @@ function viewAuth(){
     ${isLogin?loginForm:regForm}</div>`;
 }
 
+let pendingRecovery=false;
+sb.auth.onAuthStateChange((event)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    pendingRecovery=true;
+    auth.tab='reset-password'; auth.err='';
+    showGate(); renderAuth();
+  }
+});
+
 async function initAuth(){
   showGate();
   const params=new URLSearchParams(window.location.search);
@@ -1287,9 +1296,12 @@ async function initAuth(){
     auth.tab=isReset?'reset-request':'login';
     auth.err=hash.get('error_code')==='otp_expired'
       ? (isReset?'Il link è scaduto. Richiedine uno nuovo.':'Il link è scaduto. Riprova il login.')
-      : (hash.get('error_description')||'Si è verificato un errore.').replace(/\+/g,' ');
+      : (hash.get('error_description')||'Errore.').replace(/\+/g,' ');
     renderAuth(); return;
   }
+  // Attende che Supabase processi eventuali token nel hash (es. PASSWORD_RECOVERY)
+  await new Promise(r=>setTimeout(r,150));
+  if(pendingRecovery) return;
   const code=params.get('code');
   if(code){
     const isReset=params.get('reset')==='1';
