@@ -273,10 +273,30 @@
 <div class="why"><strong>Perché usare le probabilità?</strong> Perché non tutte le vittorie valgono uguale. Battere una squadra molto più forte è un risultato eccezionale che merita una ricompensa eccezionale. Usare la probabilità attesa permette al sistema di riconoscere automaticamente la difficoltà di ogni sfida, senza che nessuno debba decidere manualmente quanto "vale" una partita.</div>
 
 <div class="example">
-  <div class="example-title">Esempio 1 — Partita equilibrata</div>
+  <div class="example-title">Esempio 1 — Partita equilibrata (calcoli completi)</div>
   <div class="example-row"><span class="label">Squadra A: Marco (PR 60) + Chiara (PR 45) → media PR</span><span class="value">52.5</span></div>
   <div class="example-row"><span class="label">Squadra B: Luca (PR 50) + Andrea (PR 40) → media PR</span><span class="value">45.0</span></div>
-  <div class="example-row"><span class="label">Probabilità di vittoria squadra A</span><span class="value">~61%</span></div>
+  <div class="example-row"><span class="label">Differenza tra le medie</span><span class="value">52.5 − 45.0 = 7.5</span></div>
+
+  <div style="background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:14px 16px;margin:12px 0;font-size:14px;">
+    <div style="font-weight:700;color:#2a4a8a;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;">Calcolo della probabilità</div>
+    <div style="font-family:monospace;font-size:13px;line-height:2;color:#1a2a4a;">
+      E = 1 / (1 + 10<sup>−7.5/40</sup>)<br>
+      E = 1 / (1 + 10<sup>−0.1875</sup>)<br>
+      E = 1 / (1 + 0.649)<br>
+      E = 1 / 1.649<br>
+      E = <strong>0.61 → 61%</strong>
+    </div>
+  </div>
+
+  <div style="background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:14px 16px;margin:12px 0;font-size:14px;">
+    <div style="font-weight:700;color:#2a4a8a;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;">Calcolo dei punti (K=5, giocatori con meno di 50 partite)</div>
+    <div style="font-family:monospace;font-size:13px;line-height:2;color:#1a2a4a;">
+      Se A vince → Δ = K × (1 − E) = 5 × (1 − 0.61) = 5 × 0.39 = <strong style="color:#1a7a50;">+2.0 pt</strong><br>
+      Se A perde → Δ = K × (0 − E) = 5 × (0 − 0.61) = 5 × (−0.61) = <strong style="color:#c0392b;">−3.0 pt</strong>
+    </div>
+  </div>
+
   <div class="stakes">
     <div class="stake-box win"><div class="label">Se A vince</div><div class="pts">+2.0</div><div class="sub">punti ciascuno</div></div>
     <div class="stake-box lose"><div class="label">Se A perde</div><div class="pts">−3.0</div><div class="sub">punti ciascuno</div></div>
