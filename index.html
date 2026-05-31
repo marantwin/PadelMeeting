@@ -1115,6 +1115,7 @@ async function doResetRequest(){
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
   auth.loading=false;
   if(error){ auth.err=error.message; renderAuth(); return; }
+  sessionStorage.setItem('pmPasswordReset','1');
   auth.tab='reset-sent'; renderAuth();
 }
 async function doResetPassword(){
@@ -1276,25 +1277,19 @@ function viewAuth(){
     ${isLogin?loginForm:regForm}</div>`;
 }
 
-let isPasswordRecovery=false;
-sb.auth.onAuthStateChange((event)=>{
-  if(event==='PASSWORD_RECOVERY'){
-    isPasswordRecovery=true;
-    auth.tab='reset-password'; auth.err='';
-    showGate(); renderAuth();
-  }
-});
-
 async function initAuth(){
   showGate();
   const params=new URLSearchParams(window.location.search);
   const code=params.get('code');
   if(code){
+    const isReset=sessionStorage.getItem('pmPasswordReset')==='1';
     const {data,error}=await sb.auth.exchangeCodeForSession(code);
     history.replaceState({},'',window.location.pathname);
-    // Lascia un tick affinché onAuthStateChange possa intercettare PASSWORD_RECOVERY
-    await new Promise(r=>setTimeout(r,0));
-    if(isPasswordRecovery) return;
+    if(isReset){
+      sessionStorage.removeItem('pmPasswordReset');
+      auth.tab='reset-password'; auth.err='';
+      showGate(); renderAuth(); return;
+    }
     if(!error && data.session){ await loadProfile(data.session.user); return; }
   }
   const {data:{session}}=await sb.auth.getSession();
