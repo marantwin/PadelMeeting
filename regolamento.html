@@ -15,12 +15,14 @@
     --muted: #555;
     --border: #d0e8e0;
     --bg-note: #f0faf6;
+    --bg-why: #f5f0ff;
+    --why-border: #8b5cf6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Outfit', sans-serif;
     font-size: 15px;
-    line-height: 1.7;
+    line-height: 1.75;
     color: var(--text);
     background: #fff;
     max-width: 800px;
@@ -28,7 +30,6 @@
     padding: 48px 40px;
   }
 
-  /* COVER */
   .cover {
     text-align: center;
     padding: 60px 0 50px;
@@ -46,8 +47,8 @@
   .cover-logo span em { color: #5BF0CB; font-style: normal; }
   .cover h1 { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
   .cover p { color: var(--muted); font-size: 14px; }
+  .cover .version { display: inline-block; background: var(--bg-note); border: 1px solid var(--border); border-radius: 20px; padding: 4px 14px; font-size: 12px; color: var(--neon); font-weight: 600; margin-top: 12px; }
 
-  /* SECTIONS */
   h2 {
     font-family: 'Cormorant Garamond', serif;
     font-size: 26px;
@@ -61,26 +62,20 @@
     display: inline-block;
     background: var(--green);
     color: #5BF0CB;
-    font-size: 14px;
+    font-size: 13px;
     font-family: 'Outfit', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     padding: 2px 9px;
     border-radius: 4px;
     margin-right: 10px;
     vertical-align: middle;
   }
-  h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--green);
-    margin: 24px 0 8px;
-  }
+  h3 { font-size: 16px; font-weight: 600; color: var(--green); margin: 24px 0 8px; }
   p { margin-bottom: 12px; }
   ul { margin: 8px 0 12px 20px; }
   li { margin-bottom: 6px; }
   strong { font-weight: 600; }
 
-  /* NOTE / HIGHLIGHT */
   .note {
     background: var(--bg-note);
     border-left: 4px solid var(--neon);
@@ -100,7 +95,18 @@
     color: #7a3a10;
   }
 
-  /* EXAMPLE BOXES */
+  /* Riquadro PERCHÉ */
+  .why {
+    background: var(--bg-why);
+    border-left: 4px solid var(--why-border);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 14px;
+    color: #4a3080;
+  }
+  .why strong { color: #6d28d9; }
+
   .example {
     background: #f7fdfa;
     border: 1px solid var(--border);
@@ -109,12 +115,12 @@
     margin: 16px 0;
   }
   .example-title {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .12em;
     text-transform: uppercase;
     color: var(--neon);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
   .example-row {
     display: flex;
@@ -122,32 +128,55 @@
     padding: 5px 0;
     border-bottom: 1px solid var(--border);
     font-size: 14px;
+    gap: 12px;
   }
   .example-row:last-child { border-bottom: none; }
   .example-row .label { color: var(--muted); }
-  .example-row .value { font-weight: 600; }
+  .example-row .value { font-weight: 600; white-space: nowrap; }
   .value.pos { color: #1a7a50; }
   .value.neg { color: #c0392b; }
 
-  /* BAND TABLE */
+  .stakes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .stake-box {
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stake-box.win { background: #f0faf6; border: 1px solid #a8dcc8; }
+  .stake-box.lose { background: #fff5f5; border: 1px solid #f5c0c0; }
+  .stake-box .label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .stake-box .pts { font-size: 26px; font-weight: 700; font-family: 'Outfit', sans-serif; }
+  .stake-box.win .pts { color: #1a7a50; }
+  .stake-box.lose .pts { color: #c0392b; }
+  .stake-box .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
   .band-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
-  .band-table th { background: var(--green); color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; font-size: 13px; }
-  .band-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .band-table th { background: var(--green); color: #fff; padding: 9px 12px; text-align: left; font-weight: 600; font-size: 13px; }
+  .band-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
   .band-table tr:nth-child(even) td { background: #f7fdfb; }
   .band-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
 
-  /* SCORE TABLE */
-  .score-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
-  .score-table th { background: var(--teal); color: #fff; padding: 8px 12px; text-align: center; font-size: 13px; }
-  .score-table td { padding: 8px 12px; border: 1px solid var(--border); text-align: center; }
-  .score-table td.left { text-align: left; }
-
-  /* K TABLE */
   .k-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
-  .k-table th { background: var(--teal); color: #fff; padding: 8px 12px; text-align: left; font-size: 13px; }
-  .k-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .k-table th { background: var(--teal); color: #fff; padding: 9px 12px; text-align: left; font-size: 13px; }
+  .k-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
 
-  /* FOOTER */
+  .pr-badge {
+    display: inline-block;
+    background: var(--green);
+    color: #5BF0CB;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: .05em;
+  }
+
   .footer {
     margin-top: 64px;
     padding-top: 20px;
@@ -158,178 +187,188 @@
     line-height: 1.8;
   }
 
-  /* PRINT */
   @media print {
     body { padding: 20px 30px; font-size: 13px; }
     h2 { page-break-before: always; }
     h2:first-of-type { page-break-before: avoid; }
-    .example, .note, .warn { page-break-inside: avoid; }
+    .example, .note, .warn, .why { page-break-inside: avoid; }
     .cover { page-break-after: always; }
   }
 </style>
 </head>
 <body>
 
-<!-- COVER -->
 <div class="cover">
   <div class="cover-logo"><span><em>PADEL</em>MEETING</span></div>
   <h1>Regolamento Ufficiale</h1>
-  <p>Sistema di classifica ELO per il padel amatoriale &nbsp;·&nbsp; padelmeeting.it</p>
+  <p>Sistema di classifica <strong>PR — PadelMeeting Rating</strong></p>
+  <p>padelmeeting.it</p>
+  <span class="version">Edizione 2026</span>
 </div>
 
 
-<!-- 1. COS'È PADELMEETING -->
 <h2><span class="num">1</span>Cos'è PadelMeeting</h2>
-<p>PadelMeeting è una classifica digitale per giocatori amatoriali di padel. Ogni giocatore ha un <strong>rating personale</strong> (da 0 a 100) che si aggiorna automaticamente dopo ogni partita classificata.</p>
-<p>L'app è accessibile da <strong>www.padelmeeting.it</strong> su qualsiasi dispositivo e può essere installata sul cellulare senza passare dagli store.</p>
+<p>PadelMeeting è una classifica digitale per giocatori amatoriali di padel. Ogni giocatore ha un <strong>PR — PadelMeeting Rating</strong> personale che si aggiorna automaticamente dopo ogni partita classificata, tenendo conto del livello degli avversari.</p>
+<p>L'app è accessibile da <strong>www.padelmeeting.it</strong> su qualsiasi dispositivo e si installa sul cellulare senza passare dagli store.</p>
+<div class="why"><strong>Perché un rating dinamico?</strong> Un sistema a punti fissi (es. +10 per ogni vittoria) non distingue tra battere il primo della classifica o l'ultimo. Il PR assegna punti proporzionali alla difficoltà della sfida: una vittoria inaspettata vale molto, una vittoria scontata vale poco. Questo rende la classifica più equa e significativa.</div>
 
 
-<!-- 2. REGISTRAZIONE -->
 <h2><span class="num">2</span>Registrazione</h2>
-<p>La registrazione va fatta su <strong>www.padelmeeting.it</strong>. Durante la registrazione si inserisce nome, cognome, email, password e il circolo di appartenenza.</p>
+<p>La registrazione avviene su <strong>www.padelmeeting.it</strong>. Si inserisce nome, cognome, email, password e circolo di appartenenza. Dopo la registrazione viene inviata una email di conferma — il link nell'email attiva l'account.</p>
 
 <h3>Valutazione iniziale</h3>
-<p>Dopo la registrazione il profilo è in stato <em>"in attesa di valutazione"</em>. Il responsabile del circolo assegna il <strong>rating iniziale</strong> (massimo 70) dopo aver osservato il giocatore. Da quel momento il giocatore è in classifica.</p>
+<p>Dopo la registrazione il profilo è in stato <em>"in attesa di valutazione"</em>. Il responsabile del circolo assegna il <strong>PR iniziale</strong> (massimo 70) osservando il giocatore. Da quel momento il giocatore è in classifica e ogni partita classificata muove il suo PR.</p>
 <div class="note">Le partite giocate prima della valutazione non possono essere inserite retroattivamente.</div>
+<div class="why"><strong>Perché il rating iniziale è al massimo 70?</strong> Le fasce più alte (Oro, Platino, Élite) si raggiungono solo sul campo, battendo avversari forti. Nessuno può "nascere" in cima alla classifica — il PR deve essere guadagnato partita dopo partita.</div>
 
 
-<!-- 3. CLASSIFICA E FASCE -->
 <h2><span class="num">3</span>La classifica e le fasce</h2>
-<p>La classifica va da <strong>0 a 100</strong> ed è divisa in 6 fasce:</p>
+<p>Il <span class="pr-badge">PR</span> va da <strong>0 a 100</strong> ed è suddiviso in 6 fasce:</p>
 
 <table class="band-table">
-  <tr><th>Fascia</th><th>Punteggio</th><th>Descrizione</th></tr>
-  <tr><td><span class="band-dot" style="background:#7B8FA1"></span>Ferro</td><td>0 – 25</td><td>Principianti e neofiti</td></tr>
-  <tr><td><span class="band-dot" style="background:#CD7F32"></span>Bronzo</td><td>26 – 45</td><td>Giocatori in crescita</td></tr>
-  <tr><td><span class="band-dot" style="background:#C0C0C0"></span>Argento</td><td>46 – 65</td><td>Livello intermedio</td></tr>
-  <tr><td><span class="band-dot" style="background:#D4A800"></span>Oro</td><td>66 – 80</td><td>Giocatori esperti</td></tr>
-  <tr><td><span class="band-dot" style="background:#5BF0CB"></span>Platino</td><td>81 – 95</td><td>Livello avanzato</td></tr>
-  <tr><td><span class="band-dot" style="background:#F06A80"></span>Élite</td><td>96 – 100</td><td>I migliori del circolo</td></tr>
+  <tr><th>Fascia</th><th>PR</th><th>Livello</th></tr>
+  <tr><td><span class="band-dot" style="background:#7B8FA1"></span><strong>Ferro</strong></td><td>0 – 25</td><td>Principianti e neofiti</td></tr>
+  <tr><td><span class="band-dot" style="background:#CD7F32"></span><strong>Bronzo</strong></td><td>26 – 45</td><td>Giocatori in crescita</td></tr>
+  <tr><td><span class="band-dot" style="background:#C0C0C0"></span><strong>Argento</strong></td><td>46 – 65</td><td>Livello intermedio</td></tr>
+  <tr><td><span class="band-dot" style="background:#D4A800"></span><strong>Oro</strong></td><td>66 – 80</td><td>Giocatori esperti</td></tr>
+  <tr><td><span class="band-dot" style="background:#5BF0CB"></span><strong>Platino</strong></td><td>81 – 95</td><td>Livello avanzato</td></tr>
+  <tr><td><span class="band-dot" style="background:#F06A80"></span><strong>Élite</strong></td><td>96 – 100</td><td>I migliori del circolo</td></tr>
 </table>
 
-<p>Le fasce si aggiornano <strong>automaticamente</strong> in base al punteggio — non servono procedure di promozione.</p>
+<p>Le fasce si aggiornano <strong>automaticamente</strong> — non servono promozioni o richieste. Appena il PR supera la soglia, la fascia cambia.</p>
+<div class="why"><strong>Perché 6 fasce?</strong> Le fasce danno ai giocatori un riferimento visivo del loro livello e rendono la classifica più leggibile. Senza fasce, la differenza tra un PR di 48 e uno di 52 sembrerebbe irrilevante — con le fasce, entrambi sanno esattamente dove si collocano.</div>
 
 
-<!-- 4. COME SI CALCOLANO I PUNTI -->
-<h2><span class="num">4</span>Come si calcolano i punti (sistema ELO)</h2>
-<p>Dopo ogni partita classificata, il punteggio di ogni giocatore cambia in base a tre fattori:</p>
-<ul>
-  <li><strong>Chi era favorito</strong> — se batti avversari più forti, guadagni di più</li>
-  <li><strong>Chi era sfavorito</strong> — se perdi contro avversari più forti, perdi poco</li>
-  <li><strong>Il K-factor</strong> — quanto "pesano" le partite in base all'esperienza</li>
-</ul>
+<h2><span class="num">4</span>Come funziona il PR — PadelMeeting Rating</h2>
+<p>Dopo ogni partita classificata, il PR di ogni giocatore cambia in base a due fattori: <strong>chi era favorito</strong> e <strong>quanto vale la partita</strong> (il peso K).</p>
 
-<h3>La logica di base</h3>
-<p>Prima di ogni partita il sistema calcola la <strong>probabilità di vittoria</strong> di ciascuna squadra. La probabilità si basa sulla media dei rating dei due giocatori per squadra. Più è alta la differenza di rating, più la vittoria della squadra forte è "scontata" e vale pochi punti.</p>
+<h3>Il principio di base</h3>
+<p>Prima della partita il sistema calcola quanto è probabile che vinca ciascuna squadra, basandosi sulla media dei PR dei due giocatori per squadra. Più la vittoria è inaspettata, più punti si guadagnano. Più la vittoria è scontata, meno vale.</p>
+
+<div class="why"><strong>Perché usare le probabilità?</strong> Perché non tutte le vittorie valgono uguale. Battere una squadra molto più forte è un risultato eccezionale che merita una ricompensa eccezionale. Usare la probabilità attesa permette al sistema di riconoscere automaticamente la difficoltà di ogni sfida, senza che nessuno debba decidere manualmente quanto "vale" una partita.</div>
 
 <div class="example">
   <div class="example-title">Esempio 1 — Partita equilibrata</div>
-  <div class="example-row"><span class="label">Squadra A (Marco 60 + Chiara 45)</span><span class="value">media 52.5</span></div>
-  <div class="example-row"><span class="label">Squadra B (Luca 50 + Andrea 40)</span><span class="value">media 45.0</span></div>
+  <div class="example-row"><span class="label">Squadra A: Marco (PR 60) + Chiara (PR 45) → media PR</span><span class="value">52.5</span></div>
+  <div class="example-row"><span class="label">Squadra B: Luca (PR 50) + Andrea (PR 40) → media PR</span><span class="value">45.0</span></div>
   <div class="example-row"><span class="label">Probabilità di vittoria squadra A</span><span class="value">~61%</span></div>
-  <div class="example-row"><span class="label">Se A vince → punti guadagnati ciascuno</span><span class="value pos">+2.0 pt</span></div>
-  <div class="example-row"><span class="label">Se A perde → punti persi ciascuno</span><span class="value neg">−3.0 pt</span></div>
+  <div class="stakes">
+    <div class="stake-box win"><div class="label">Se A vince</div><div class="pts">+2.0</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box lose"><div class="label">Se A perde</div><div class="pts">−3.0</div><div class="sub">punti ciascuno</div></div>
+  </div>
+  <div class="example-row"><span class="label" style="font-style:italic">A era favorita → guadagna poco se vince, perde molto se cade</span><span class="value"></span></div>
 </div>
 
 <div class="example">
   <div class="example-title">Esempio 2 — Colpo gobbo (sfavoriti vincono)</div>
-  <div class="example-row"><span class="label">Squadra A — sfavorita (media 40)</span><span class="value">probabilità ~15%</span></div>
-  <div class="example-row"><span class="label">Squadra B — favorita (media 70)</span><span class="value">probabilità ~85%</span></div>
-  <div class="example-row"><span class="label">Se A vince (sorpresa!) → guadagnano ciascuno</span><span class="value pos">+4.2 pt</span></div>
-  <div class="example-row"><span class="label">Se A perde (previsto) → perdono ciascuno</span><span class="value neg">−0.8 pt</span></div>
-  <div class="example-row"><span class="label">Se B vince (previsto) → guadagnano ciascuno</span><span class="value pos">+0.8 pt</span></div>
-  <div class="example-row"><span class="label">Se B perde (sorpresa!) → perdono ciascuno</span><span class="value neg">−4.2 pt</span></div>
+  <div class="example-row"><span class="label">Squadra A — sfavorita (media PR 40)</span><span class="value">prob. ~15%</span></div>
+  <div class="example-row"><span class="label">Squadra B — favorita (media PR 70)</span><span class="value">prob. ~85%</span></div>
+  <div class="stakes">
+    <div class="stake-box win"><div class="label">A vince (sorpresa)</div><div class="pts">+4.2</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box lose"><div class="label">A perde (previsto)</div><div class="pts">−0.8</div><div class="sub">punti ciascuno</div></div>
+  </div>
+  <div class="stakes">
+    <div class="stake-box win"><div class="label">B vince (previsto)</div><div class="pts">+0.8</div><div class="sub">punti ciascuno</div></div>
+    <div class="stake-box lose"><div class="label">B perde (sorpresa)</div><div class="pts">−4.2</div><div class="sub">punti ciascuno</div></div>
+  </div>
 </div>
 
-<div class="note"><strong>Regola semplice:</strong> più la tua vittoria è inaspettata, più punti guadagni. Più la tua sconfitta è inaspettata, più punti perdi.</div>
-
-<h3>Il K-factor — quanto cambiano i punti</h3>
-<p>Il K-factor determina l'ampiezza massima delle variazioni. Diminuisce con l'esperienza: i nuovi giocatori si calibrano velocemente, i veterani hanno rating più stabili.</p>
+<h3>Il peso K — quanto cambiano i punti</h3>
+<p>Il peso K determina quanto "muove" ogni partita. Diminuisce con l'esperienza: i nuovi giocatori hanno un rating ancora incerto che si aggiusta rapidamente, i veterani hanno un rating consolidato che cambia lentamente.</p>
 
 <table class="k-table">
-  <tr><th>Partite giocate</th><th>K-factor</th><th>Effetto</th></tr>
-  <tr><td>Prime 20 partite</td><td><strong>K = 8</strong></td><td>Rating si calibra rapidamente</td></tr>
-  <tr><td>Partite 21 – 50</td><td><strong>K = 5</strong></td><td>Movimento moderato</td></tr>
-  <tr><td>Oltre 50 partite</td><td><strong>K = 3</strong></td><td>Rating stabile, cambia poco</td></tr>
+  <tr><th>Partite giocate</th><th>Peso K</th><th>Effetto</th></tr>
+  <tr><td>Prime 20 partite</td><td><strong>K = 8</strong></td><td>Il PR si calibra rapidamente nelle prime partite</td></tr>
+  <tr><td>Partite 21 – 50</td><td><strong>K = 5</strong></td><td>Movimento moderato, il livello si consolida</td></tr>
+  <tr><td>Oltre 50 partite</td><td><strong>K = 3</strong></td><td>PR stabile — cambia poco per partita</td></tr>
 </table>
 
+<div class="why"><strong>Perché il peso K diminuisce con l'esperienza?</strong> Un nuovo giocatore ha un PR incerto — potrebbe essere molto più forte o più debole di quanto il valore iniziale suggerisca. Serve che il PR si aggiusti in fretta. Un veterano con 100 partite ha invece un PR già preciso: movimenti grandi sarebbero ingiusti e destabilizzanti.</div>
+
 <div class="example">
-  <div class="example-title">Esempio K-factor — stessa partita, diversa esperienza</div>
-  <div class="example-row"><span class="label">Giocatore alla partita 10 (K=8) vince una partita 50/50</span><span class="value pos">+4.0 pt</span></div>
-  <div class="example-row"><span class="label">Giocatore alla partita 35 (K=5) stessa partita</span><span class="value pos">+2.5 pt</span></div>
-  <div class="example-row"><span class="label">Giocatore alla partita 80 (K=3) stessa partita</span><span class="value pos">+1.5 pt</span></div>
+  <div class="example-title">Esempio 3 — Stesso risultato, diverso peso K</div>
+  <div class="example-row"><span class="label">Giocatore alla 8ª partita (K=8) vince partita 50/50</span><span class="value pos">+4.0 pt</span></div>
+  <div class="example-row"><span class="label">Giocatore alla 35ª partita (K=5) stessa partita</span><span class="value pos">+2.5 pt</span></div>
+  <div class="example-row"><span class="label">Giocatore alla 70ª partita (K=3) stessa partita</span><span class="value pos">+1.5 pt</span></div>
 </div>
 
+<h3>I punti in gioco — visibili prima della partita</h3>
+<p>Nell'app, appena si selezionano i 4 giocatori nella sezione <em>Registra partita</em>, il sistema mostra automaticamente i punti in palio per te:</p>
+<div class="stakes" style="max-width:320px">
+  <div class="stake-box win"><div class="label">Se vinci</div><div class="pts">+2.0</div><div class="sub">il tuo PR</div></div>
+  <div class="stake-box lose"><div class="label">Se perdi</div><div class="pts">−3.0</div><div class="sub">il tuo PR</div></div>
+</div>
+<p style="font-size:14px;color:var(--muted)">Sai esattamente cosa rischi prima ancora di iniziare a giocare.</p>
 
-<!-- 5. PARTITE CLASSIFICATE -->
+
 <h2><span class="num">5</span>Partite classificate</h2>
-<p>Una partita muove la classifica solo se dichiarata <strong>classificata prima del primo 15</strong> giocato, con accordo verbale di tutti e 4 i giocatori. La conferma nell'app può avvenire anche subito dopo.</p>
+<p>Una partita muove il PR solo se dichiarata <strong>classificata prima del primo punto</strong> giocato, con accordo verbale di tutti e 4 i giocatori.</p>
 
 <h3>Condizioni obbligatorie</h3>
 <ul>
-  <li>Tutti e 4 i giocatori sono registrati in PadelMeeting con rating assegnato</li>
-  <li>Il formato è quello previsto dal regolamento: <strong>partita classica 2 su 3</strong></li>
-  <li>La partita è dichiarata classificata prima del primo 15 giocato</li>
+  <li>Tutti e 4 i giocatori sono registrati in PadelMeeting con PR assegnato</li>
+  <li>Accordo verbale tra tutti prima di iniziare — la conferma nell'app può avvenire anche subito dopo</li>
+  <li>Formato: <strong>partita classica 2 su 3</strong></li>
 </ul>
-<div class="warn">Se anche solo una condizione non è soddisfatta, la partita non è classificata e nessun punteggio viene modificato.</div>
+
+<div class="warn">Se anche solo una condizione non è soddisfatta, la partita non è classificata e nessun PR viene modificato.</div>
+
+<div class="why"><strong>Perché l'accordo deve essere prima?</strong> Per evitare che il risultato venga inserito solo quando fa comodo — es. dopo una vittoria a sorpresa. L'accordo preventivo garantisce che entrambe le squadre abbiano giocato sapendo che la partita contava.</div>
 
 <h3>Formato classica</h3>
 <p>Al meglio dei 3 set, con <strong>Punto Secco</strong> e tie-break in caso di 6 game pari.</p>
 
 
-<!-- 6. INSERIMENTO E APPROVAZIONE -->
 <h2><span class="num">6</span>Inserimento e approvazione del risultato</h2>
-<p>Al termine della partita, uno qualsiasi dei 4 giocatori inserisce il risultato nell'app. Almeno un giocatore della squadra avversaria deve <strong>approvare entro 48 ore</strong>.</p>
-
+<p>Uno qualsiasi dei 4 giocatori inserisce il risultato nell'app. Almeno un giocatore della squadra avversaria deve <strong>approvare entro 48 ore</strong>.</p>
 <ul>
-  <li>Se nessuno approva entro 48 ore → il responsabile del circolo valida manualmente</li>
-  <li>Se un avversario <strong>contesta</strong> il risultato → decide il responsabile del circolo (decisione definitiva)</li>
+  <li>Nessuna approvazione entro 48 ore → il responsabile del circolo valida manualmente</li>
+  <li>Un avversario contesta il risultato → decide il responsabile del circolo (decisione definitiva)</li>
 </ul>
+
+<div class="why"><strong>Perché serve l'approvazione dell'avversario?</strong> Per impedire che qualcuno inserisca risultati falsi. La doppia verifica — da parte di chi ha perso — è la garanzia più semplice ed efficace contro le frodi.</div>
 
 <div class="example">
   <div class="example-title">Esempio — Flusso di approvazione</div>
   <div class="example-row"><span class="label">Marco inserisce il risultato</span><span class="value">ore 20:00</span></div>
   <div class="example-row"><span class="label">Luca (avversario) riceve notifica e approva</span><span class="value">ore 21:30</span></div>
-  <div class="example-row"><span class="label">La classifica si aggiorna</span><span class="value pos">✓ Automatico</span></div>
+  <div class="example-row"><span class="label">PR aggiornato automaticamente</span><span class="value pos">✓</span></div>
 </div>
 
 
-<!-- 7. PUNTO SECCO -->
 <h2><span class="num">7</span>Punto Secco</h2>
-<p>Il Punto Secco entra in funzione dal primo pareggio (40-40) e si articola in tre fasi:</p>
+<p>Dal primo pareggio (40-40) si gioca con il Punto Secco, in tre fasi:</p>
 <ul>
-  <li><strong>1° vantaggio:</strong> chi vince il punto chiude il game. Chi perde torna a 40-40.</li>
-  <li><strong>2° vantaggio:</strong> chi vince il punto chiude il game. Chi perde si gioca il Punto Secco.</li>
-  <li><strong>Punto Secco:</strong> un unico punto decisivo — chi lo vince si aggiudica il game.</li>
+  <li><strong>1° vantaggio:</strong> chi vince chiude il game. Chi perde torna a 40-40.</li>
+  <li><strong>2° vantaggio:</strong> chi vince chiude il game. Chi perde si gioca il Punto Secco.</li>
+  <li><strong>Punto Secco:</strong> un unico punto decisivo. Chi lo vince conquista il game.</li>
 </ul>
+<div class="why"><strong>Perché il Punto Secco invece dei vantaggi classici?</strong> I vantaggi tradizionali possono prolungare indefinitamente un game. Il Punto Secco mantiene la partita fluida, riduce i tempi e aggiunge tensione con un singolo punto decisivo.</div>
 
 
-<!-- 8. SERIE DI VITTORIE -->
 <h2><span class="num">8</span>Serie di vittorie</h2>
-<p>Chi vince partite classiche consecutive accumula <strong>stelle</strong> e riceve bonus di rating:</p>
-
-<table class="score-table">
-  <tr><th>Vittorie consecutive</th><th>Bonus</th></tr>
-  <tr><td>3 vittorie</td><td><strong>+1 punto</strong></td></tr>
-  <tr><td>5 vittorie</td><td><strong>+2 punti aggiuntivi</strong></td></tr>
-  <tr><td>10 vittorie</td><td><strong>+5 punti aggiuntivi</strong></td></tr>
-</table>
-
+<p>Chi vince partite classiche consecutive accumula <strong>stelle</strong> e riceve bonus PR:</p>
+<ul>
+  <li>3 vittorie consecutive → <strong>+1 punto</strong> bonus</li>
+  <li>5 vittorie consecutive → <strong>+2 punti</strong> bonus aggiuntivi</li>
+  <li>10 vittorie consecutive → <strong>+5 punti</strong> bonus aggiuntivi</li>
+</ul>
 <p>Le stelle si perdono <strong>tutte</strong> alla prima sconfitta.</p>
 
+<div class="why"><strong>Perché premiare le serie?</strong> Il PR misura il livello medio nel tempo, ma non premia la costanza. Un giocatore che vince 10 partite di fila sta dimostrando una forma eccezionale che merita un riconoscimento extra. Il rischio di perdere tutto alla prima sconfitta rende ogni partita più importante.</div>
+
 <div class="example">
-  <div class="example-title">Esempio — Serie di vittorie</div>
-  <div class="example-row"><span class="label">Anna vince 3 partite di fila</span><span class="value pos">+1 pt bonus</span></div>
-  <div class="example-row"><span class="label">Anna vince altre 2 (totale 5 di fila)</span><span class="value pos">+2 pt bonus aggiuntivi</span></div>
-  <div class="example-row"><span class="label">Anna perde la partita successiva</span><span class="value neg">Serie azzerata ★→0</span></div>
+  <div class="example-title">Esempio — Progressione stelle</div>
+  <div class="example-row"><span class="label">Anna vince 3 partite di fila</span><span class="value pos">+1 pt bonus ★★★</span></div>
+  <div class="example-row"><span class="label">Anna vince altre 2 (5 di fila)</span><span class="value pos">+2 pt bonus ★★★★★</span></div>
+  <div class="example-row"><span class="label">Anna perde la partita successiva</span><span class="value neg">Serie azzerata → ★ 0</span></div>
 </div>
 
 
-<!-- 9. INATTIVITÀ -->
 <h2><span class="num">9</span>Inattività</h2>
-<p>Un giocatore che non disputa partite classificate per <strong>30 giorni consecutivi</strong> inizia a perdere punti. Il sistema invia una notifica 7 giorni prima del primo malus.</p>
+<p>Un giocatore senza partite classificate per <strong>30 giorni consecutivi</strong> inizia a perdere punti. Il sistema avvisa 7 giorni prima del primo malus.</p>
 
-<table class="score-table">
+<table class="k-table">
   <tr><th>Periodo di inattività</th><th>Malus</th></tr>
   <tr><td>30° giorno</td><td>−1 punto</td></tr>
   <tr><td>Ogni settimana successiva (1° mese)</td><td>−1 punto/settimana</td></tr>
@@ -337,55 +376,55 @@
   <tr><td>Dopo 4 mesi totali</td><td>Rimozione dalla classifica</td></tr>
 </table>
 
-<div class="note">In caso di infortunio il responsabile del circolo può sospendere il conteggio dell'inattività. Al rientro il conteggio riparte da zero.</div>
+<div class="why"><strong>Perché penalizzare l'inattività?</strong> Un giocatore che smette di giocare ma mantiene un PR alto "occupa" una posizione che non riflette più il suo livello attuale. La classifica deve essere uno specchio del momento presente, non della gloria passata. Chi gioca regolarmente merita di scalare posizioni anche su chi non si fa vedere.</div>
+
+<div class="note">In caso di infortunio o impegni prolungati, il responsabile del circolo può sospendere il conteggio dell'inattività. Al rientro il conteggio riparte da zero.</div>
 
 
-<!-- 10. ABBANDONO E AMMONIZIONI -->
 <h2><span class="num">10</span>Abbandono e ammonizioni</h2>
-<p>Se un giocatore lascia il campo dopo il primo punto giocato, la partita viene registrata come <strong>sconfitta</strong>.</p>
+<p>Se un giocatore lascia il campo dopo il primo punto giocato, la partita vale come <strong>sconfitta</strong>.</p>
 
 <h3>Abbandono giustificato</h3>
-<p>Solo perdita ELO normale. Il giocatore deve comunicare il motivo al responsabile entro <strong>24 ore</strong>.</p>
+<p>Infortunio in campo, urgenza familiare o lavorativa. Solo perdita PR normale. Il motivo va comunicato al responsabile entro <strong>24 ore</strong>.</p>
 
 <h3>Abbandono ingiustificato</h3>
-<p>Se non viene comunicato alcun motivo valido entro 24 ore:</p>
+<p>Nessun motivo comunicato entro 24 ore:</p>
 <ul>
-  <li><strong>−5 punti</strong> aggiuntivi sul rating</li>
+  <li><strong>−5 punti PR</strong> aggiuntivi</li>
   <li><strong>Ammonizione</strong> registrata sul profilo</li>
 </ul>
+<p><strong>2 ammonizioni in 3 mesi</strong> = squalifica automatica di <strong>2 mesi</strong> dalle partite classificate.</p>
 
-<h3>Ammonizioni e squalifica</h3>
-<p><strong>2 ammonizioni</strong> nell'arco di 3 mesi = squalifica automatica di <strong>2 mesi</strong> dalle partite classificate.</p>
+<div class="why"><strong>Perché una penalità così severa per l'abbandono ingiustificato?</strong> Abbandonare una partita senza motivo valido danneggia gli altri 3 giocatori che hanno dedicato tempo e organizzazione. La penalità deve essere abbastanza forte da scoraggiare comportamenti scorretti, non solo un inconveniente trascurabile.</div>
 
 <div class="example">
   <div class="example-title">Esempio — Abbandono ingiustificato</div>
-  <div class="example-row"><span class="label">Rating di Giorgio prima dell'abbandono</span><span class="value">52.0</span></div>
-  <div class="example-row"><span class="label">Perdita ELO normale dalla partita</span><span class="value neg">−2.5 pt</span></div>
-  <div class="example-row"><span class="label">Malus abbandono ingiustificato</span><span class="value neg">−5.0 pt</span></div>
-  <div class="example-row"><span class="label">Rating finale di Giorgio</span><span class="value neg">44.5</span></div>
+  <div class="example-row"><span class="label">PR di Giorgio prima dell'abbandono</span><span class="value">52.0</span></div>
+  <div class="example-row"><span class="label">Perdita PR normale dalla partita</span><span class="value neg">−2.5</span></div>
+  <div class="example-row"><span class="label">Malus abbandono ingiustificato</span><span class="value neg">−5.0</span></div>
+  <div class="example-row"><span class="label">PR finale</span><span class="value neg">44.5 (retrocede in Bronzo)</span></div>
 </div>
 
 
-<!-- 11. RESPONSABILE CIRCOLO -->
 <h2><span class="num">11</span>Il Responsabile del Circolo</h2>
 <p>Ogni circolo affiliato ha un <strong>Responsabile</strong> con poteri speciali nell'app:</p>
 <ul>
-  <li>Assegna il <strong>rating iniziale</strong> ai nuovi giocatori (massimo 70)</li>
-  <li>Approva o rifiuta le richieste di registrazione dei Responsabili di altri circoli</li>
+  <li>Assegna il <strong>PR iniziale</strong> ai nuovi giocatori (massimo 70)</li>
   <li>Valida manualmente i risultati non approvati entro 48 ore</li>
-  <li>Risolve le partite <strong>contestate</strong> — la sua decisione è definitiva</li>
+  <li>Risolve le partite contestate — la sua decisione è definitiva</li>
   <li>Applica ammonizioni e gestisce le sospensioni per inattività</li>
 </ul>
+<div class="note">Il Responsabile non può modificare i PR direttamente, solo assegnare il valore iniziale. Tutti i cambiamenti successivi avvengono automaticamente attraverso le partite.</div>
 
 
-<!-- NOTE FINALI -->
 <h2><span class="num">12</span>Note finali</h2>
 <p>Eventuali modifiche al regolamento non hanno valenza retroattiva.</p>
 <p>Per qualsiasi chiarimento contattare il responsabile del proprio circolo o la direzione di PadelMeeting tramite l'app.</p>
 
 <div class="footer">
   <strong>Direzione PadelMeeting — Pangurme Srl</strong><br>
-  www.padelmeeting.it
+  www.padelmeeting.it<br>
+  <span style="color:#aaa">PR — PadelMeeting Rating · Sistema di classifica proprietario</span>
 </div>
 
 </body>
