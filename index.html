@@ -904,6 +904,9 @@ function viewRules(){
     <div class="card" style="padding:18px 20px;margin-bottom:14px">
       <div style="font-family:var(--serif);font-size:22px;font-style:italic">La classifica che <span class="glow">si muove</span> ad ogni partita</div>
       <p class="c-dim" style="font-size:13px;line-height:1.6;margin-top:8px">Sintesi completa del regolamento PadelMeeting. Tocca una voce per espanderla.</p>
+      <a href="/regolamento.html" target="_blank" style="display:block;margin-top:12px;padding:10px 14px;background:rgba(91,240,203,.08);border:1px solid rgba(91,240,203,.30);border-radius:10px;font-size:13px;color:var(--neon);text-decoration:none;text-align:center;letter-spacing:.02em">
+        Regolamento completo →
+      </a>
     </div>
     ${RULES.map((r,i)=>`<div class="card acc ${ruleOpen===i?'open':''}" onclick="toggleRule(${i})">
       <div class="ah"><span class="at" style="color:${ruleOpen===i?C.neon:C.ivory}">${r[0]}</span><span class="ax">+</span></div>
