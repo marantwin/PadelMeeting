@@ -1113,6 +1113,7 @@ async function doRegister(){
   const telefono=auth.role==='manager'?$('#ar-telefono').value.trim():'';
   if(!nome||!cognome||!email||!pass||!pass2||!club||(auth.role==='manager'&&(!provincia||!indirizzo||!telefono))){
     auth.err='Compila tutti i campi'; renderAuth(); return; }
+  if(!$('#ar-age')?.checked){ auth.err='Devi dichiarare di avere almeno 18 anni'; renderAuth(); return; }
   if(pass.length<6){ auth.err='Password minimo 6 caratteri'; renderAuth(); return; }
   if(pass!==pass2){ auth.err='Le password non coincidono'; renderAuth(); return; }
   auth.loading=true; renderAuth();
@@ -1321,7 +1322,11 @@ function viewAuth(){
       <button class="auth-role-btn ${auth.role==='manager'?'sel':''}" onclick="setAuthRole('manager')">
         <span class="auth-role-icon">🏟️</span>Responsabile<br>Circolo</button>
     </div>
-    ${auth.loading?spinner:`<button class="auth-btn" style="margin-top:18px" onclick="doRegister()">Crea account</button>`}
+    <label style="display:flex;align-items:flex-start;gap:10px;margin-top:16px;cursor:pointer">
+      <input id="ar-age" type="checkbox" style="margin-top:2px;width:16px;height:16px;accent-color:var(--neon);flex-shrink:0">
+      <span style="font-size:13px;color:var(--ivoryDim);line-height:1.5">Dichiaro di avere almeno 18 anni</span>
+    </label>
+    ${auth.loading?spinner:`<button class="auth-btn" style="margin-top:14px" onclick="doRegister()">Crea account</button>`}
     <div class="auth-err">${auth.err}</div>`;
 
   return `${glows}<div class="auth-card rise">${logo}
