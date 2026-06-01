@@ -895,7 +895,7 @@ const RULES=[
 
   ['Note della Direzione',
     `<p class="note">La Direzione si riserva il diritto di apportare modifiche al regolamento in qualsiasi momento. Eventuali modifiche non hanno valenza retroattiva.</p>
-     <p>Direzione PadelMeeting — <b>Pangurme Srl</b><br>www.padelmeeting.it</p>`],
+     <p>Direzione PadelMeeting<br><a href="mailto:info@padelmeeting.it" style="color:var(--neon)">info@padelmeeting.it</a></p>`],
 ];
 let ruleOpen=0;
 function viewRules(){
@@ -908,7 +908,7 @@ function viewRules(){
     ${RULES.map((r,i)=>`<div class="card acc ${ruleOpen===i?'open':''}" onclick="toggleRule(${i})">
       <div class="ah"><span class="at" style="color:${ruleOpen===i?C.neon:C.ivory}">${r[0]}</span><span class="ax">+</span></div>
       <div class="ab">${r[1]}</div></div>`).join('')}
-    <div class="center" style="margin-top:18px;font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.14em">DIREZIONE PADELMEETING · PANGURME SRL</div>
+    <div class="center" style="margin-top:18px;font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.14em">DIREZIONE PADELMEETING · info@padelmeeting.it</div>
   </div>`;
 }
 function toggleRule(i){ruleOpen=ruleOpen===i?-1:i;render()}
