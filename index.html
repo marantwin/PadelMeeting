@@ -328,9 +328,27 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 @keyframes dotpulse{0%,80%,100%{transform:scale(.65);opacity:.4}40%{transform:scale(1.1);opacity:1}}
 @media(prefers-reduced-motion:reduce){.auth-card::before,.ag-glow-a,.ag-glow-b,.ag-glow-c{animation:none!important}}
 select option{background:#0E2723;color:var(--ivory)}
+#cookie-banner{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:#0E2723ee;backdrop-filter:blur(12px);
+  border-top:1px solid rgba(91,240,203,.25);
+  padding:14px 18px calc(14px + env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  animation:slideUp .3s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#cookie-banner p{font-size:12px;color:rgba(247,240,220,.75);line-height:1.5;margin:0;flex:1}
+#cookie-banner a{color:var(--neon);text-decoration:underline}
+#cookie-ok{flex-shrink:0;padding:9px 18px;border-radius:10px;border:1px solid var(--neon);
+  background:rgba(91,240,203,.12);color:var(--neon);font-family:var(--mono);font-size:12px;
+  font-weight:700;letter-spacing:.06em;cursor:pointer}
 </style>
 </head>
 <body>
+<div id="cookie-banner" style="display:none">
+  <p>Questo sito utilizza solo cookie tecnici necessari al funzionamento. Nessun cookie di profilazione o marketing. <a href="/cookie.pdf" target="_blank">Cookie Policy</a></p>
+  <button id="cookie-ok" onclick="dismissCookie()">Ho capito</button>
+</div>
 <div class="backdrop"><div class="grid"></div><div class="glowA"></div><div class="glowB"></div><div class="scan"></div></div>
 <div id="auth-gate"></div>
 <div class="shell" id="app-shell">
@@ -1379,6 +1397,13 @@ initAuth();
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+function dismissCookie(){
+  localStorage.setItem('pm_cookie_ok','1');
+  document.getElementById('cookie-banner').style.display='none';
+}
+if(!localStorage.getItem('pm_cookie_ok')){
+  document.getElementById('cookie-banner').style.display='flex';
 }
 </script>
 </body>
