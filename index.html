@@ -737,7 +737,7 @@ function viewCircolo(){
 
     ${stag('Valutazione iniziale')}
     <div class="card">${(()=>{
-      const unrated=clubPlayers.filter(p=>p.rating===0 && p.id!==auth.user?.id);
+      const unrated=clubPlayers.filter(p=>p.rating===0);
       if(unrated.length===0) return `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Nessun giocatore in attesa di valutazione</div>`;
       return `<div style="font-size:13px;color:var(--ivoryDim);line-height:1.6;margin-bottom:14px">
         Osserva il giocatore durante <b>1 set</b> e assegna il rating iniziale (max <span style="color:${C.neon};font-family:var(--mono);font-weight:700">70</span>).
