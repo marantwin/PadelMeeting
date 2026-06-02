@@ -822,11 +822,7 @@ function viewProfile(){
       <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
       <div class="irow"><span class="k">K-factor attuale</span><span class="v c-gold">K=4</span></div>
     </div>
-    ${stag('Compagni di circolo')}
-    <div class="card">${tm.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
-      <div class="avatarSm">${esc(p.name[0])}</div><span style="flex:1;font-size:13px">${esc(p.name)}</span>
-      <span style="font-family:var(--mono);font-size:13px;color:${isHigh(p.rating)?bandColor(p.rating):C.ivoryDim}">${p.rating.toFixed(1)}</span></div>`).join('')}</div>
-    ${auth.user&&auth.user.role==='admin'?`
+${auth.user&&auth.user.role==='admin'?`
     ${stag('Pannello Admin')}
     <div class="card" id="admin-panel">
       <div style="font-size:12px;color:var(--ivoryFaint);margin-bottom:12px">Richieste responsabile circolo in attesa</div>
