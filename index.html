@@ -382,32 +382,11 @@ const bandName = r => BANDS[bandIdx(r)].name;
 const bandColor = r => BANDS[bandIdx(r)].color;
 const isHigh = r => r>=66;
 
-let players = [
-  {id:5, name:'Davide Greco',        club:'Padel Vesuvio', city:'Napoli',   provincia:'NA', rating:58, games:30, streak:0},
-  {id:9, name:'Marco Romano',        club:'Padel Vesuvio', city:'Napoli',   provincia:'NA', rating:36, games:40, streak:5},
-  {id:6, name:'Chiara Ferraro',      club:'Costa Padel',   city:'Sorrento', provincia:'NA', rating:56, games:25, streak:1},
-  {id:7, name:'Antonio Russo',       club:'Costa Padel',   city:'Sorrento', provincia:'NA', rating:49, games:18, streak:3},
-  {id:10,name:'Elena Conti',         club:'Costa Padel',   city:'Sorrento', provincia:'NA', rating:26, games:15, streak:0},
-  {id:16,name:'Carmine Vitolo',      club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:64, games:45, streak:5},
-  {id:18,name:'Raffaele Muto',       club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:61, games:35, streak:2},
-  {id:13,name:'Luca Ferretti',       club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:60, games:28, streak:1},
-  {id:11,name:'Antonello Martux',    club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:53, games:20, streak:2},
-  {id:14,name:'Marco De Rosa',       club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:48, games:12, streak:0},
-  {id:15,name:'Simone Aiello',       club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:44, games:16, streak:3},
-  {id:17,name:'Gianluca Serra',      club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:33, games:8,  streak:0},
-  {id:19,name:'Davide Amendola',     club:'EVOSPORT',      city:'Eboli',    provincia:'SA', rating:23, games:6,  streak:1},
-  {id:4, name:'Marta Esposito',      club:'Salerno Smash', city:'Salerno',  provincia:'SA', rating:63, games:62, streak:9},
-  {id:8, name:'Sara Bianchi',        club:'Salerno Smash', city:'Salerno',  provincia:'SA', rating:45, games:22, streak:0},
-  {id:12,name:'Paolo Gallo',         club:'Salerno Smash', city:'Salerno',  provincia:'SA', rating:15, games:4,  streak:0},
-];
-let matches = [
-  {id:901,when:'Oggi · 19:30',   format:'Classica',venue:'Salerno Smash',t1:[11,7],t2:[4,8], score:'6-4 / 3-6 / 7-5',status:'pending', winner:1,mover:11},
-  {id:903,when:'2 gg fa · 18:00',format:'Classica',venue:'Costa Padel', t1:[9,12],t2:[8,10],score:'6-2 / 6-3',    status:'approved',winner:1,mover:9},
-];
-const ME = 11;
+let players = [];
+let matches = [];
+let ME = null;
 let tab = 'home';
-// play state
-let pl = { partner:13, opp1:4, opp2:16, winner:1, done:false };
+let pl = { partner:null, opp1:null, opp2:null, winner:1, done:false };
 
 /* ============ HELPERS ============ */
 const $ = (s,el=document)=>el.querySelector(s);
@@ -610,13 +589,13 @@ function viewPlay(){
       <div class="teamBlock" style="border-left:2px solid ${C.neon}">
         <div class="tt" style="color:${C.neon}">La tua coppia</div>
         <div class="selWrap"><span class="selLabel">Tu</span><div class="selBox fixed">${esc(pName(ME))}</div></div>
-        <div class="selWrap"><span class="selLabel">Compagno</span><select class="selBox" onchange="setPlay('partner',+this.value)">${opt(pl.partner,[pl.opp1,pl.opp2])}</select></div>
+        <div class="selWrap"><span class="selLabel">Compagno</span><select class="selBox" onchange="setPlay('partner',this.value)">${opt(pl.partner,[pl.opp1,pl.opp2])}</select></div>
       </div>
       <div class="vs">VS</div>
       <div class="teamBlock" style="border-left:2px solid ${C.rust}">
         <div class="tt" style="color:${C.rust}">Avversari</div>
-        <div class="selWrap"><span class="selLabel">Avversario 1</span><select class="selBox" onchange="setPlay('opp1',+this.value)">${opt(pl.opp1,[pl.partner,pl.opp2])}</select></div>
-        <div class="selWrap"><span class="selLabel">Avversario 2</span><select class="selBox" onchange="setPlay('opp2',+this.value)">${opt(pl.opp2,[pl.partner,pl.opp1])}</select></div>
+        <div class="selWrap"><span class="selLabel">Avversario 1</span><select class="selBox" onchange="setPlay('opp1',this.value)">${opt(pl.opp1,[pl.partner,pl.opp2])}</select></div>
+        <div class="selWrap"><span class="selLabel">Avversario 2</span><select class="selBox" onchange="setPlay('opp2',this.value)">${opt(pl.opp2,[pl.partner,pl.opp1])}</select></div>
       </div>
     </div>
     ${stag('Esito')}
@@ -625,24 +604,34 @@ function viewPlay(){
       <button class="segBtn ${pl.winner===2?'active':''}" onclick="setPlay('winner',2)">Vincono gli avversari</button>
     </div>
     ${preview}
+    <div class="auth-field" style="margin-top:14px">
+      <label class="auth-label">Punteggio (es. 6-3 / 4-6 / 7-5)</label>
+      <input id="play-score" type="text" class="auth-input" placeholder="6-3 / 4-6 / 7-5">
+    </div>
     <button class="cta" ${valid?'':'disabled'} onclick="confirmMatch()"><span>Conferma e invia ↗</span></button>
   </div>`;
 }
 function setPlay(k,v){pl[k]=v;render()}
 function resetPlay(){pl.done=false;render()}
-function confirmMatch(){
+async function confirmMatch(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   if(new Set([...t1,...t2]).size!==4) return;
   const calc=computeMatch(t1,t2,'classic',pl.winner);
-  players=players.map(p=>{
-    const r=calc.res[p.id]; if(!r) return p;
-    const rating=+Math.max(0,Math.min(100,p.rating+r.delta)).toFixed(1);
-    const streak=r.won?p.streak+1:0;
-    const games=p.games+1;
-    return {...p,rating,streak,games};
+  const winnerStr=pl.winner===1?'A':'B';
+  const score=$('#play-score')?.value?.trim()||'';
+  const club=me()?.club||auth.user?.club||'';
+  const {error}=await sb.from('pm_matches').insert({
+    club, winner:winnerStr, score,
+    team_a1:t1[0], team_a2:t1[1],
+    team_b1:t2[0], team_b2:t2[1],
+    submitted_by:ME,
+    played_at:new Date().toISOString().split('T')[0],
+    delta_a1:calc.res[t1[0]].delta, delta_a2:calc.res[t1[1]].delta,
+    delta_b1:calc.res[t2[0]].delta, delta_b2:calc.res[t2[1]].delta,
+    status:'pending'
   });
-  matches.unshift({id:900+matches.length+Math.floor(Math.random()*1000),when:'Adesso',
-    format:'Classica',venue:me().club,t1,t2,score:'6-3 / 4-6 / 6-2',status:'pending',winner:pl.winner,mover:ME});
+  if(error){ alert('Errore invio: '+error.message); return; }
+  await loadMatches();
   pl.done=true; render();
 }
 
@@ -668,7 +657,15 @@ function viewMatches(){
   }).join('');
   return `<div class="page">${stag('Le mie partite')}${cards}</div>`;
 }
-function actMatch(id,status){matches=matches.map(m=>m.id===id?{...m,status}:m);render()}
+async function actMatch(id,status){
+  const upd={status};
+  if(status==='approved') upd.approved_by=ME;
+  const {error}=await sb.from('pm_matches').update(upd).eq('id',id);
+  if(error){ alert('Errore: '+error.message); return; }
+  await loadMatches();
+  if(status==='approved') await loadPlayers();
+  render();
+}
 
 function viewCircolo(){
   const u=auth.user||{};
@@ -933,7 +930,7 @@ function viewRules(){
 function toggleRule(i){ruleOpen=ruleOpen===i?-1:i;render()}
 
 /* ============ ORGANIZZA ============ */
-let org = { date:'', time:'18:00', venue:'', venueCustom:'', partner:13, opp1:4, opp2:16, sent:false };
+let org = { date:'', time:'18:00', venue:'', venueCustom:'', partner:null, opp1:null, opp2:null, sent:false };
 
 function viewOrganize(){
   if(org.sent){
@@ -1039,15 +1036,15 @@ function viewOrganize(){
         <div class="tt" style="color:${C.neon}">La tua coppia</div>
         <div class="selWrap"><span class="selLabel">Tu</span><div class="selBox fixed">${esc(pName(ME))}</div></div>
         <div class="selWrap"><span class="selLabel">Compagno</span>
-          <select class="selBox" onchange="org.partner=+this.value;render()">${opt(org.partner,[org.opp1,org.opp2])}</select></div>
+          <select class="selBox" onchange="org.partner=this.value;render()">${opt(org.partner,[org.opp1,org.opp2])}</select></div>
       </div>
       <div class="vs">VS</div>
       <div class="teamBlock" style="border-left:2px solid ${C.rust}">
         <div class="tt" style="color:${C.rust}">Avversari</div>
         <div class="selWrap"><span class="selLabel">Avversario 1</span>
-          <select class="selBox" onchange="org.opp1=+this.value;render()">${opt(org.opp1,[org.partner,org.opp2])}</select></div>
+          <select class="selBox" onchange="org.opp1=this.value;render()">${opt(org.opp1,[org.partner,org.opp2])}</select></div>
         <div class="selWrap"><span class="selLabel">Avversario 2</span>
-          <select class="selBox" onchange="org.opp2=+this.value;render()">${opt(org.opp2,[org.partner,org.opp1])}</select></div>
+          <select class="selBox" onchange="org.opp2=this.value;render()">${opt(org.opp2,[org.partner,org.opp1])}</select></div>
       </div>
     </div>
 
@@ -1102,12 +1099,58 @@ function toggleEye(id, btn){
 }
 function renderAuth(){ $('#auth-gate').innerHTML=viewAuth(); }
 
+async function loadPlayers(){
+  const {data,error}=await sb.from('pm_profiles')
+    .select('id,full_name,club,city,provincia,rating,games,streak,role,status')
+    .eq('status','active')
+    .order('rating',{ascending:false});
+  if(!error && data){
+    players=data.map(p=>({
+      id:p.id, name:p.full_name||'—',
+      club:p.club||'', city:p.city||'', provincia:p.provincia||'',
+      rating:p.rating||50, games:p.games||0, streak:p.streak||0, role:p.role
+    }));
+    // Inizializza pl e org con i primi giocatori disponibili (escluso ME)
+    const others=players.filter(p=>p.id!==ME);
+    if(!pl.partner && others[0]) pl.partner=others[0].id;
+    if(!pl.opp1    && others[1]) pl.opp1=others[1].id;
+    if(!pl.opp2    && others[2]) pl.opp2=others[2].id;
+    if(!org.partner && others[0]) org.partner=others[0].id;
+    if(!org.opp1    && others[1]) org.opp1=others[1].id;
+    if(!org.opp2    && others[2]) org.opp2=others[2].id;
+  }
+}
+
+async function loadMatches(){
+  if(!ME) return;
+  const {data,error}=await sb.from('pm_matches')
+    .select('id,played_at,club,winner,score,status,submitted_by,team_a1,team_a2,team_b1,team_b2,delta_a1,delta_a2,delta_b1,delta_b2')
+    .or(`team_a1.eq.${ME},team_a2.eq.${ME},team_b1.eq.${ME},team_b2.eq.${ME}`)
+    .order('created_at',{ascending:false})
+    .limit(30);
+  if(!error && data){
+    matches=data.map(m=>({
+      id:m.id,
+      when:new Date(m.played_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}),
+      format:'Classica', venue:m.club,
+      t1:[m.team_a1,m.team_a2], t2:[m.team_b1,m.team_b2],
+      score:m.score||'—', status:m.status,
+      winner:m.winner==='A'?1:2, mover:m.submitted_by,
+      deltas:{[m.team_a1]:m.delta_a1,[m.team_a2]:m.delta_a2,[m.team_b1]:m.delta_b1,[m.team_b2]:m.delta_b2}
+    }));
+  }
+}
+
 async function loadProfile(user){
-  const {data:profile} = await sb.from('pm_profiles').select('*').eq('id',user.id).single();
+  const {data:profile}=await sb.from('pm_profiles').select('*').eq('id',user.id).single();
   if(!profile){ showGate(); return; }
   if(profile.status==='pending'){ auth.pendingProfile=profile; showGate(); return; }
   if(profile.status==='rejected'){ auth.rejectedProfile=profile; showGate(); return; }
-  auth.user={...user,...profile}; auth.loggedIn=true; hideGate();
+  auth.user={...user,...profile}; auth.loggedIn=true;
+  ME=user.id;
+  await loadPlayers();
+  await loadMatches();
+  hideGate();
 }
 
 async function doLogin(){
