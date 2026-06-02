@@ -672,7 +672,7 @@ function viewCircolo(){
   const clubName=u.club||'';
 
   // Giocatori del circolo (da dati demo)
-  const clubPlayers=ranked().filter(p=>p.club===clubName);
+  const clubPlayers=ranked().filter(p=>p.club?.toLowerCase()===clubName.toLowerCase());
 
   // Partite contestate che coinvolgono giocatori del circolo
   const clubIds=new Set(clubPlayers.map(p=>p.id));
@@ -809,7 +809,7 @@ function viewProfileManager(){
 function viewProfile(){
   if(auth.user && auth.user.role==='manager') return viewProfileManager();
   const M=me();
-  const tm=players.filter(p=>p.club===M.club && p.id!==ME);
+  const tm=players.filter(p=>p.club?.toLowerCase()===M.club?.toLowerCase() && p.id!==ME);
   return `<div class="page">
     ${stag('Profilo')}
     <div class="card rise center" style="padding:28px 20px">
