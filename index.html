@@ -736,21 +736,23 @@ function viewCircolo(){
     <div class="card">${contestateSection}</div>
 
     ${stag('Valutazione iniziale')}
-    <div class="card">
-      <div style="font-size:13px;color:var(--ivoryDim);line-height:1.6;margin-bottom:14px">
+    <div class="card">${(()=>{
+      const unrated=clubPlayers.filter(p=>p.rating===0 && p.id!==auth.user?.id);
+      if(unrated.length===0) return `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Nessun giocatore in attesa di valutazione</div>`;
+      return `<div style="font-size:13px;color:var(--ivoryDim);line-height:1.6;margin-bottom:14px">
         Osserva il giocatore durante <b>1 set</b> e assegna il rating iniziale (max <span style="color:${C.neon};font-family:var(--mono);font-weight:700">70</span>).
       </div>
       <div class="seg" style="margin-bottom:14px">
-        ${clubPlayers.map(p=>`<button class="segBtn ${valTarget===p.id?'active':''}" onclick="setValTarget('${p.id}')" style="flex:0 0 auto;padding:8px 14px;font-size:12px">${esc(p.name.split(' ')[0])}</button>`).join('')}
+        ${unrated.map(p=>`<button class="segBtn ${valTarget===p.id?'active':''}" onclick="setValTarget('${p.id}')" style="flex:0 0 auto;padding:8px 14px;font-size:12px">${esc(p.name.split(' ')[0])}</button>`).join('')}
       </div>
       ${valTarget?`
-        <div style="font-size:13px;color:var(--ivoryDim);margin-bottom:10px">Rating iniziale per <b style="color:${C.ivory}">${esc(pName(valTarget))}</b> (attuale: ${(players.find(p=>p.id===valTarget)||{}).rating||'—'})</div>
+        <div style="font-size:13px;color:var(--ivoryDim);margin-bottom:10px">Rating iniziale per <b style="color:${C.ivory}">${esc(pName(valTarget))}</b></div>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
           <input id="val-rating" type="number" min="1" max="70" class="auth-input" style="width:100px;padding:10px 12px;font-size:18px;font-family:var(--mono);font-weight:700;text-align:center" placeholder="0–70">
           <button class="btnSolid" onclick="submitValutazione()">Assegna</button>
         </div>
-      `:`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Seleziona un giocatore sopra</div>`}
-    </div>
+      `:`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Seleziona un giocatore sopra</div>`}`;
+    })()}</div>
   </div>`;
 }
 let valTarget=null;
