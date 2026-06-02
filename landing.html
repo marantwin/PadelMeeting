@@ -371,10 +371,9 @@ function drawCourt() {
   neonLine(lerp(wbr,wtr,0.33), lerp(wbr2,wtr2,0.33), tealC, a2*0.3, 0.7);
   neonLine(lerp(wbr,wtr,0.66), lerp(wbr2,wtr2,0.66), tealC, a2*0.3, 0.7);
 
-  // Back wall (far end, top of court)
-  const wh_back = wallH * 0.45;
-  const btl2 = { x: tl.x, y: tl.y - wh_back };
-  const btr2 = { x: tr.x, y: tr.y - wh_back };
+  // Back wall (far end) — corners must match side wall far tops
+  const btl2 = { x: tl.x, y: wtl2.y };
+  const btr2 = { x: tr.x, y: wtr2.y };
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y);
