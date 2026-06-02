@@ -245,9 +245,11 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
   display:flex;align-items:center;justify-content:space-around;padding:8px 8px calc(12px + env(safe-area-inset-bottom, 0px));background:#0E2723f8;backdrop-filter:blur(20px);border-top:1px solid rgba(91,240,203,.22)}
 .navBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;position:relative;color:rgba(247,240,220,.75)}
 .navBtn.active{color:var(--neon)}
-.navBtn .ic{font-size:22px}
-.navBtn.active .ic{text-shadow:0 0 10px var(--neon)}
-.navBtn .nl{font-size:11px;letter-spacing:.04em;margin-top:4px;font-family:var(--mono);font-weight:500}
+.navBtn.active .ic{text-shadow:0 0 12px var(--neon)}
+.navBtn.active .nl{color:var(--neon);font-weight:700}
+.navBtn.active::before{content:'';position:absolute;inset:4px 6px;border-radius:10px;background:rgba(91,240,203,.10);border:1px solid rgba(91,240,203,.22);z-index:0}
+.navBtn .ic{font-size:22px;position:relative;z-index:1}
+.navBtn .nl{font-size:11px;letter-spacing:.04em;margin-top:4px;font-family:var(--mono);font-weight:500;position:relative;z-index:1}
 .navBtn .dot{position:absolute;bottom:0;width:4px;height:4px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon)}
 .navPlay{flex:0 0 auto;width:50px;height:50px;border-radius:50%;margin-top:-22px;background:linear-gradient(135deg,var(--neon),var(--neonDim));border:2px solid #0A1C19;box-shadow:0 0 20px #5BF0CB88;color:#0A1C19}
 .navPlay .ic{font-size:20px;color:#0A1C19}
