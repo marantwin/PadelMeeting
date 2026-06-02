@@ -308,9 +308,9 @@ function drawCourt() {
   // Net (horizontal center)
   const netL = lerp(bl, tl, 0.5);
   const netR = lerp(br, tr, 0.5);
-  neonLine(netL, netR, magC, a1 * 1.1, 2.5);
+  neonLine(netL, netR, magC, a1 * 1.2, 2.5);
 
-  // Service lines (parallel to net, at 1/3 and 2/3)
+  // Service lines
   const sl1L = lerp(bl, tl, 0.28);
   const sl1R = lerp(br, tr, 0.28);
   const sl2L = lerp(bl, tl, 0.72);
@@ -318,23 +318,80 @@ function drawCourt() {
   neonLine(sl1L, sl1R, blueC, a2, 1.5);
   neonLine(sl2L, sl2R, blueC, a2, 1.5);
 
-  // Center vertical line (top half only, service box)
-  const cmBot = lerp(netL, netR, 0.5);
-  const ctTop = lerp(tl, tr, 0.5);
-  neonLine(cmBot, lerp(sl2L, sl2R, 0.5), blueC, a2 * 0.8, 1.5);
-  neonLine(ctTop, lerp(sl1L, sl1R, 0.5), blueC, a2 * 0.8, 1.5);
+  // Center line: ONLY from net to each service line (not to back wall)
+  const cmNet = lerp(netL, netR, 0.5);
+  neonLine(cmNet, lerp(sl1L, sl1R, 0.5), blueC, a2 * 0.8, 1.5); // net → bottom service line
+  neonLine(cmNet, lerp(sl2L, sl2R, 0.5), blueC, a2 * 0.8, 1.5); // net → top service line
 
-  // Side walls (glass) - extra glow lines
-  neonLine(
-    { x: bl.x - 6, y: bl.y + 10 },
-    { x: tl.x - 6, y: tl.y - 10 },
-    tealC, a2 * 0.6, 1
-  );
-  neonLine(
-    { x: br.x + 6, y: br.y + 10 },
-    { x: tr.x + 6, y: tr.y - 10 },
-    tealC, a2 * 0.6, 1
-  );
+  // ── GLASS WALLS ──
+  const wallH = ch * 0.32; // wall height in canvas units
+
+  // Left side wall — glass panel with fill
+  const wbl = bl, wtl = tl;
+  const wbl2 = { x: bl.x, y: bl.y - wallH };
+  const wtl2 = { x: tl.x, y: tl.y - wallH * 0.55 };
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(wbl.x, wbl.y); ctx.lineTo(wtl.x, wtl.y);
+  ctx.lineTo(wtl2.x, wtl2.y); ctx.lineTo(wbl2.x, wbl2.y);
+  ctx.closePath();
+  const lgLeft = ctx.createLinearGradient(wbl.x, wbl.y, wtl2.x, wtl2.y);
+  lgLeft.addColorStop(0, 'rgba(91,240,203,0.04)');
+  lgLeft.addColorStop(0.5, 'rgba(91,240,203,0.09)');
+  lgLeft.addColorStop(1, 'rgba(91,240,203,0.02)');
+  ctx.fillStyle = lgLeft;
+  ctx.fill();
+  ctx.restore();
+  neonLine(wbl, wbl2, tealC, a2 * 0.9, 1.5);
+  neonLine(wtl, wtl2, tealC, a2 * 0.9, 1.5);
+  neonLine(wbl2, wtl2, tealC, a2 * 0.7, 1.2);
+  // panel dividers
+  neonLine(lerp(wbl,wtl,0.33), lerp(wbl2,wtl2,0.33), tealC, a2*0.3, 0.7);
+  neonLine(lerp(wbl,wtl,0.66), lerp(wbl2,wtl2,0.66), tealC, a2*0.3, 0.7);
+
+  // Right side wall
+  const wbr = br, wtr = tr;
+  const wbr2 = { x: br.x, y: br.y - wallH };
+  const wtr2 = { x: tr.x, y: tr.y - wallH * 0.55 };
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(wbr.x, wbr.y); ctx.lineTo(wtr.x, wtr.y);
+  ctx.lineTo(wtr2.x, wtr2.y); ctx.lineTo(wbr2.x, wbr2.y);
+  ctx.closePath();
+  const lgRight = ctx.createLinearGradient(wbr.x, wbr.y, wtr2.x, wtr2.y);
+  lgRight.addColorStop(0, 'rgba(91,240,203,0.04)');
+  lgRight.addColorStop(0.5, 'rgba(91,240,203,0.09)');
+  lgRight.addColorStop(1, 'rgba(91,240,203,0.02)');
+  ctx.fillStyle = lgRight;
+  ctx.fill();
+  ctx.restore();
+  neonLine(wbr, wbr2, tealC, a2 * 0.9, 1.5);
+  neonLine(wtr, wtr2, tealC, a2 * 0.9, 1.5);
+  neonLine(wbr2, wtr2, tealC, a2 * 0.7, 1.2);
+  neonLine(lerp(wbr,wtr,0.33), lerp(wbr2,wtr2,0.33), tealC, a2*0.3, 0.7);
+  neonLine(lerp(wbr,wtr,0.66), lerp(wbr2,wtr2,0.66), tealC, a2*0.3, 0.7);
+
+  // Back wall (far end, top of court)
+  const wh_back = wallH * 0.45;
+  const btl2 = { x: tl.x, y: tl.y - wh_back };
+  const btr2 = { x: tr.x, y: tr.y - wh_back };
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y);
+  ctx.lineTo(btr2.x, btr2.y); ctx.lineTo(btl2.x, btl2.y);
+  ctx.closePath();
+  const lgBack = ctx.createLinearGradient(tl.x, tl.y, btl2.x, btl2.y);
+  lgBack.addColorStop(0, 'rgba(255,62,255,0.06)');
+  lgBack.addColorStop(1, 'rgba(255,62,255,0.01)');
+  ctx.fillStyle = lgBack;
+  ctx.fill();
+  ctx.restore();
+  neonLine(tl, btl2, magC, a2 * 0.6, 1.2);
+  neonLine(tr, btr2, magC, a2 * 0.6, 1.2);
+  neonLine(btl2, btr2, magC, a2 * 0.7, 1.5);
+  // back wall panel dividers
+  neonLine(lerp(tl,tr,0.33), lerp(btl2,btr2,0.33), magC, a2*0.25, 0.7);
+  neonLine(lerp(tl,tr,0.66), lerp(btl2,btr2,0.66), magC, a2*0.25, 0.7);
 
   // Animated scan line
   const scanPos = (t * 1.2) % 100;
