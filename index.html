@@ -1136,7 +1136,7 @@ async function loadPlayers(){
     players=data.map(p=>({
       id:p.id, name:p.full_name||'—',
       club:p.club||'', city:p.city||'', provincia:p.provincia||'',
-      rating:p.rating||50, games:p.games||0, streak:p.streak||0, role:p.role
+      rating:p.rating??50, games:p.games??0, streak:p.streak??0, role:p.role
     }));
     // Inizializza pl e org con i primi giocatori disponibili (escluso ME)
     const others=players.filter(p=>p.id!==ME);
