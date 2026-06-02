@@ -741,7 +741,7 @@ function viewCircolo(){
         Osserva il giocatore durante <b>1 set</b> e assegna il rating iniziale (max <span style="color:${C.neon};font-family:var(--mono);font-weight:700">70</span>).
       </div>
       <div class="seg" style="margin-bottom:14px">
-        ${clubPlayers.map(p=>`<button class="segBtn ${valTarget===p.id?'active':''}" onclick="setValTarget(${p.id})" style="flex:0 0 auto;padding:8px 14px;font-size:12px">${esc(p.name.split(' ')[0])}</button>`).join('')}
+        ${clubPlayers.map(p=>`<button class="segBtn ${valTarget===p.id?'active':''}" onclick="setValTarget('${p.id}')" style="flex:0 0 auto;padding:8px 14px;font-size:12px">${esc(p.name.split(' ')[0])}</button>`).join('')}
       </div>
       ${valTarget?`
         <div style="font-size:13px;color:var(--ivoryDim);margin-bottom:10px">Rating iniziale per <b style="color:${C.ivory}">${esc(pName(valTarget))}</b> (attuale: ${(players.find(p=>p.id===valTarget)||{}).rating||'—'})</div>
@@ -755,11 +755,26 @@ function viewCircolo(){
 }
 let valTarget=null;
 function setValTarget(id){valTarget=id;render()}
-function submitValutazione(){
+async function submitValutazione(){
   const v=parseInt($('#val-rating').value);
   if(!valTarget||isNaN(v)||v<1||v>70){alert('Inserisci un valore tra 1 e 70');return;}
-  players=players.map(p=>p.id===valTarget?{...p,rating:v}:p);
+  const {error}=await sb.from('pm_profiles').update({rating:v,status:'active'}).eq('id',valTarget);
+  if(error){alert('Errore: '+error.message);return;}
+  await loadPlayers();
   valTarget=null; render();
+}
+
+async function doUpdateProfile(){
+  const club=$('#ep-club').value.trim();
+  const city=$('#ep-city').value.trim();
+  const provincia=$('#ep-provincia').value.trim().toUpperCase();
+  if(!club||!city||!provincia){$('#ep-msg').style.color='var(--danger)';$('#ep-msg').textContent='Compila tutti i campi';return;}
+  const {error}=await sb.from('pm_profiles').update({club,city,provincia}).eq('id',ME);
+  if(error){$('#ep-msg').style.color='var(--danger)';$('#ep-msg').textContent='Errore: '+error.message;return;}
+  auth.user={...auth.user,club,city,provincia};
+  await loadPlayers();
+  $('#ep-msg').style.color='var(--neon)';$('#ep-msg').textContent='✓ Salvato';
+  setTimeout(()=>{if($('#ep-msg'))$('#ep-msg').textContent=''},2000);
 }
 
 function viewProfileManager(){
@@ -820,6 +835,19 @@ function viewProfile(){
       <div class="irow"><span class="k">Stato classifica</span><span class="v c-good">Attivo</span></div>
       <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
       <div class="irow"><span class="k">K-factor attuale</span><span class="v c-gold">K=4</span></div>
+    </div>
+    ${stag('Modifica dati personali')}
+    <div class="card">
+      <div class="auth-field"><label class="auth-label">Circolo</label>
+        <input id="ep-club" type="text" class="auth-input" value="${esc(M.club||'')}" placeholder="Nome circolo"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+        <div><label class="auth-label">Città</label>
+          <input id="ep-city" type="text" class="auth-input" value="${esc(M.city||'')}" placeholder="Napoli"></div>
+        <div><label class="auth-label">Provincia</label>
+          <input id="ep-provincia" type="text" class="auth-input" value="${esc(M.provincia||'')}" placeholder="NA" maxlength="3"></div>
+      </div>
+      <button class="btnSolid" style="margin-top:14px;width:100%" onclick="doUpdateProfile()">Salva modifiche</button>
+      <div id="ep-msg" style="font-size:12px;color:var(--neon);margin-top:8px;text-align:center"></div>
     </div>
 ${auth.user&&auth.user.role==='admin'?`
     ${stag('Pannello Admin')}
@@ -1165,12 +1193,14 @@ async function doLogin(){
 
 async function doRegister(){
   const nome=$('#ar-nome').value.trim(), cognome=$('#ar-cognome').value.trim();
-  const email=$('#ar-email').value.trim(), pass=$('#ar-pass').value, club=$('#ar-club').value;
+  const email=$('#ar-email').value.trim(), pass=$('#ar-pass').value;
   const pass2=$('#ar-pass2').value;
-  const provincia=auth.role==='manager'?$('#ar-provincia').value.trim().toUpperCase():'';
+  const club=$('#ar-club').value.trim();
+  const city=$('#ar-city').value.trim();
+  const provincia=$('#ar-provincia').value.trim().toUpperCase();
   const indirizzo=auth.role==='manager'?$('#ar-indirizzo').value.trim():'';
   const telefono=auth.role==='manager'?$('#ar-telefono').value.trim():'';
-  if(!nome||!cognome||!email||!pass||!pass2||!club||(auth.role==='manager'&&(!provincia||!indirizzo||!telefono))){
+  if(!nome||!cognome||!email||!pass||!pass2||!club||!city||!provincia||(auth.role==='manager'&&(!indirizzo||!telefono))){
     auth.err='Compila tutti i campi'; renderAuth(); return; }
   if(!$('#ar-age')?.checked){ auth.err='Devi dichiarare di avere almeno 18 anni'; renderAuth(); return; }
   if(!$('#ar-termini')?.checked){ auth.err='Devi accettare i Termini d\'uso'; renderAuth(); return; }
@@ -1178,8 +1208,7 @@ async function doRegister(){
   if(pass.length<6){ auth.err='Password minimo 6 caratteri'; renderAuth(); return; }
   if(pass!==pass2){ auth.err='Le password non coincidono'; renderAuth(); return; }
   auth.loading=true; renderAuth();
-  const meta={full_name:nome+' '+cognome, role:auth.role, club};
-  if(provincia) meta.provincia=provincia;
+  const meta={full_name:nome+' '+cognome, role:auth.role, club, city, provincia};
   if(indirizzo) meta.indirizzo=indirizzo;
   if(telefono) meta.telefono=telefono;
   const {error}=await sb.auth.signUp({email,password:pass,options:{data:meta,emailRedirectTo:window.location.origin}});
@@ -1366,12 +1395,14 @@ function viewAuth(){
         <button type="button" class="auth-eye" onclick="toggleEye('ar-pass2',this)" tabindex="-1">${eyeOpen}</button>
       </div></div>
     <div class="auth-field"><label class="auth-label">Circolo</label>
-      ${auth.role==='manager'
-        ? `<input id="ar-club" type="text" class="auth-input" placeholder="Nome del circolo" autocomplete="organization">`
-        : `<select id="ar-club" class="auth-input"><option value="">Seleziona circolo…</option>${clubOpts}<option value="__altro__">Altro / Non affiliato</option></select>`
-      }</div>
-    ${auth.role==='manager'?`<div class="auth-field"><label class="auth-label">Provincia</label>
-      <input id="ar-provincia" type="text" class="auth-input" placeholder="Es. NA, SA, RM" maxlength="3"></div>
+      <input id="ar-club" type="text" class="auth-input" placeholder="Nome del circolo" autocomplete="organization"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><label class="auth-label">Città</label>
+        <input id="ar-city" type="text" class="auth-input" placeholder="Napoli" autocomplete="address-level2"></div>
+      <div><label class="auth-label">Provincia</label>
+        <input id="ar-provincia" type="text" class="auth-input" placeholder="NA" maxlength="3"></div>
+    </div>
+    ${auth.role==='manager'?`
     <div class="auth-field"><label class="auth-label">Indirizzo circolo</label>
       <input id="ar-indirizzo" type="text" class="auth-input" placeholder="Via Roma 1, Napoli" autocomplete="street-address"></div>
     <div class="auth-field"><label class="auth-label">Telefono</label>
