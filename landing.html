@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PadelMeeting — Sport & Eleganza</title>
+<meta name="description" content="Il padel classificato per il tuo circolo. Ogni partita muove la classifica.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#07110F;
+  --deep:#0E2723;
+  --neon:#5BF0CB;
+  --rust:#E07B4A;
+  --gold:#EFD06A;
+  --ivory:#F7F0DC;
+  --dim:rgba(247,240,220,.6);
+}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--ivory);font-family:'Montserrat',sans-serif;overflow-x:hidden}
+
+/* ─── CANVAS PARTICLES ─── */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ─── NAV ─── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 32px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,rgba(7,17,15,.95),transparent)}
+.nav-logo img{height:36px;filter:drop-shadow(0 0 12px rgba(91,240,203,.4))}
+.nav-cta{padding:10px 22px;border:1.5px solid var(--neon);border-radius:10px;color:var(--neon);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-decoration:none;transition:.2s;background:transparent}
+.nav-cta:hover{background:rgba(91,240,203,.12);box-shadow:0 0 24px rgba(91,240,203,.3)}
+
+/* ─── HERO ─── */
+#hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px}
+.hero-eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--neon);opacity:.8;margin-bottom:24px;animation:fadeUp .8s ease both}
+.hero-title{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(52px,10vw,110px);line-height:1.0;margin-bottom:28px;animation:fadeUp .8s .15s ease both}
+.hero-title span{color:var(--neon);text-shadow:0 0 60px rgba(91,240,203,.5)}
+.hero-sub{font-size:clamp(15px,2.5vw,19px);color:var(--dim);max-width:520px;line-height:1.65;margin-bottom:44px;animation:fadeUp .8s .28s ease both}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;animation:fadeUp .8s .4s ease both}
+.btn-primary{padding:16px 36px;background:var(--neon);color:#0A1C19;border-radius:12px;font-weight:900;font-size:15px;letter-spacing:.04em;text-decoration:none;transition:.2s;box-shadow:0 0 40px rgba(91,240,203,.45)}
+.btn-primary:hover{box-shadow:0 0 60px rgba(91,240,203,.7);transform:translateY(-2px)}
+.btn-ghost{padding:16px 36px;border:1.5px solid rgba(247,240,220,.25);border-radius:12px;color:var(--ivory);font-weight:700;font-size:15px;text-decoration:none;transition:.2s}
+.btn-ghost:hover{border-color:var(--neon);color:var(--neon)}
+.hero-scroll{margin-top:64px;animation:bounce 2s ease infinite;opacity:.4;font-size:22px}
+
+/* ─── SECTIONS ─── */
+section{position:relative;z-index:1;padding:100px 24px}
+.container{max-width:1000px;margin:0 auto}
+.section-label{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--neon);opacity:.7;margin-bottom:16px}
+.section-title{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(32px,5vw,52px);line-height:1.15;margin-bottom:16px}
+.section-sub{color:var(--dim);font-size:16px;line-height:1.7;max-width:560px}
+
+/* ─── CARDS ─── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:56px}
+.card{background:linear-gradient(145deg,rgba(14,39,35,.9),rgba(7,17,15,.8));border:1px solid rgba(91,240,203,.18);border-radius:20px;padding:32px 28px;transition:.3s;opacity:0;transform:translateY(30px)}
+.card.visible{opacity:1;transform:translateY(0)}
+.card:hover{border-color:rgba(91,240,203,.5);box-shadow:0 0 40px rgba(91,240,203,.12);transform:translateY(-4px)}
+.card-icon{font-size:36px;margin-bottom:18px}
+.card-title{font-weight:700;font-size:18px;margin-bottom:10px;color:var(--ivory)}
+.card-text{font-size:14px;color:var(--dim);line-height:1.65}
+
+/* ─── STEPS ─── */
+.steps{margin-top:56px;display:grid;gap:0}
+.step{display:flex;gap:28px;align-items:flex-start;padding:32px 0;border-bottom:1px solid rgba(91,240,203,.08);opacity:0;transform:translateX(-20px);transition:.5s}
+.step.visible{opacity:1;transform:translateX(0)}
+.step:last-child{border-bottom:none}
+.step-num{font-family:'Playfair Display',serif;font-style:italic;font-size:56px;line-height:1;color:var(--neon);opacity:.35;flex-shrink:0;width:60px}
+.step-body{}
+.step-title{font-weight:700;font-size:18px;margin-bottom:8px}
+.step-text{font-size:14px;color:var(--dim);line-height:1.65}
+
+/* ─── PR DEMO ─── */
+#pr-demo{background:linear-gradient(180deg,transparent,rgba(91,240,203,.04),transparent)}
+.pr-visual{margin-top:56px;display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:600px}
+.pr-box{background:rgba(14,39,35,.8);border:1px solid rgba(91,240,203,.2);border-radius:16px;padding:28px;text-align:center;opacity:0;transform:scale(.95);transition:.5s}
+.pr-box.visible{opacity:1;transform:scale(1)}
+.pr-box.win{border-color:rgba(91,240,203,.4)}
+.pr-box.lose{border-color:rgba(240,106,128,.3)}
+.pr-box-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.pr-box-num{font-family:'Montserrat',sans-serif;font-size:42px;font-weight:900;line-height:1}
+.pr-box.win .pr-box-num{color:var(--neon);text-shadow:0 0 30px rgba(91,240,203,.5)}
+.pr-box.lose .pr-box-num{color:#F06A80}
+.pr-box-note{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.5}
+
+/* ─── CTA SECTION ─── */
+#join{text-align:center}
+.join-card{background:linear-gradient(135deg,rgba(14,39,35,.95),rgba(7,17,15,.98));border:1px solid rgba(91,240,203,.3);border-radius:28px;padding:72px 48px;max-width:680px;margin:0 auto;box-shadow:0 0 100px rgba(91,240,203,.08);opacity:0;transform:translateY(30px);transition:.7s}
+.join-card.visible{opacity:1;transform:translateY(0)}
+.join-title{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(28px,5vw,46px);margin-bottom:16px}
+.join-sub{color:var(--dim);font-size:15px;margin-bottom:36px;line-height:1.65}
+
+/* ─── FOOTER ─── */
+footer{position:relative;z-index:1;padding:40px 24px;border-top:1px solid rgba(91,240,203,.1);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-logo img{height:28px;opacity:.7}
+.footer-links{display:flex;gap:20px;font-size:12px;color:var(--dim)}
+.footer-links a{color:var(--dim);text-decoration:none;transition:.2s}
+.footer-links a:hover{color:var(--neon)}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+@media(max-width:600px){
+  nav{padding:16px 20px}
+  section{padding:72px 20px}
+  .pr-visual{grid-template-columns:1fr 1fr;max-width:100%}
+  .join-card{padding:48px 28px}
+  footer{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<nav>
+  <div class="nav-logo"><img src="/Logo_PadelMeeting.png" alt="PadelMeeting"></div>
+  <a href="https://padelmeeting.superidea.it" class="nav-cta">Accedi →</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-eyebrow">Sport & Eleganza</div>
+  <h1 class="hero-title">Il padel che<br><span>conta davvero.</span></h1>
+  <p class="hero-sub">Ogni partita assegna punti. Ogni vittoria scala la classifica. Il tuo circolo, finalmente organizzato.</p>
+  <div class="hero-btns">
+    <a href="https://padelmeeting.superidea.it" class="btn-primary">Inizia a giocare</a>
+    <a href="#come-funziona" class="btn-ghost">Scopri come</a>
+  </div>
+  <div class="hero-scroll">↓</div>
+</section>
+
+<!-- PERCHÉ -->
+<section id="perche">
+  <div class="container">
+    <div class="section-label">Perché PadelMeeting</div>
+    <h2 class="section-title">Non solo partite.<br>Una vera classifica.</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">PR — PadelMeeting Rating</div>
+        <div class="card-text">Un punteggio personale che cresce con le vittorie difficili e resiste alle sconfitte. Basato sulla formula ELO, usata dagli scacchi alla FIFA.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Aggiornamento istantaneo</div>
+        <div class="card-text">Registra il risultato dall'app. L'avversario conferma. I punti si aggiornano automaticamente in tempo reale.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏟️</div>
+        <div class="card-title">Per ogni circolo</div>
+        <div class="card-text">Il responsabile del circolo gestisce i giocatori, assegna i rating iniziali e risolve le dispute. Tutto da una schermata.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COME FUNZIONA -->
+<section id="come-funziona">
+  <div class="container">
+    <div class="section-label">Come funziona</div>
+    <h2 class="section-title">Tre passi.<br>Zero burocrazia.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Registrati e ricevi il tuo rating</div>
+          <div class="step-text">Il responsabile del circolo ti osserva durante un set e assegna il tuo PR iniziale. Da quel momento sei in classifica.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Gioca e registra il risultato</div>
+          <div class="step-text">Prima della partita l'app mostra esattamente quanti punti guadagni o perdi. Nessuna sorpresa. Nessun calcolo da fare.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Scala la classifica</div>
+          <div class="step-text">Il tuo PR cambia dopo ogni partita approvata. Battere i favoriti vale molto. Perdere contro i più forti costa poco.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PR DEMO -->
+<section id="pr-demo">
+  <div class="container">
+    <div class="section-label">Prima di ogni partita</div>
+    <h2 class="section-title">Sai sempre<br>cosa rischi.</h2>
+    <p class="section-sub">L'app calcola i punti in gioco prima che la palla entri in campo. Trasparente, sempre.</p>
+    <div class="pr-visual">
+      <div class="pr-box win">
+        <div class="pr-box-label">Se vinci</div>
+        <div class="pr-box-num">+3.2</div>
+        <div class="pr-box-note">punti PR</div>
+      </div>
+      <div class="pr-box lose">
+        <div class="pr-box-label">Se perdi</div>
+        <div class="pr-box-num">−1.6</div>
+        <div class="pr-box-note">punti PR</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOIN CTA -->
+<section id="join">
+  <div class="container">
+    <div class="join-card">
+      <h2 class="join-title">Il tuo circolo<br>merita una classifica.</h2>
+      <p class="join-sub">Gratuito. Installabile sul cellulare. Nessun app store necessario.</p>
+      <a href="https://padelmeeting.superidea.it" class="btn-primary" style="font-size:16px;padding:18px 44px">Entra in PadelMeeting →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo"><img src="/Logo_PadelMeeting.png" alt="PadelMeeting"></div>
+  <div class="footer-links">
+    <a href="https://padelmeeting.superidea.it/regolamento.html" target="_blank">Regolamento</a>
+    <a href="https://padelmeeting.superidea.it/privacy.pdf" target="_blank">Privacy</a>
+    <a href="https://padelmeeting.superidea.it/cookie.pdf" target="_blank">Cookie</a>
+    <a href="mailto:info@padelmeeting.it">Contatti</a>
+  </div>
+</footer>
+
+<script>
+// ─── PARTICLES ───
+const canvas=document.getElementById('bg');
+const ctx=canvas.getContext('2d');
+let W,H,pts=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;initPts()}
+function initPts(){
+  pts=[];
+  const n=Math.floor((W*H)/14000);
+  for(let i=0;i<n;i++) pts.push({
+    x:Math.random()*W, y:Math.random()*H,
+    r:Math.random()*1.4+.3,
+    vx:(Math.random()-.5)*.25,
+    vy:(Math.random()-.5)*.25,
+    a:Math.random()*.6+.1
+  });
+}
+function drawPts(){
+  ctx.clearRect(0,0,W,H);
+  pts.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(91,240,203,${p.a})`;
+    ctx.fill();
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+    if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+  });
+  // Lines between close points
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x,pts[i].y);
+        ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.strokeStyle=`rgba(91,240,203,${.12*(1-d/120)})`;
+        ctx.lineWidth=.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawPts);
+}
+window.addEventListener('resize',resize);
+resize(); drawPts();
+
+// ─── SCROLL REVEAL ───
+const io=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      setTimeout(()=>e.target.classList.add('visible'), e.target.dataset.delay||0);
+      io.unobserve(e.target);
+    }
+  });
+},{threshold:.15});
+
+document.querySelectorAll('.card').forEach((el,i)=>{el.dataset.delay=i*120;io.observe(el)});
+document.querySelectorAll('.step').forEach((el,i)=>{el.dataset.delay=i*150;io.observe(el)});
+document.querySelectorAll('.pr-box').forEach((el,i)=>{el.dataset.delay=i*200;io.observe(el)});
+document.querySelectorAll('.join-card').forEach(el=>io.observe(el));
+
+// ─── SMOOTH NAV HIDE ───
+let lastY=0;
+const nav=document.querySelector('nav');
+window.addEventListener('scroll',()=>{
+  const y=scrollY;
+  nav.style.opacity=y>80?'1':'1';
+  nav.style.background=y>80?'rgba(7,17,15,.97)':'linear-gradient(to bottom,rgba(7,17,15,.95),transparent)';
+  lastY=y;
+});
+</script>
+</body>
+</html>
