@@ -836,7 +836,7 @@ function viewProfile(){
       <div class="irow"><span class="k">Valutazione iniziale</span><span class="v">Completata</span></div>
       <div class="irow"><span class="k">Stato classifica</span><span class="v c-good">Attivo</span></div>
       <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
-      <div class="irow"><span class="k">K-factor attuale</span><span class="v c-gold">K=4</span></div>
+
     </div>
     ${stag('Modifica dati personali')}
     <div class="card">
@@ -880,7 +880,13 @@ ${auth.user&&auth.user.role==='admin'?`
 const RULES=[
   ['Registrazione e valutazione iniziale',
     `<p>La registrazione va fatta su <b>www.padelmeeting.it</b>.</p>
-     <p>Dopo la registrazione il responsabile del circolo assegna il <b>rating iniziale</b> (massimo <b>70</b>) se il giocatore è conosciuto, altrimenti osserva prima <b>1 set</b> di gioco. Da quel momento sei in classifica e le tue partite muovono il punteggio.</p>
+     <p>Dopo la registrazione il responsabile del circolo assegna il <b>PR iniziale</b> scegliendo tra tre livelli fissi:</p>
+     <div style="display:flex;flex-direction:column;gap:8px;margin:10px 0">
+       <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:13px"><b>Principiante — PR 20</b><br><span style="color:var(--ivoryDim)">Ha iniziato da poco o gioca saltuariamente e non ha esperienza competitiva nel padel.</span></div>
+       <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:13px"><b>Intermedio — PR 40</b><br><span style="color:var(--ivoryDim)">Gioca con regolarità da diverso tempo e conosce bene regole e dinamiche di gioco.</span></div>
+       <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:13px"><b>Avanzato — PR 60</b><br><span style="color:var(--ivoryDim)">Giocatore con una solida conoscenza del gioco, maturata anche attraverso tornei e partite competitive.</span></div>
+     </div>
+     <p style="margin-top:8px">Da quel momento sei in classifica e le tue partite muovono il punteggio.</p>
      <p class="note">Le partite giocate prima della valutazione non possono essere inserite retroattivamente.</p>`],
 
   ['Fasce e classifica',
@@ -896,6 +902,8 @@ const RULES=[
   ['PR — PadelMeeting Rating',
     `<p>Il PR di ogni giocatore cambia dopo ogni partita in base al livello degli avversari: una vittoria contro una squadra più forte vale più punti, una vittoria scontata vale poco.</p>
      <p style="margin-top:8px">Prima di ogni partita l'app mostra esattamente quanti punti guadagni se vinci e quanti perdi se perdi.</p>
+     <div class="kv"><span class="kk">Prime 5 partite</span><span class="vv">K = 5 — calibrazione rapida</span></div>
+     <div class="kv"><span class="kk">Dalla 6ª in poi</span><span class="vv">K = 4 — regime standard</span></div>
      <p class="note">Il sistema PR si basa sulla formula di Árpád Elo, fisico ungherese-americano che la sviluppò per gli scacchi. Oggi è usata in tutto il mondo per classificare giocatori in modo equo e oggettivo.</p>
      <p style="margin-top:12px"><a href="/regolamento.html" target="_blank" style="color:var(--ivory);font-family:var(--sans);font-size:14px;text-decoration:underline;text-underline-offset:3px">Leggi il regolamento in dettaglio</a></p>`],
 
@@ -909,9 +917,8 @@ const RULES=[
      <div class="li rust">Se un avversario contesta, la partita viene bloccata e decide il responsabile: la sua decisione è definitiva.</div>`],
 
   ['Punto Secco',
-    `<p>Dal primo <b>40 pari</b> in poi si gioca con il Punto Secco, in tre fasi:</p>
-     <div class="li"><span><b>1° vantaggio:</b> chi lo vince chiude il game, chi lo perde torna a 40-40.</span></div>
-     <div class="li"><span><b>2° vantaggio:</b> chi lo vince chiude il game, chi lo perde passa al Punto Secco.</span></div>
+    `<div class="li"><span><b>Sul 1° vantaggio</b>, se il punto lo fa chi è avanti, la squadra vince e chiude il game. Altrimenti si torna a 40-40.</span></div>
+     <div class="li"><span><b>Sul 2° vantaggio</b>, se il punto lo fa chi è avanti, la squadra vince e chiude il game. Altrimenti si torna pari e si va al Punto Secco.</span></div>
      <div class="li"><span><b>Punto Secco:</b> un unico punto decisivo — chi lo vince si aggiudica il game.</span></div>`],
 
   ['Serie di vittorie ★',
