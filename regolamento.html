@@ -242,9 +242,18 @@
 <p>La registrazione avviene su <strong>www.padelmeeting.it</strong>. Si inserisce nome, cognome, email, password e circolo di appartenenza. Dopo la registrazione viene inviata una email di conferma — il link nell'email attiva l'account.</p>
 
 <h3>Valutazione iniziale</h3>
-<p>Dopo la registrazione il profilo è in stato <em>"in attesa di valutazione"</em>. Il responsabile del circolo assegna il <strong>PR iniziale</strong> (massimo 70) osservando il giocatore. Da quel momento il giocatore è in classifica e ogni partita classificata muove il suo PR.</p>
+<p>Dopo la registrazione il profilo è in stato <em>"in attesa di valutazione"</em>. Il responsabile del circolo assegna il <strong>PR iniziale</strong> scegliendo tra tre livelli fissi, in base al livello reale del giocatore osservato sul campo:</p>
+
+<table class="band-table">
+  <tr><th>Livello</th><th>PR iniziale</th><th>Profilo</th></tr>
+  <tr><td><strong>Principiante</strong></td><td>20</td><td>Ha iniziato da poco o gioca saltuariamente e non ha esperienza competitiva nel padel.</td></tr>
+  <tr><td><strong>Intermedio</strong></td><td>40</td><td>Gioca con regolarità da diverso tempo e conosce bene regole e dinamiche di gioco. Ha maturato una buona esperienza sul campo.</td></tr>
+  <tr><td><strong>Avanzato</strong></td><td>60</td><td>Giocatore di livello avanzato con esperienza consolidata in competizioni e tornei.</td></tr>
+</table>
+
+<p>Da quel momento il giocatore è in classifica e ogni partita classificata muove il suo PR.</p>
 <div class="note">Le partite giocate prima della valutazione non possono essere inserite retroattivamente.</div>
-<div class="why"><strong>Perché il rating iniziale è al massimo 70?</strong> Le fasce più alte (Oro, Platino, Élite) si raggiungono solo sul campo, battendo avversari forti. Nessuno può "nascere" in cima alla classifica — il PR deve essere guadagnato partita dopo partita.</div>
+<div class="why"><strong>Perché tre livelli fissi?</strong> Un sistema a scala libera lascia troppo spazio alla discrezionalità del responsabile — con tre livelli predefiniti la valutazione è più oggettiva e uniforme tra circoli diversi. Le fasce più alte (Oro, Platino, Élite) rimangono comunque raggiungibili solo sul campo: nessuno può "nascere" nelle fasce alte, il PR si guadagna partita dopo partita.</div>
 
 
 <h2><span class="num">5</span>La classifica e le fasce</h2>
@@ -344,21 +353,22 @@ K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
 </div>
 
 <h3>Il peso K — quanto cambiano i punti</h3>
-<p>Il peso K determina quanto "muove" ogni partita. Diminuisce con l'esperienza: i nuovi giocatori hanno un rating ancora incerto che si aggiusta rapidamente, i veterani hanno un rating consolidato che cambia lentamente.</p>
+<p>Il peso K determina quanto "muove" ogni partita. In PadelMeeting K varia solo nelle prime partite, poi rimane fisso:</p>
 
 <table class="k-table">
   <tr><th>Partite giocate</th><th>Peso K</th><th>Effetto</th></tr>
-
-  <tr><td>Tutte le partite</td><td><strong>K = 4</strong></td><td>Uniforme per tutti — nessuna fase di calibrazione</td></tr>
+  <tr><td>Prime 5 partite</td><td><strong>K = 5</strong></td><td>Fase di calibrazione — il PR si assesta più rapidamente</td></tr>
+  <tr><td>Dalla 6ª in poi</td><td><strong>K = 4</strong></td><td>Regime standard — stabilità e progressione graduale</td></tr>
 </table>
 
-<div class="why"><strong>Perché K fisso a 4?</strong> In PadelMeeting il PR iniziale è già valutato dal responsabile del circolo — non è una stima arbitraria. Non serve quindi una fase di calibrazione con K diverso. K=4 è uniforme per tutti: abbastanza alto da rendere visibile il movimento del PR, abbastanza basso da mantenere stabilità. In una partita 50/50 si guadagnano o perdono esattamente 2.0 punti — simmetrico e intuitivo.</div>
+<div class="why"><strong>Perché K=5 per le prime 5 partite?</strong> Le prime partite servono al sistema per confermare che il livello iniziale assegnato dal responsabile sia corretto. Con K=5 il PR reagisce un po' più velocemente, avvicinandosi rapidamente al livello reale del giocatore. Anche nel caso raro di una valutazione iniziale leggermente imprecisa, il sistema si autocorregge da solo in poche partite — senza bisogno di interventi manuali. Dalla sesta partita K scende a 4: abbastanza alto da rendere visibile ogni progresso, abbastanza basso da garantire stabilità nel tempo.</div>
 
 <div class="example">
-  <div class="example-title">Esempio 3 — Stesso risultato, diverso peso K</div>
-  <div class="example-row"><span class="label">Qualsiasi giocatore (K=4) vince partita 50/50</span><span class="value pos">+2.0 pt</span></div>
-  <div class="example-row"><span class="label">Qualsiasi giocatore (K=4) perde partita 50/50</span><span class="value neg">−2.0 pt</span></div>
-  <div class="example-row"><span class="label">Stesso K per tutti → stessi punti per tutti nella stessa squadra</span><span class="value">✓</span></div>
+  <div class="example-title">Esempio 3 — Effetto del peso K su una partita 50/50</div>
+  <div class="example-row"><span class="label">Prime 5 partite (K=5): vittoria</span><span class="value pos">+2.5 pt</span></div>
+  <div class="example-row"><span class="label">Prime 5 partite (K=5): sconfitta</span><span class="value neg">−2.5 pt</span></div>
+  <div class="example-row"><span class="label">Dalla 6ª partita (K=4): vittoria</span><span class="value pos">+2.0 pt</span></div>
+  <div class="example-row"><span class="label">Dalla 6ª partita (K=4): sconfitta</span><span class="value neg">−2.0 pt</span></div>
 </div>
 
 <h3>I punti in gioco — visibili prima della partita</h3>
