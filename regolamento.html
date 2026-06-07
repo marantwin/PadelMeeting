@@ -241,19 +241,10 @@
 <h2><span class="num">4</span>Registrazione</h2>
 <p>La registrazione avviene su <strong>www.padelmeeting.it</strong>. Si inserisce nome, cognome, email, password e circolo di appartenenza. Dopo la registrazione viene inviata una email di conferma — il link nell'email attiva l'account.</p>
 
-<h3>Valutazione iniziale</h3>
-<p>Dopo la registrazione il profilo è in stato <em>"in attesa di valutazione"</em>. Il responsabile del circolo assegna il <strong>PR iniziale</strong> scegliendo tra tre livelli fissi, in base al livello reale del giocatore osservato sul campo:</p>
-
-<table class="band-table">
-  <tr><th>Livello</th><th>PR iniziale</th><th>Profilo</th></tr>
-  <tr><td><strong>Principiante</strong></td><td>20</td><td>Ha iniziato da poco o gioca saltuariamente e non ha esperienza competitiva nel padel.</td></tr>
-  <tr><td><strong>Intermedio</strong></td><td>40</td><td>Gioca con regolarità da diverso tempo e conosce bene regole e dinamiche di gioco. Ha maturato una buona esperienza sul campo.</td></tr>
-  <tr><td><strong>Avanzato</strong></td><td>60</td><td>Giocatore con una solida conoscenza del gioco, maturata anche attraverso tornei e partite competitive.</td></tr>
-</table>
-
-<p>Da quel momento il giocatore è in classifica e ogni partita classificata muove il suo PR.</p>
-<div class="note">Le partite giocate prima della valutazione non possono essere inserite retroattivamente.</div>
-<div class="why"><strong>Perché tre livelli fissi?</strong> Un sistema a scala libera lascia troppo spazio alla discrezionalità del responsabile — con tre livelli predefiniti la valutazione è più oggettiva e uniforme tra circoli diversi. Le fasce più alte (Oro, Platino, Élite) rimangono comunque raggiungibili solo sul campo: nessuno può "nascere" nelle fasce alte, il PR si guadagna partita dopo partita.</div>
+<h3>PR iniziale</h3>
+<p>Tutti i nuovi giocatori entrano in classifica con lo stesso PR iniziale: <strong>35</strong>. Non è necessaria alcuna valutazione da parte del responsabile — il punto di partenza è uguale per tutti.</p>
+<div class="note">Le partite giocate prima dell'attivazione del profilo non possono essere inserite retroattivamente.</div>
+<div class="why"><strong>Perché PR 35 uguale per tutti?</strong> Un rating iniziale soggettivo — anche ben intenzionato — introduce inevitabilmente disparità tra giocatori e tra circoli diversi. Partire tutti da 35 elimina questo rischio alla radice: nessuno è avvantaggiato o penalizzato dal giudizio di qualcuno. Il campo fa il resto — chi vince sale, chi perde scende, e dopo poche partite la classifica riflette il livello reale di ciascun giocatore.</div>
 
 
 <h2><span class="num">5</span>La classifica e le fasce</h2>
@@ -353,22 +344,20 @@ K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
 </div>
 
 <h3>Il peso K — quanto cambiano i punti</h3>
-<p>Il peso K determina quanto "muove" ogni partita. In PadelMeeting K varia solo nelle prime partite, poi rimane fisso:</p>
+<p>K è il moltiplicatore che determina quanti punti muove ogni partita. In PadelMeeting K è <strong>fisso a 3.6</strong> per tutti i giocatori, dall'inizio alla fine.</p>
 
 <table class="k-table">
   <tr><th>Partite giocate</th><th>Peso K</th><th>Effetto</th></tr>
-  <tr><td>Prime 5 partite</td><td><strong>K = 5</strong></td><td>Fase di calibrazione — il PR si assesta più rapidamente</td></tr>
-  <tr><td>Dalla 6ª in poi</td><td><strong>K = 4</strong></td><td>Regime standard — stabilità e progressione graduale</td></tr>
+  <tr><td>Tutte le partite</td><td><strong>K = 3.6</strong></td><td>Uniforme per tutti — stabile e coerente</td></tr>
 </table>
 
-<div class="why"><strong>Perché K=5 per le prime 5 partite?</strong> Le prime partite servono al sistema per confermare che il livello iniziale assegnato dal responsabile sia corretto. Con K=5 il PR reagisce un po' più velocemente, avvicinandosi rapidamente al livello reale del giocatore. Anche nel caso raro di una valutazione iniziale leggermente imprecisa, il sistema si autocorregge da solo in poche partite — senza bisogno di interventi manuali. Dalla sesta partita K scende a 4: abbastanza alto da rendere visibile ogni progresso, abbastanza basso da garantire stabilità nel tempo.</div>
+<div class="why"><strong>Perché K=3.6 fisso?</strong> Un K variabile sembrerebbe incoerente ai giocatori: stessa partita, stesso risultato, ma punti diversi a seconda di quante partite hai giocato. K=3.6 fisso è trasparente — il delta cambia solo in base alla differenza di livello tra le squadre, mai per ragioni interne al sistema. In una partita perfettamente equilibrata si guadagnano o perdono esattamente <strong>±1.8 punti</strong>.</div>
 
 <div class="example">
-  <div class="example-title">Esempio 3 — Effetto del peso K su una partita 50/50</div>
-  <div class="example-row"><span class="label">Prime 5 partite (K=5): vittoria</span><span class="value pos">+2.5 pt</span></div>
-  <div class="example-row"><span class="label">Prime 5 partite (K=5): sconfitta</span><span class="value neg">−2.5 pt</span></div>
-  <div class="example-row"><span class="label">Dalla 6ª partita (K=4): vittoria</span><span class="value pos">+2.0 pt</span></div>
-  <div class="example-row"><span class="label">Dalla 6ª partita (K=4): sconfitta</span><span class="value neg">−2.0 pt</span></div>
+  <div class="example-title">Esempio 3 — Partita 50/50 con K=3.6</div>
+  <div class="example-row"><span class="label">Vittoria su partita pari</span><span class="value pos">+1.8 pt</span></div>
+  <div class="example-row"><span class="label">Sconfitta su partita pari</span><span class="value neg">−1.8 pt</span></div>
+  <div class="example-row"><span class="label">Stesso K per tutti, sempre</span><span class="value">✓</span></div>
 </div>
 
 <h3>I punti in gioco — visibili prima della partita</h3>
@@ -424,34 +413,14 @@ K basso → il PR è stabile, cambia poco, riflette la storia nel tempo.</p>
 <div class="why"><strong>Perché il Punto Secco invece dei vantaggi classici?</strong> I vantaggi tradizionali possono prolungare indefinitamente un game. Il Punto Secco mantiene la partita fluida, riduce i tempi e aggiunge tensione con un singolo punto decisivo.</div>
 
 
-<h2><span class="num">10</span>Serie di vittorie</h2>
-<p>Chi vince partite classiche consecutive accumula <strong>stelle</strong> e riceve bonus PR:</p>
-<ul>
-  <li>3 vittorie consecutive → <strong>+1 punto</strong> bonus</li>
-  <li>5 vittorie consecutive → <strong>+2 punti</strong> bonus aggiuntivi</li>
-  <li>10 vittorie consecutive → <strong>+5 punti</strong> bonus aggiuntivi</li>
-</ul>
-<p>Le stelle si perdono <strong>tutte</strong> alla prima sconfitta.</p>
-
-<div class="why"><strong>Perché premiare le serie?</strong> Il PR misura il livello medio nel tempo, ma non premia la costanza. Un giocatore che vince 10 partite di fila sta dimostrando una forma eccezionale che merita un riconoscimento extra. Il rischio di perdere tutto alla prima sconfitta rende ogni partita più importante.</div>
-
-<div class="example">
-  <div class="example-title">Esempio — Progressione stelle</div>
-  <div class="example-row"><span class="label">Anna vince 3 partite di fila</span><span class="value pos">+1 pt bonus ★★★</span></div>
-  <div class="example-row"><span class="label">Anna vince altre 2 (5 di fila)</span><span class="value pos">+2 pt bonus ★★★★★</span></div>
-  <div class="example-row"><span class="label">Anna perde la partita successiva</span><span class="value neg">Serie azzerata → ★ 0</span></div>
-</div>
-
-
-<h2><span class="num">11</span>Inattività</h2>
-<p>Un giocatore senza partite classificate per <strong>30 giorni consecutivi</strong> inizia a perdere punti. Il sistema avvisa 7 giorni prima del primo malus.</p>
+<h2><span class="num">10</span>Inattività</h2>
+<p>Un giocatore senza partite classificate per <strong>30 giorni consecutivi</strong> perde <strong>5 punti PR</strong>. Ogni mese successivo senza giocare comporta un'ulteriore perdita di <strong>5 punti</strong>. Il PR non scende mai sotto zero.</p>
 
 <table class="k-table">
   <tr><th>Periodo di inattività</th><th>Malus</th></tr>
-  <tr><td>30° giorno</td><td>−1 punto</td></tr>
-  <tr><td>Ogni settimana successiva (1° mese)</td><td>−1 punto/settimana</td></tr>
-  <tr><td>Dal 2° mese in poi</td><td>−2 punti/settimana</td></tr>
-  <tr><td>Dopo 4 mesi totali</td><td>Rimozione dalla classifica</td></tr>
+  <tr><td>Dopo 30 giorni</td><td>−5 punti</td></tr>
+  <tr><td>Ogni mese successivo senza giocare</td><td>−5 punti</td></tr>
+  <tr><td>Limite minimo</td><td>PR 0 (non si scende oltre)</td></tr>
 </table>
 
 <div class="why"><strong>Perché penalizzare l'inattività?</strong> Un giocatore che smette di giocare ma mantiene un PR alto "occupa" una posizione che non riflette più il suo livello attuale. La classifica deve essere uno specchio del momento presente, non della gloria passata. Chi gioca regolarmente merita di scalare posizioni anche su chi non si fa vedere.</div>
