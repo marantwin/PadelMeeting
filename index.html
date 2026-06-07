@@ -865,7 +865,38 @@ ${auth.user&&auth.user.role==='admin'?`
             <button class="btnGhostSm" onclick="adminSetStatus('${p.id}','rejected')">Rifiuta</button>
           </div>
         </div>`).join('')}
-      <button class="btnGhost" style="margin-top:12px;width:100%" onclick="adminLoadPending()">Aggiorna</button>
+      <button class="btnGhost" style="margin-top:12px;width:100%" onclick="adminLoadAll()">Aggiorna</button>
+    </div>
+    ${stag('Circoli')}
+    <div class="card">
+      ${adminClubs.length===0
+        ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:12px 0">Nessun circolo registrato</div>`
+        :adminClubs.map(c=>`<div style="padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:13px;font-weight:600">${esc(c.name)}</div>
+            <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:2px">${esc(c.city||'—')} (${esc(c.provincia||'—')})${c.phone?` · ${esc(c.phone)}`:''}</div>
+          </div>
+          <span style="font-size:10px;padding:2px 8px;border-radius:20px;flex-shrink:0;margin-left:8px;${c.status==='active'?'background:rgba(91,240,203,.12);border:1px solid rgba(91,240,203,.35);color:var(--neon)':'background:rgba(239,208,106,.12);border:1px solid rgba(239,208,106,.35);color:var(--gold)'}">
+            ${c.status==='active'?'Attivo':'In attesa'}
+          </span>
+        </div>`).join('')}
+    </div>
+    ${stag('Giocatori')}
+    <div class="card">
+      ${adminAllPlayers.length===0
+        ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:12px 0">Nessun giocatore</div>`
+        :adminAllPlayers.map(p=>`<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:13px;font-weight:600">${esc(p.full_name||'—')}</div>
+            <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:1px">${esc(p.club||'—')} · ${p.role==='manager'?'Responsabile':p.role==='admin'?'Admin':'Giocatore'}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:8px">
+            <div style="font-family:var(--mono);font-size:13px;color:${bandColor(p.rating||35)}">${(p.rating||35).toFixed(1)}</div>
+            <div style="font-size:10px;margin-top:2px;color:${p.status==='active'?'var(--neon)':p.status==='pending'?'var(--gold)':'var(--danger)'}">
+              ${p.status==='active'?'Attivo':p.status==='pending'?'In attesa':'Rifiutato'}
+            </div>
+          </div>
+        </div>`).join('')}
     </div>`:''}
     ${changePasswordSection()}
     <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
@@ -1105,6 +1136,8 @@ const sb = supabase.createClient(
 
 let auth = { tab:'login', role:'player', err:'', loading:false, user:null, loggedIn:false };
 let adminPending = [];
+let adminClubs = [];
+let adminAllPlayers = [];
 
 function showGate(){ $('#auth-gate').style.display='flex'; $('#app-shell').style.display='none'; renderAuth(); }
 function hideGate(){ $('#auth-gate').style.display='none'; $('#app-shell').style.display=''; render(); }
@@ -1176,6 +1209,7 @@ async function loadProfile(user){
   ME=user.id;
   await loadPlayers();
   await loadMatches();
+  if(profile.role==='admin') adminLoadAll();
   hideGate();
 }
 
@@ -1290,10 +1324,18 @@ async function doLogout(){
   showGate();
 }
 
-async function adminLoadPending(){
-  const {data}=await sb.rpc('pm_get_pending_managers');
-  adminPending=data||[]; render();
+async function adminLoadAll(){
+  const [pendingRes,clubsRes,playersRes]=await Promise.all([
+    sb.rpc('pm_get_pending_managers'),
+    sb.from('pm_clubs').select('id,name,city,provincia,status,phone').order('name'),
+    sb.from('pm_profiles').select('id,full_name,club,rating,games,role,status').order('full_name')
+  ]);
+  adminPending=pendingRes.data||[];
+  adminClubs=clubsRes.data||[];
+  adminAllPlayers=playersRes.data||[];
+  render();
 }
+async function adminLoadPending(){ adminLoadAll(); }
 async function adminSetStatus(id,status){
   await sb.rpc('pm_set_profile_status',{profile_id:id,new_status:status});
   // Sync pm_clubs: attiva o rimuovi il circolo in base all'esito
