@@ -1296,6 +1296,23 @@ async function adminLoadPending(){
 }
 async function adminSetStatus(id,status){
   await sb.rpc('pm_set_profile_status',{profile_id:id,new_status:status});
+  // Sync pm_clubs: attiva o rimuovi il circolo in base all'esito
+  const {data:prof}=await sb.from('pm_profiles').select('club,city,provincia,indirizzo,telefono').eq('id',id).single();
+  const clubName=prof?.club?.trim();
+  if(clubName && clubName!=='EMPTY'){
+    if(status==='active'){
+      const {data:existing}=await sb.from('pm_clubs').select('id').eq('name',clubName).maybeSingle();
+      if(existing){
+        await sb.from('pm_clubs').update({status:'active'}).eq('id',existing.id);
+      } else {
+        await sb.from('pm_clubs').insert({name:clubName,city:prof.city||null,provincia:prof.provincia||null,address:prof.indirizzo||null,phone:prof.telefono||null,status:'active'});
+      }
+      await loadClubs();
+    } else if(status==='rejected'){
+      await sb.from('pm_clubs').delete().eq('name',clubName);
+      await loadClubs();
+    }
+  }
   adminLoadPending();
 }
 
