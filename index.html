@@ -871,32 +871,21 @@ ${auth.user&&auth.user.role==='admin'?`
     <div class="card">
       ${adminClubs.length===0
         ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:12px 0">Nessun circolo registrato</div>`
-        :adminClubs.map(c=>`<div style="padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:flex-start">
-          <div>
-            <div style="font-size:13px;font-weight:600">${esc(c.name)}</div>
-            <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:2px">${esc(c.city||'—')} (${esc(c.provincia||'—')})${c.phone?` · ${esc(c.phone)}`:''}</div>
-          </div>
-          <span style="font-size:10px;padding:2px 8px;border-radius:20px;flex-shrink:0;margin-left:8px;${c.status==='active'?'background:rgba(91,240,203,.12);border:1px solid rgba(91,240,203,.35);color:var(--neon)':'background:rgba(239,208,106,.12);border:1px solid rgba(239,208,106,.35);color:var(--gold)'}">
-            ${c.status==='active'?'Attivo':'In attesa'}
-          </span>
-        </div>`).join('')}
+        :`<select class="auth-input" autocomplete="off" onchange="showAdminClub(this.value)">
+          <option value="">— Seleziona un circolo (${adminClubs.length}) —</option>
+          ${adminClubs.map(c=>`<option value="${c.id}">${esc(c.name)}${c.status!=='active'?' ⏳':''}</option>`).join('')}
+        </select>
+        <div id="admin-club-detail" style="margin-top:12px"></div>`}
     </div>
     ${stag('Giocatori')}
     <div class="card">
       ${adminAllPlayers.length===0
         ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:12px 0">Nessun giocatore</div>`
-        :adminAllPlayers.map(p=>`<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-size:13px;font-weight:600">${esc(p.full_name||'—')}</div>
-            <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:1px">${esc(p.club||'—')} · ${p.role==='manager'?'Responsabile':p.role==='admin'?'Admin':'Giocatore'}</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0;margin-left:8px">
-            <div style="font-family:var(--mono);font-size:13px;color:${bandColor(p.rating||35)}">${(p.rating||35).toFixed(1)}</div>
-            <div style="font-size:10px;margin-top:2px;color:${p.status==='active'?'var(--neon)':p.status==='pending'?'var(--gold)':'var(--danger)'}">
-              ${p.status==='active'?'Attivo':p.status==='pending'?'In attesa':'Rifiutato'}
-            </div>
-          </div>
-        </div>`).join('')}
+        :`<select class="auth-input" autocomplete="off" onchange="showAdminPlayer(this.value)">
+          <option value="">— Seleziona un giocatore (${adminAllPlayers.length}) —</option>
+          ${adminAllPlayers.map(p=>`<option value="${p.id}">${esc(p.full_name)}${p.status!=='active'?' ⏳':''}</option>`).join('')}
+        </select>
+        <div id="admin-player-detail" style="margin-top:12px"></div>`}
     </div>`:''}
     ${changePasswordSection()}
     <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
@@ -1322,6 +1311,44 @@ async function doLogout(){
   await sb.auth.signOut();
   auth={tab:'login',role:'player',err:'',loading:false,user:null,loggedIn:false};
   showGate();
+}
+
+function showAdminClub(id){
+  const el=document.getElementById('admin-club-detail');
+  if(!el) return;
+  if(!id){ el.innerHTML=''; return; }
+  const c=adminClubs.find(x=>x.id===id);
+  if(!c){ el.innerHTML=''; return; }
+  const players_in_club=adminAllPlayers.filter(p=>p.club===c.name);
+  const statusStyle=c.status==='active'?'background:rgba(91,240,203,.12);border:1px solid rgba(91,240,203,.35);color:var(--neon)':'background:rgba(239,208,106,.12);border:1px solid rgba(239,208,106,.35);color:var(--gold)';
+  el.innerHTML=`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:15px;font-weight:700">${esc(c.name)}</div>
+      <span style="font-size:10px;padding:2px 8px;border-radius:20px;${statusStyle}">${c.status==='active'?'Attivo':'In attesa'}</span>
+    </div>
+    <div class="irow"><span class="k">Città</span><span class="v">${esc(c.city||'—')} (${esc(c.provincia||'—')})</span></div>
+    ${c.phone?`<div class="irow"><span class="k">Telefono</span><span class="v">${esc(c.phone)}</span></div>`:''}
+    <div class="irow"><span class="k">Giocatori</span><span class="v">${players_in_club.length}</span></div>
+  </div>`;
+}
+
+function showAdminPlayer(id){
+  const el=document.getElementById('admin-player-detail');
+  if(!el) return;
+  if(!id){ el.innerHTML=''; return; }
+  const p=adminAllPlayers.find(x=>x.id===id);
+  if(!p){ el.innerHTML=''; return; }
+  const statusColor=p.status==='active'?'var(--neon)':p.status==='pending'?'var(--gold)':'var(--danger)';
+  const statusLabel=p.status==='active'?'Attivo':p.status==='pending'?'In attesa':'Rifiutato';
+  const roleLabel=p.role==='manager'?'Responsabile':p.role==='admin'?'Admin':'Giocatore';
+  el.innerHTML=`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px">
+    <div style="font-size:15px;font-weight:700;margin-bottom:10px">${esc(p.full_name||'—')}</div>
+    <div class="irow"><span class="k">Circolo</span><span class="v">${esc(p.club||'—')}</span></div>
+    <div class="irow"><span class="k">Ruolo</span><span class="v">${roleLabel}</span></div>
+    <div class="irow"><span class="k">Stato</span><span class="v" style="color:${statusColor}">${statusLabel}</span></div>
+    <div class="irow"><span class="k">Rating</span><span class="v" style="color:${bandColor(p.rating||35)};font-family:var(--mono)">${(p.rating||35).toFixed(1)} — ${bandName(p.rating||35)}</span></div>
+    <div class="irow"><span class="k">Partite</span><span class="v">${p.games||0}</span></div>
+  </div>`;
 }
 
 async function adminLoadAll(){
