@@ -300,6 +300,8 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .auth-input:focus{border-color:var(--neon);background:rgba(91,240,203,.05);
   box-shadow:0 0 0 3px rgba(91,240,203,.12),0 0 22px rgba(91,240,203,.10)}
 .auth-input::placeholder{color:rgba(255,255,255,.45)}
+select.auth-input{-webkit-appearance:auto;appearance:auto;cursor:pointer}
+select.auth-input option{background:#0E2723;color:#F7F0DC}
 .auth-input-wrap{position:relative;display:flex;align-items:center}
 .auth-input-wrap .auth-input{padding-right:46px}
 .auth-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);
@@ -386,6 +388,7 @@ let players = [];
 let matches = [];
 let ME = null;
 let tab = 'home';
+let clubs_list = [];
 let pl = { partner:null, opp1:null, opp2:null, winner:1, done:false };
 
 /* ============ HELPERS ============ */
@@ -1139,6 +1142,11 @@ async function loadPlayers(){
   }
 }
 
+async function loadClubs(){
+  const {data}=await sb.from('pm_clubs').select('id,name,city,provincia').eq('status','active').order('name');
+  clubs_list=data||[];
+}
+
 async function loadMatches(){
   if(!ME) return;
   const {data,error}=await sb.from('pm_matches')
@@ -1190,6 +1198,7 @@ async function doRegister(){
   const provincia=$('#ar-provincia').value.trim().toUpperCase();
   const indirizzo=auth.role==='manager'?$('#ar-indirizzo').value.trim():'';
   const telefono=auth.role==='manager'?$('#ar-telefono').value.trim():'';
+  if(auth.role==='player' && club==='__no_club__'){ auth.err='Il tuo circolo non è ancora su PadelMeeting. Chiedi al responsabile di registrarlo.'; renderAuth(); return; }
   if(!nome||!cognome||!email||!pass||!pass2||!club||!city||!provincia||(auth.role==='manager'&&(!indirizzo||!telefono))){
     auth.err='Compila tutti i campi'; renderAuth(); return; }
   if(!$('#ar-age')?.checked){ auth.err='Devi dichiarare di avere almeno 18 anni'; renderAuth(); return; }
@@ -1283,8 +1292,7 @@ async function adminSetStatus(id,status){
 
 function viewAuth(){
   const isLogin=auth.tab==='login';
-  const clubs=[...new Set(players.map(p=>p.club))].sort();
-  const clubOpts=clubs.map(c=>`<option value="${c}">${esc(c)}</option>`).join('');
+  const clubOpts=clubs_list.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.city?` — ${esc(c.city)}`:''}</option>`).join('');
   const logo=`<div style="text-align:center;margin-bottom:26px">
     <img src="/Logo_PadelMeeting.png" alt="PadelMeeting" style="width:190px;height:auto;filter:drop-shadow(0 0 30px rgba(91,240,203,.58))">
   </div>`;
@@ -1384,8 +1392,12 @@ function viewAuth(){
         <input id="ar-pass2" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
         <button type="button" class="auth-eye" onclick="toggleEye('ar-pass2',this)" tabindex="-1">${eyeOpen}</button>
       </div></div>
-    <div class="auth-field"><label class="auth-label">Circolo</label>
-      <input id="ar-club" type="text" class="auth-input" placeholder="Nome del circolo" autocomplete="organization"></div>
+    <div class="auth-field"><label class="auth-label">${auth.role==='manager'?'Nome del nuovo circolo':'Circolo'}</label>
+      ${auth.role==='player'?`<select id="ar-club" class="auth-input" autocomplete="off">
+        <option value="">— Seleziona il tuo circolo —</option>
+        ${clubOpts}
+        <option value="__no_club__">Il mio circolo non è ancora registrato</option>
+      </select>`:`<input id="ar-club" type="text" class="auth-input" placeholder="Nome del circolo" autocomplete="off">`}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div><label class="auth-label">Città</label>
         <input id="ar-city" type="text" class="auth-input" placeholder="Napoli" autocomplete="address-level2"></div>
@@ -1438,6 +1450,7 @@ sb.auth.onAuthStateChange((event)=>{
 
 async function initAuth(){
   showGate();
+  await loadClubs();
   const params=new URLSearchParams(window.location.search);
   const hash=new URLSearchParams(window.location.hash.slice(1));
   // Errori Supabase nel hash (link scaduto ecc.)
