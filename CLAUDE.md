@@ -96,16 +96,10 @@ Oro #EFD06A | Platino #5BF0CB | Élite #F06A80
 These rules define the business logic behind the app. When implementing features, this is the authoritative reference.
 
 ### Registration & Initial Rating
-- New players start in `pending` status. The club manager assigns the **initial PR** by choosing one of three fixed levels after observing the player in person:
-
-| Level | PR | Profile |
-|---|---|---|
-| Principiante | 20 | Started recently or plays occasionally, no competitive experience |
-| Intermedio | 40 | Plays regularly for some time, knows rules and dynamics well |
-| Avanzato | 60 | Advanced player with consolidated experience in competitions and tournaments |
-
-- Matches played before the initial rating is assigned cannot be registered retroactively.
-- Three fixed levels instead of a free scale (0–70) ensures consistency across clubs in a league — a manager cannot be "generous" or "strict" beyond a 20-point gap.
+- New players start in `pending` status. The club manager activates them with a single click — no rating choice.
+- All players start at **PR 35** automatically on activation.
+- Equal starting point eliminates inter-club disparity: no manager subjectivity, no advantage or penalty based on who evaluates you.
+- Matches played before profile activation cannot be registered retroactively.
 
 ### Rating Bands
 | Band | PR Range | Color |
@@ -119,11 +113,11 @@ These rules define the business logic behind the app. When implementing features
 
 Bands update automatically as soon as PR crosses a threshold — no manual promotion.
 
-### ELO Formula (D=50, K=5→4)
+### ELO Formula (D=50, K=3.6)
 - `E = 1 / (1 + 10^(−diff/50))` where `diff` = mean PR team A − mean PR team B
 - Win: `Δ = K × (1 − E)` / Loss: `Δ = K × (0 − E)`
-- **K=5 for first 5 classified matches**, then **K=4 from match 6 onward** (counted on the player's total career matches, not per club/league)
-- In a perfectly even match (50/50): ±2.5 pts during calibration, ±2.0 pts in standard regime
+- **K=3.6 fixed for all players, always** — no calibration phase, no visible inconsistency
+- In a perfectly even match (50/50): exactly ±1.8 pts
 
 ### Classified Match Conditions
 A match only affects PR if **all four conditions** are met:
@@ -134,23 +128,15 @@ A match only affects PR if **all four conditions** are met:
 
 **Punto Secco**: at 40-40, play advantage; if deuce again, one decisive point decides the game.
 
-### Win Streak Bonuses
-Consecutive wins in classified matches award bonus PR (applied on top of normal delta):
-- 3 wins in a row: **+1 pt** bonus
-- 5 wins in a row: **+2 pts** additional bonus
-- 10 wins in a row: **+5 pts** additional bonus
-- The streak resets to 0 on the first loss (all stars lost).
-
 ### Inactivity Penalties
 Triggered after **30 consecutive days** without a classified match:
 | Period | Penalty |
 |---|---|
-| Day 30 | −1 pt |
-| Each subsequent week (month 1) | −1 pt/week |
-| From month 2 onward | −2 pts/week |
-| After 4 months total | Removed from ranking |
+| After 30 days | −5 pts |
+| Each subsequent month without playing | −5 pts |
+| Minimum floor | PR 0 (never goes below) |
 
-The app warns the player 7 days before the first penalty. The manager can suspend the inactivity counter (e.g. for injury); it restarts from zero on return.
+The manager can suspend the inactivity counter (e.g. for injury); it restarts from zero on return.
 
 ### Match Abandonment
 - **Justified** (injury, family/work emergency — communicated to manager within 24h): counts as a normal loss, no extra penalty.

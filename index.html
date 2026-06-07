@@ -395,7 +395,7 @@ const pName = id => (players.find(p=>p.id===id)||{}).name || '—';
 const ranked = ()=>[...players].sort((a,b)=>b.rating-a.rating);
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
-const dynK = games => 4;
+const dynK = games => 3.6;
 function teamAvg(ids){return ids.reduce((s,id)=>s+((players.find(p=>p.id===id)||{}).rating||0),0)/ids.length}
 
 function computeMatch(t1,t2,format,winnerTeam){
@@ -441,7 +441,7 @@ const pill = (t,tone)=>`<span class="pill ${tone}">${t}</span>`;
 function rankRow(p,rank,compact){
   const mine=p.id===ME;
   const medal = rank===1?C.gold:rank===2?'#C9D1D0':rank===3?C.rust:null;
-  const star = p.streak>=3?` <span class="c-gold" style="font-size:11px;text-shadow:0 0 8px ${C.gold}">★${p.streak}</span>`:'';
+  const star = '';
   return `<div class="rrow ${mine?'me':''} ${compact?'compact':''}">
     <div class="rk" style="color:${medal||C.ivoryFaint};text-shadow:${medal?`0 0 10px ${medal}88`:'none'}">${rank}</div>
     <div class="avatarSm" style="border-color:${mine?C.neon:'var(--line)'}">${esc(p.name[0])}</div>
@@ -740,30 +740,26 @@ function viewCircolo(){
       const unrated=clubPlayers.filter(p=>p.rating===0);
       if(unrated.length===0) return `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Nessun giocatore in attesa di valutazione</div>`;
       return `<div style="font-size:13px;color:var(--ivoryDim);line-height:1.6;margin-bottom:14px">
-        Osserva il giocatore durante <b>1 set</b> e assegna il rating iniziale (max <span style="color:${C.neon};font-family:var(--mono);font-weight:700">70</span>).
+        Giocatori in attesa di attivazione. Ogni nuovo giocatore parte con <b style="color:${C.neon};font-family:var(--mono)">PR 35</b>.
       </div>
-      <div class="seg" style="margin-bottom:14px">
-        ${unrated.map(p=>`<button class="segBtn ${valTarget===p.id?'active':''}" onclick="setValTarget('${p.id}')" style="flex:0 0 auto;padding:8px 14px;font-size:12px">${esc(p.name.split(' ')[0])}</button>`).join('')}
-      </div>
-      ${valTarget?`
-        <div style="font-size:13px;color:var(--ivoryDim);margin-bottom:10px">Rating iniziale per <b style="color:${C.ivory}">${esc(pName(valTarget))}</b></div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-          <input id="val-rating" type="number" min="1" max="70" class="auth-input" style="width:100px;padding:10px 12px;font-size:18px;font-family:var(--mono);font-weight:700;text-align:center" placeholder="0–70">
-          <button class="btnSolid" onclick="submitValutazione()">Assegna</button>
+      ${unrated.map(p=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--lineSoft)">
+          <div>
+            <div style="font-size:14px;font-weight:600">${esc(p.name)}</div>
+            <div style="font-size:12px;color:var(--ivoryDim)">${esc(p.club||'—')}</div>
+          </div>
+          <button class="btnSolidSm" onclick="submitValutazione('${p.id}')">Attiva — PR 35</button>
         </div>
-      `:`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Seleziona un giocatore sopra</div>`}`;
+      `).join('')}`;
     })()}</div>
   </div>`;
 }
-let valTarget=null;
-function setValTarget(id){valTarget=id;render()}
-async function submitValutazione(){
-  const v=parseInt($('#val-rating').value);
-  if(!valTarget||isNaN(v)||v<1||v>70){alert('Inserisci un valore tra 1 e 70');return;}
-  const {error}=await sb.from('pm_profiles').update({rating:v,status:'active'}).eq('id',valTarget);
+async function submitValutazione(id){
+  if(!id){alert('ID giocatore mancante.');return;}
+  const {error}=await sb.from('pm_profiles').update({rating:35,status:'active'}).eq('id',id);
   if(error){alert('Errore: '+error.message);return;}
   await loadPlayers();
-  valTarget=null; render();
+  render();
 }
 
 async function doUpdateProfile(){
@@ -820,13 +816,11 @@ function viewProfile(){
       <div style="font-size:11.5px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.1em;margin-top:2px">${esc(M.club).toUpperCase()} · ${esc(M.city).toUpperCase()} (${esc(M.provincia)})</div>
       <div style="display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap">
         <span class="pill" style="background:${bandColor(M.rating)}1f;border:1px solid ${bandColor(M.rating)}66;color:${bandColor(M.rating)}">${bandName(M.rating)}</span>
-        ${pill('★ '+M.streak+' di fila','gold')}
       </div>
     </div>
     <div class="stats3">
       ${statCard('Rating',M.rating.toFixed(1),bandName(M.rating),bandColor(M.rating))}
       ${statCard('Partite',''+M.games,'giocate',C.gold)}
-      ${statCard('Serie',M.streak,'vittorie',C.rust)}
     </div>
     ${stag('Stato profilo')}
     <div class="card">
@@ -880,14 +874,9 @@ ${auth.user&&auth.user.role==='admin'?`
 const RULES=[
   ['Registrazione e valutazione iniziale',
     `<p>La registrazione va fatta su <b>www.padelmeeting.it</b>.</p>
-     <p>Dopo la registrazione il responsabile del circolo assegna il <b>PR iniziale</b> scegliendo tra tre livelli fissi:</p>
-     <div style="display:flex;flex-direction:column;gap:8px;margin:10px 0">
-       <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:13px"><b>Principiante — PR 20</b><br><span style="color:var(--ivoryDim)">Ha iniziato da poco o gioca saltuariamente e non ha esperienza competitiva nel padel.</span></div>
-       <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:13px"><b>Intermedio — PR 40</b><br><span style="color:var(--ivoryDim)">Gioca con regolarità da diverso tempo e conosce bene regole e dinamiche di gioco.</span></div>
-       <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:13px"><b>Avanzato — PR 60</b><br><span style="color:var(--ivoryDim)">Giocatore con una solida conoscenza del gioco, maturata anche attraverso tornei e partite competitive.</span></div>
-     </div>
-     <p style="margin-top:8px">Da quel momento sei in classifica e le tue partite muovono il punteggio.</p>
-     <p class="note">Le partite giocate prima della valutazione non possono essere inserite retroattivamente.</p>`],
+     <p>Tutti i nuovi giocatori entrano in classifica con lo stesso PR iniziale: <b style="color:var(--neon);font-family:var(--mono);font-size:16px">35</b>. Nessuna valutazione soggettiva — punto di partenza uguale per tutti, in ogni circolo.</p>
+     <p class="note">Il campo fa il resto: chi vince sale, chi perde scende. Dopo poche partite la classifica riflette il livello reale di ciascun giocatore.</p>
+     <p class="note">Le partite giocate prima dell'attivazione del profilo non possono essere inserite retroattivamente.</p>`],
 
   ['Fasce e classifica',
     `<p>La classifica va da <b>0 a 100</b>, divisa in <b>6 fasce</b>:</p>
@@ -902,8 +891,8 @@ const RULES=[
   ['PR — PadelMeeting Rating',
     `<p>Il PR di ogni giocatore cambia dopo ogni partita in base al livello degli avversari: una vittoria contro una squadra più forte vale più punti, una vittoria scontata vale poco.</p>
      <p style="margin-top:8px">Prima di ogni partita l'app mostra esattamente quanti punti guadagni se vinci e quanti perdi se perdi.</p>
-     <div class="kv"><span class="kk">Prime 5 partite</span><span class="vv">K = 5 — calibrazione rapida</span></div>
-     <div class="kv"><span class="kk">Dalla 6ª in poi</span><span class="vv">K = 4 — regime standard</span></div>
+     <div class="kv"><span class="kk">K fisso</span><span class="vv">3.6 — uguale per tutti, sempre</span></div>
+     <div class="kv"><span class="kk">Partita 50/50</span><span class="vv pos">±1.8 pt</span></div>
      <p class="note">Il sistema PR si basa sulla formula di Árpád Elo, fisico ungherese-americano che la sviluppò per gli scacchi. Oggi è usata in tutto il mondo per classificare giocatori in modo equo e oggettivo.</p>
      <p style="margin-top:12px"><a href="/regolamento.html" target="_blank" style="color:var(--ivory);font-family:var(--sans);font-size:14px;text-decoration:underline;text-underline-offset:3px">Leggi il regolamento in dettaglio</a></p>`],
 
@@ -921,19 +910,11 @@ const RULES=[
      <div class="li"><span><b>Sul 2° vantaggio</b>, se il punto lo fa chi è avanti, la squadra vince e chiude il game. Altrimenti si torna pari e si va al Punto Secco.</span></div>
      <div class="li"><span><b>Punto Secco:</b> un unico punto decisivo — chi lo vince si aggiudica il game.</span></div>`],
 
-  ['Serie di vittorie ★',
-    `<p>Vinci partite classiche di fila e accumuli <b>stelle</b> con bonus ELO aggiuntivi:</p>
-     <div class="kv"><span class="kk">3 vittorie consecutive</span><span class="vv pos">+1 pt bonus</span></div>
-     <div class="kv"><span class="kk">5 vittorie consecutive</span><span class="vv pos">+2 pt bonus aggiuntivi</span></div>
-     <div class="kv"><span class="kk">10 vittorie consecutive</span><span class="vv pos">+5 pt bonus aggiuntivi</span></div>
-     <p>Le stelle si perdono <b>tutte</b> alla prima sconfitta.</p>`],
-
   ['Inattività',
-    `<p>Se non giochi partite classificate per <b>30 giorni consecutivi</b>, perdi punti. Ricevi una notifica 7 giorni prima del primo malus.</p>
-     <div class="kv"><span class="kk">30° giorno</span><span class="vv neg">−1 pt</span></div>
-     <div class="kv"><span class="kk">Ogni settimana succ. (1° mese)</span><span class="vv neg">−1 pt</span></div>
-     <div class="kv"><span class="kk">Dal 2° mese</span><span class="vv neg">−2 pt / settimana</span></div>
-     <div class="kv"><span class="kk">Dopo 4 mesi</span><span class="vv neg">Rimozione</span></div>
+    `<p>Se non giochi partite classificate per <b>30 giorni consecutivi</b>, perdi <b>5 punti PR</b>. Ogni mese successivo senza giocare: altri <b>−5 punti</b>. Il PR non scende mai sotto zero.</p>
+     <div class="kv"><span class="kk">Dopo 30 giorni</span><span class="vv neg">−5 pt</span></div>
+     <div class="kv"><span class="kk">Ogni mese successivo</span><span class="vv neg">−5 pt</span></div>
+     <div class="kv"><span class="kk">Limite minimo</span><span class="vv">PR 0</span></div>
      <p class="note">Per infortunio puoi richiedere la sospensione del conteggio al responsabile. Al rientro il conteggio riparte da zero.</p>`],
 
   ['Abbandono e ammonizioni',
