@@ -1189,16 +1189,25 @@ async function doLogin(){
   await loadProfile(data.user);
 }
 
+function onClubSelectChange(sel){
+  const wrap=document.getElementById('ar-club-custom-wrap');
+  if(wrap) wrap.style.display=sel.value==='__no_club__'?'block':'none';
+}
+
 async function doRegister(){
   const nome=$('#ar-nome').value.trim(), cognome=$('#ar-cognome').value.trim();
   const email=$('#ar-email').value.trim(), pass=$('#ar-pass').value;
   const pass2=$('#ar-pass2').value;
-  const club=$('#ar-club').value.trim();
+  let club=$('#ar-club')?.value.trim()||'';
+  if(auth.role==='player' && club==='__no_club__'){
+    const custom=$('#ar-club-custom')?.value.trim();
+    if(!custom){ auth.err='Inserisci il nome del tuo circolo'; renderAuth(); return; }
+    club=custom;
+  }
   const city=$('#ar-city').value.trim();
   const provincia=$('#ar-provincia').value.trim().toUpperCase();
   const indirizzo=auth.role==='manager'?$('#ar-indirizzo').value.trim():'';
   const telefono=auth.role==='manager'?$('#ar-telefono').value.trim():'';
-  if(auth.role==='player' && club==='__no_club__'){ auth.err='Il tuo circolo non è ancora su PadelMeeting. Chiedi al responsabile di registrarlo.'; renderAuth(); return; }
   if(!nome||!cognome||!email||!pass||!pass2||!club||!city||!provincia||(auth.role==='manager'&&(!indirizzo||!telefono))){
     auth.err='Compila tutti i campi'; renderAuth(); return; }
   if(!$('#ar-age')?.checked){ auth.err='Devi dichiarare di avere almeno 18 anni'; renderAuth(); return; }
@@ -1393,11 +1402,16 @@ function viewAuth(){
         <button type="button" class="auth-eye" onclick="toggleEye('ar-pass2',this)" tabindex="-1">${eyeOpen}</button>
       </div></div>
     <div class="auth-field"><label class="auth-label">${auth.role==='manager'?'Nome del nuovo circolo':'Circolo'}</label>
-      ${auth.role==='player'?`<select id="ar-club" class="auth-input" autocomplete="off">
+      ${auth.role==='player'?`<select id="ar-club" class="auth-input" autocomplete="off" onchange="onClubSelectChange(this)">
         <option value="">— Seleziona il tuo circolo —</option>
         ${clubOpts}
         <option value="__no_club__">Il mio circolo non è ancora registrato</option>
-      </select>`:`<input id="ar-club" type="text" class="auth-input" placeholder="Nome del circolo" autocomplete="off">`}</div>
+      </select>
+      <div id="ar-club-custom-wrap" style="display:none;margin-top:10px">
+        <label class="auth-label" style="margin-top:0">Nome del circolo desiderato</label>
+        <input id="ar-club-custom" type="text" class="auth-input" placeholder="Es. Padel Club Eboli" autocomplete="off">
+        <div style="font-size:12px;color:var(--ivoryDim);margin-top:6px;line-height:1.5">Inserisci il nome così possiamo contattarlo per affiliarlo.</div>
+      </div>`:`<input id="ar-club" type="text" class="auth-input" placeholder="Nome del circolo" autocomplete="off">`}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div><label class="auth-label">Città</label>
         <input id="ar-city" type="text" class="auth-input" placeholder="Napoli" autocomplete="address-level2"></div>
