@@ -51,7 +51,7 @@ let adminAllPlayers = []; // All players (admin only)
 | `pm_profiles` | id, full_name, club, city, provincia, rating (default 35), games, streak, role (player/manager/admin), status (pending/active/rejected) |
 | `pm_matches` | id, played_at, club, winner (A/B), score, status (pending/approved/disputed), submitted_by, team_a1/a2, team_b1/b2, delta_a1/a2/b1/b2 |
 | `pm_clubs` | id, name, city, provincia, status (pending/active), created_at |
-| `pm_notifications` | id, user_id, type (match_invite), title, body, data (jsonb), read (bool), created_at |
+| `pm_notifications` | id, user_id, type (`match_invite`\|`match_confirmed`), title, body, data (jsonb), read (bool), created_at |
 
 **RPC functions**: `pm_get_pending_managers()`, `pm_set_profile_status(profile_id, new_status)`
 
