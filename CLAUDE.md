@@ -76,7 +76,10 @@ In-app only (no email/push). Flow:
 - On login, `loadNotifications()` fetches unread rows for current user into `notifications[]`
 - Badge (red dot with count) appears on Home nav tab when `notifications.filter(n=>!n.read).length > 0`
 - `viewHome()` renders a notifications card at the top when there are unread items
-- Clicking a notification calls `markNotificationRead(id)` → sets `read=true` in DB and re-renders
+- Notifications of type `match_invite` show two buttons: **✓ Accetto** / **✗ Declino**
+  - `respondNotification(id, 'accepted'|'declined')` → saves response in `data.response` (jsonb), marks `read=true`, card sparisce
+- Other notification types show an × to dismiss via `markNotificationRead(id)`
+- Responses saved in `data` jsonb — future organizer view can read `data.response` per player
 
 ### ELO Rating Logic
 
