@@ -399,6 +399,7 @@ let ME = null;
 let tab = 'home';
 let clubs_list = [];
 let notifications = [];
+let clubPendingMatches = [];
 let pl = { partner:null, opp1:null, opp2:null, winner:1, done:false };
 
 /* ============ HELPERS ============ */
@@ -585,7 +586,7 @@ function viewPlay(){
     return `<div class="page"><div class="card rise center" style="padding:44px 24px">
       <div style="font-size:40px;margin-bottom:8px">✓</div>
       <div style="font-family:var(--serif);font-size:30px;font-style:italic;color:${C.neon};text-shadow:0 0 14px ${C.neon}66">Partita registrata</div>
-      <p class="c-dim" style="font-size:13.5px;line-height:1.6;max-width:320px;margin:12px auto 0">In attesa di approvazione dagli avversari (48h). La classifica è già stata aggiornata in questa simulazione.</p>
+      <p class="c-dim" style="font-size:13.5px;line-height:1.6;max-width:320px;margin:12px auto 0">In attesa di approvazione del responsabile del circolo. Dopo l'approvazione, gli avversari potranno validare il punteggio e la classifica si aggiornerà.</p>
       <div style="display:flex;gap:10px;justify-content:center;margin-top:22px">
         <button class="btnGhost" onclick="resetPlay()">Nuova partita</button>
         <button class="btnSolid" onclick="go('rank')">Vedi classifica</button></div>
@@ -683,11 +684,16 @@ function viewMatches(){
       ${win?`<div style="font-size:9px;color:${C.gold};font-family:var(--mono);letter-spacing:.1em;margin-top:2px">★ VITTORIA</div>`:''}</div>`;
     let foot='';
     if(m.status==='pending'){
-      foot=pill('In attesa · 48h','gold');
-      if(involvesMe && m.mover!==ME) foot+=`<div style="display:flex;gap:8px">
-        <button class="btnGhostSm" onclick="actMatch(${m.id},'disputed')">Contesta</button>
-        <button class="btnSolidSm" onclick="actMatch(${m.id},'approved')">Approva</button></div>`;
-      else if(m.mover===ME) foot+=`<span style="font-size:11px;color:var(--ivoryFaint);font-style:italic">In attesa avversari</span>`;
+      foot=pill('In attesa responsabile','gold');
+      if(m.mover===ME) foot+=`<span style="font-size:11px;color:var(--ivoryFaint);font-style:italic;margin-left:6px">Inviata da te</span>`;
+    } else if(m.status==='manager_approved'){
+      const submitterOnT1=m.t1.includes(m.mover);
+      const iCanValidate=submitterOnT1?m.t2.includes(ME):m.t1.includes(ME);
+      foot=pill('Approvata dal responsabile','gold');
+      if(iCanValidate) foot+=`<div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btnGhostSm" onclick="actMatch('${m.id}','disputed')">✗ Contesta</button>
+        <button class="btnSolidSm" onclick="actMatch('${m.id}','approved')">✓ Valida punteggio</button></div>`;
+      else foot+=`<span style="font-size:11px;color:var(--ivoryFaint);font-style:italic;margin-left:6px">In attesa validazione avversari</span>`;
     } else if(m.status==='approved') foot=pill('✓ Approvata','neon');
     else if(m.status==='disputed') foot=pill('Contestata','danger');
     return `<div class="card" style="margin-bottom:12px">
@@ -704,6 +710,7 @@ async function actMatch(id,status){
   if(error){ alert('Errore: '+error.message); return; }
   await loadMatches();
   if(status==='approved') await loadPlayers();
+  if(auth.user?.role==='manager') await loadClubMatches();
   render();
 }
 
@@ -736,6 +743,24 @@ function viewCircolo(){
       </div>`;
     }).join('');
 
+  const daApprovareSection=clubPendingMatches.length===0
+    ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita in attesa</div>`
+    :clubPendingMatches.map(m=>{
+      const nm=id=>esc(pName(id));
+      return `<div style="padding:12px 0;border-bottom:1px solid var(--lineSoft)">
+        <div style="font-size:13px;margin-bottom:4px">
+          <span style="color:${C.neon}">${m.t1.map(nm).join(' & ')}</span>
+          <span style="font-style:italic;color:${C.rust}"> vs </span>
+          <span>${m.t2.map(nm).join(' & ')}</span>
+        </div>
+        <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:10px">${m.when} · ${m.score||'punteggio non inserito'}</div>
+        <div style="display:flex;gap:8px">
+          <button class="btnSolidSm" onclick="actMatch('${m.id}','manager_approved')">✓ Approva</button>
+          <button class="btnGhostSm" onclick="actMatch('${m.id}','rejected')">✗ Rifiuta</button>
+        </div>
+      </div>`;
+    }).join('');
+
   const contestateSection=disputed.length===0
     ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita contestata in attesa</div>`
     :disputed.map(m=>{
@@ -748,8 +773,8 @@ function viewCircolo(){
         </div>
         <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:10px">${m.when} · ${m.score}</div>
         <div style="display:flex;gap:8px">
-          <button class="btnSolidSm" onclick="actMatch(${m.id},'approved')">Convalida</button>
-          <button class="btnGhostSm" onclick="actMatch(${m.id},'rejected')">Annulla</button>
+          <button class="btnSolidSm" onclick="actMatch('${m.id}','approved')">Convalida</button>
+          <button class="btnGhostSm" onclick="actMatch('${m.id}','rejected')">Annulla</button>
         </div>
       </div>`;
     }).join('');
@@ -771,6 +796,9 @@ function viewCircolo(){
 
     ${stag('Giocatori')}
     <div class="card">${giocatoriSection}</div>
+
+    ${stag('Partite da approvare')}
+    <div class="card">${daApprovareSection}</div>
 
     ${stag('Partite contestate')}
     <div class="card">${contestateSection}</div>
@@ -1248,6 +1276,25 @@ async function loadMatches(){
   }
 }
 
+async function loadClubMatches(){
+  const club=auth.user?.club;
+  if(!club) return;
+  const clubIds=players.filter(p=>p.club===club).map(p=>p.id);
+  if(!clubIds.length) return;
+  const orFilter=clubIds.flatMap(id=>[`team_a1.eq.${id}`,`team_a2.eq.${id}`,`team_b1.eq.${id}`,`team_b2.eq.${id}`]).join(',');
+  const {data}=await sb.from('pm_matches')
+    .select('id,played_at,winner,score,status,submitted_by,team_a1,team_a2,team_b1,team_b2,delta_a1,delta_a2,delta_b1,delta_b2')
+    .eq('status','pending').or(orFilter).order('created_at',{ascending:false});
+  if(data) clubPendingMatches=data.map(m=>({
+    id:m.id,
+    when:new Date(m.played_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}),
+    t1:[m.team_a1,m.team_a2], t2:[m.team_b1,m.team_b2],
+    score:m.score||'—', status:m.status,
+    winner:m.winner==='A'?1:2, mover:m.submitted_by,
+    deltas:{[m.team_a1]:m.delta_a1,[m.team_a2]:m.delta_a2,[m.team_b1]:m.delta_b1,[m.team_b2]:m.delta_b2}
+  }));
+}
+
 async function loadNotifications(){
   if(!ME) return;
   const {data}=await sb.from('pm_notifications').select('*').eq('user_id',ME).eq('read',false).order('created_at',{ascending:false}).limit(20);
@@ -1314,6 +1361,7 @@ async function loadProfile(user){
   await loadPlayers();
   await loadMatches();
   await loadNotifications();
+  if(profile.role==='manager') await loadClubMatches();
   if(profile.role==='admin') adminLoadAll();
   hideGate();
 }
