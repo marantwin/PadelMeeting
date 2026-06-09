@@ -12,8 +12,9 @@ There is **no build process, no npm, no bundler**. Development is:
 1. Edit `index.html` directly
 2. Open in browser (or run a static server: `python -m http.server 8080`)
 3. The Supabase anon key is intentionally embedded in the client (Row Level Security enforces access control server-side)
+4. Deploy: `scp index.html root@genius.superidea.it:/home/PadelMeeting/`
 
-Service worker versioning: bump `padelmeeting-v25` in `sw.js` when deploying changes that need cache invalidation.
+Service worker versioning: bump `padelmeeting-v26` in `sw.js` when deploying changes that need cache invalidation.
 
 ## Architecture
 
@@ -27,23 +28,30 @@ The entire application — routing, state, UI rendering, auth, data fetching —
 
 **State variables** (all global):
 ```js
-let players = [];   // All active pm_profiles rows
-let matches = [];   // Recent matches for current user
-let ME = null;      // Current user profile ID
-let tab = 'home';   // Active view: home | rank | play | matches | organize | profile | circolo | rules
+let players = [];        // All active pm_profiles rows
+let matches = [];        // Recent matches for current user
+let ME = null;           // Current user profile ID
+let tab = 'home';        // Active view: home | rank | play | matches | organize | profile | circolo | rules
+let clubs_list = [];     // Active clubs from pm_clubs (for dropdowns)
+let notifications = [];  // Unread pm_notifications for current user
 let auth = { tab, role, user, loggedIn }
+let adminPending = [];   // Pending manager registrations (admin only)
+let adminClubs = [];     // All clubs (admin only)
+let adminAllPlayers = []; // All players (admin only)
 ```
 
 ### Tab-based Routing
 
-`render()` is the single re-render function — it clears `#main` and calls the appropriate `view*()` function based on `tab`. Navigation calls `setTab(name)` which updates `tab` and calls `render()`. There is no URL-based routing.
+`render()` is the single re-render function — it clears `#main` and calls the appropriate `view*()` function based on `tab`. Navigation calls `go(name)` which updates `tab` and calls `render()`. There is no URL-based routing.
 
 ### Supabase Tables
 
 | Table | Key Columns |
 |---|---|
-| `pm_profiles` | id, full_name, club, city, provincia, rating, games, streak, role (player/manager/admin), status (pending/active/rejected) |
+| `pm_profiles` | id, full_name, club, city, provincia, rating (default 35), games, streak, role (player/manager/admin), status (pending/active/rejected) |
 | `pm_matches` | id, played_at, club, winner (A/B), score, status (pending/approved/disputed), submitted_by, team_a1/a2, team_b1/b2, delta_a1/a2/b1/b2 |
+| `pm_clubs` | id, name, city, provincia, status (pending/active), created_at |
+| `pm_notifications` | id, user_id, type (match_invite), title, body, data (jsonb), read (bool), created_at |
 
 **RPC functions**: `pm_get_pending_managers()`, `pm_set_profile_status(profile_id, new_status)`
 
@@ -52,11 +60,29 @@ Supabase client is initialized at the top of the script:
 const sb = supabase.createClient('<url>', '<anon-key>');
 ```
 
+### Club Lifecycle (`pm_clubs`)
+
+Clubs go through a full lifecycle:
+- Manager registers → `pm_clubs` row inserted with `status='pending'`
+- Admin approves → status set to `active`, manager profile activated, rating=35 set
+- Admin rejects → `pm_clubs` row deleted, profile rejected
+
+`loadClubs()` fetches active clubs and populates `clubs_list` for dropdowns in registration.
+
+### Notifications System (`pm_notifications`)
+
+In-app only (no email/push). Flow:
+- User clicks "Invia inviti" in Organizza → `sendOrg()` inserts one row per invited player
+- On login, `loadNotifications()` fetches unread rows for current user into `notifications[]`
+- Badge (red dot with count) appears on Home nav tab when `notifications.filter(n=>!n.read).length > 0`
+- `viewHome()` renders a notifications card at the top when there are unread items
+- Clicking a notification calls `markNotificationRead(id)` → sets `read=true` in DB and re-renders
+
 ### ELO Rating Logic
 
 ```js
-dynK(games) => 4  // Fixed K factor
-teamAvg(ids)      // Mean rating of a 2-player team
+dynK(games) => 3.6  // Fixed K factor, always
+teamAvg(ids)        // Mean rating of a 2-player team
 computeMatch(team1ids, team2ids, format, winnerTeam)
   // E = 1 / (1 + 10^(−diff/50))
   // delta = K * (1 − E) win / K * (0 − E) loss
@@ -75,7 +101,7 @@ Match approval workflow: submitted → `pending` (48h window for opponent to dis
 | `--ivory` | `#F7F0DC` | Body text |
 | `--rust` | `#E07B4A` | Warnings, negative deltas |
 | `--gold` | `#EFD06A` | Highlights, wins |
-| `--danger` | `#F06A80` | Errors |
+| `--danger` | `#F06A80` | Errors, notification badges |
 | `--p600`–`--p900` | Teal shades | Gradients, layering |
 
 **Fonts** (Google Fonts CDN):
@@ -97,8 +123,8 @@ These rules define the business logic behind the app. When implementing features
 
 ### Registration & Initial Rating
 - New players start in `pending` status. The club manager activates them with a single click — no rating choice.
-- All players start at **PR 35** automatically on activation.
-- Equal starting point eliminates inter-club disparity: no manager subjectivity, no advantage or penalty based on who evaluates you.
+- All players start at **PR 35** automatically on activation — set in DB default and enforced in `adminSetStatus()`.
+- Equal starting point eliminates inter-club disparity: no manager subjectivity, no advantage or penalty.
 - Matches played before profile activation cannot be registered retroactively.
 
 ### Rating Bands
@@ -144,7 +170,7 @@ The manager can suspend the inactivity counter (e.g. for injury); it restarts fr
 - **2 warnings in 3 months** = automatic 2-month ban from classified matches.
 
 ### Manager Powers & Limits
-- Assigns initial PR to new players (max 70) — cannot change PR directly after that
+- Activates new players (PR 35 assigned automatically — manager cannot choose)
 - Validates results not approved within 48h
 - Has final say on disputed matches
 - Can suspend inactivity penalty counter for a player
@@ -152,13 +178,20 @@ The manager can suspend the inactivity counter (e.g. for injury); it restarts fr
 
 ## Other Pages
 
-- `landing.html` — Marketing page with animated canvas padel court; standalone, no shared code with `index.html`
+- `landing.html` — Marketing page with animated canvas padel court; standalone, no shared code with `index.html`. Includes PWA install instructions for Android/iPhone.
 - `overview.html` — A4 print-friendly feature guide; standalone
 - `regolamento.html` — Full official ruleset; standalone
-- `sw.js` — Service worker with cache-first strategy; precaches `index.html` + icons
+- `termini.pdf` — Terms of use; includes 60-day free trial clause and €49.97/month subscription after trial
+- `sw.js` — Service worker with cache-first strategy; current version `padelmeeting-v26`; precaches `index.html` + icons
+- `manifest.json` — PWA manifest; icons use `"purpose": "any"` (not maskable) to avoid Android adaptive cropping
+- `icons/` — PWA icons: `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` — all generated from `icona_PM.png`
 
 ## Role System
 
 - `player` — auto-activated on registration, can submit/approve matches
-- `manager` — requires admin approval, can access `viewCircolo()` (club admin panel: manage players, resolve disputes, set initial ratings)
-- `admin` — can approve manager registrations via the admin section in `viewProfile()`
+- `manager` — requires admin approval, can access `viewCircolo()` (club admin panel: manage players, resolve disputes)
+- `admin` — can approve manager registrations and clubs via the admin section in `viewProfile()`
+
+## Security Constraints
+
+- **Player full_name is NOT editable from the app** — must be changed directly in Supabase if needed

@@ -252,6 +252,14 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .navBtn .ic{font-size:22px;position:relative;z-index:1}
 .navBtn .nl{font-size:11px;letter-spacing:.04em;margin-top:4px;font-family:var(--mono);font-weight:500;position:relative;z-index:1}
 .navBtn .dot{position:absolute;bottom:0;width:4px;height:4px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon)}
+.notif-badge{position:absolute;top:4px;right:8px;min-width:16px;height:16px;border-radius:8px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;font-family:var(--mono);display:flex;align-items:center;justify-content:center;padding:0 4px;z-index:2;box-shadow:0 0 8px var(--danger)}
+.notif-card{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid var(--lineSoft);cursor:pointer;transition:background .15s}
+.notif-card:last-child{border-bottom:none}
+.notif-card:active{background:rgba(91,240,203,.07)}
+.notif-card-icon{font-size:22px;flex-shrink:0;padding-top:2px}
+.notif-card-body{flex:1;min-width:0}
+.notif-card-title{font-size:14px;font-weight:700;color:var(--ivory);margin-bottom:2px}
+.notif-card-text{font-size:12px;color:var(--ivoryFaint);line-height:1.4}
 .navPlay{flex:0 0 auto;width:50px;height:50px;border-radius:50%;margin-top:-22px;background:linear-gradient(135deg,var(--neon),var(--neonDim));border:2px solid #0A1C19;box-shadow:0 0 20px #5BF0CB88;color:#0A1C19}
 .navPlay .ic{font-size:20px;color:#0A1C19}
 
@@ -390,6 +398,7 @@ let matches = [];
 let ME = null;
 let tab = 'home';
 let clubs_list = [];
+let notifications = [];
 let pl = { partner:null, opp1:null, opp2:null, winner:1, done:false };
 
 /* ============ HELPERS ============ */
@@ -470,12 +479,28 @@ function matchMini(m){
 /* ============ VIEWS ============ */
 function viewHome(){
   const M=me(), pos=ranked().findIndex(p=>p.id===ME)+1;
+  const unread=notifications.filter(n=>!n.read);
+  const notifSection=unread.length?`
+    <div class="card rise" style="margin-bottom:12px;padding:0;overflow:hidden">
+      <div style="padding:10px 16px 8px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ivoryFaint);text-transform:uppercase">Notifiche</div>
+      ${unread.map(n=>`
+        <div class="notif-card" onclick="markNotificationRead('${n.id}')">
+          <div class="notif-card-icon">📬</div>
+          <div class="notif-card-body">
+            <div class="notif-card-title">${esc(n.title)}</div>
+            ${n.body?`<div class="notif-card-text">${esc(n.body)}</div>`:''}
+          </div>
+          <div style="color:var(--ivoryFaint);font-size:18px;flex-shrink:0">×</div>
+        </div>`).join('')}
+    </div>`:'';
   return `<div class="page">
     <!-- Logo -->
     <div class="rise" style="display:flex;justify-content:center;padding:22px 0 16px">
       <img src="/Logo_PadelMeeting.png" alt="PadelMeeting"
            style="width:220px;height:auto;filter:drop-shadow(0 0 18px #5BF0CB33)">
     </div>
+
+    ${notifSection}
 
     <!-- TILE PRINCIPALE: Organizza -->
     <button class="home-tile-main rise" onclick="go('organize')" style="animation-delay:.05s">
@@ -1098,17 +1123,39 @@ function viewOrganize(){
   </div>`;
 }
 function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:1,opp1:3,opp2:4,sent:false};render()}
-function sendOrg(){if(new Set([ME,org.partner,org.opp1,org.opp2]).size===4){org.sent=true;render()}}
+async function sendOrg(){
+  if(new Set([ME,org.partner,org.opp1,org.opp2]).size!==4) return;
+  const M=me();
+  const nome=M?M.full_name:'Qualcuno';
+  const dataStr=org.date||'data da definire';
+  const luogo=org.venue==='__custom__'?(org.venueCustom||''):(org.venue||'');
+  const bodyTxt=`${nome} ti ha invitato a una partita il ${dataStr} alle ${org.time}${luogo?' a '+luogo:''}`;
+  const invited=[org.partner,org.opp1,org.opp2].filter(id=>id&&id!==ME);
+  if(invited.length){
+    const rows=invited.map(uid=>({
+      user_id:uid,
+      type:'match_invite',
+      title:'Invito partita',
+      body:bodyTxt,
+      data:{organizer:ME,date:org.date,time:org.time,venue:luogo,partner:org.partner,opp1:org.opp1,opp2:org.opp2}
+    }));
+    await sb.from('pm_notifications').insert(rows);
+  }
+  org.sent=true;
+  render();
+}
 
 /* ============ NAV / RENDER ============ */
 const NAV_PLAYER=[['home','Home','◈'],['organize','Organizza','📅'],['play','Registra','⚡'],['rank','Classifica','≡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
 const NAV_MANAGER=[['home','Home','◈'],['circolo','Circolo','🏟️'],['play','Registra','⚡'],['rank','Classifica','≡'],['matches','Partite','⊞'],['profile','Profilo','◉']];
 function renderNav(){
   const nav=auth.user&&auth.user.role==='manager'?NAV_MANAGER:NAV_PLAYER;
+  const unread=notifications.filter(n=>!n.read).length;
   $('#nav').innerHTML=nav.map(([k,l,ic])=>{
     const active=tab===k;
+    const badge=k==='home'&&unread>0?`<span class="notif-badge">${unread}</span>`:'';
     return `<button class="navBtn ${active?'active':''}" onclick="go('${k}')">
-      <span class="ic">${ic}</span><span class="nl">${l}</span>${active?'<span class="dot"></span>':''}</button>`;
+      ${badge}<span class="ic">${ic}</span><span class="nl">${l}</span>${active?'<span class="dot"></span>':''}</button>`;
   }).join('');
 }
 function go(t){tab=t;if(t!=='play')pl.done=false;window.scrollTo&&($('#view').scrollTop=0);render()}
@@ -1190,6 +1237,19 @@ async function loadMatches(){
   }
 }
 
+async function loadNotifications(){
+  if(!ME) return;
+  const {data}=await sb.from('pm_notifications').select('*').eq('user_id',ME).eq('read',false).order('created_at',{ascending:false}).limit(20);
+  if(data) notifications=data;
+}
+
+async function markNotificationRead(id){
+  await sb.from('pm_notifications').update({read:true}).eq('id',id);
+  const n=notifications.find(x=>x.id===id);
+  if(n) n.read=true;
+  render();
+}
+
 async function loadProfile(user){
   const {data:profile}=await sb.from('pm_profiles').select('*').eq('id',user.id).single();
   if(!profile){ showGate(); return; }
@@ -1199,6 +1259,7 @@ async function loadProfile(user){
   ME=user.id;
   await loadPlayers();
   await loadMatches();
+  await loadNotifications();
   if(profile.role==='admin') adminLoadAll();
   hideGate();
 }
