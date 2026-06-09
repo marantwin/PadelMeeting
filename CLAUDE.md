@@ -35,6 +35,7 @@ let tab = 'home';        // Active view: home | rank | play | matches | organize
 let clubs_list = [];     // Active clubs from pm_clubs (for dropdowns)
 let notifications = [];  // Unread pm_notifications for current user
 let auth = { tab, role, user, loggedIn }
+let clubPendingMatches = []; // Pending matches in manager's club (manager only)
 let adminPending = [];   // Pending manager registrations (admin only)
 let adminClubs = [];     // All clubs (admin only)
 let adminAllPlayers = []; // All players (admin only)
@@ -93,7 +94,14 @@ computeMatch(team1ids, team2ids, format, winnerTeam)
   // delta = K * (1 − E) win / K * (0 − E) loss
 ```
 
-Match approval workflow: submitted → `pending` (48h window for opponent to dispute) → `approved` (ratings updated) or `disputed` (manager resolves).
+**Match approval workflow (3 step):**
+1. Any of the 4 players submits result → `pending`
+2. Club manager approves in `viewCircolo()` → `manager_approved`
+3. At least one opposing team player validates in `viewMatches()` → `approved` (PR moves) or `disputed` (manager resolves)
+
+Manager can also reject at step 2 → `rejected`.
+
+`loadClubMatches()` — fetches all `pending` matches involving the manager's club players; stored in `clubPendingMatches[]`; called at login for managers and after every `actMatch()`.
 
 ## Design System
 
