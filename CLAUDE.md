@@ -79,7 +79,9 @@ In-app only (no email/push). Flow:
 - Notifications of type `match_invite` show two buttons: **✓ Accetto** / **✗ Declino**
   - `respondNotification(id, 'accepted'|'declined')` → saves response in `data.response` (jsonb), marks `read=true`, card sparisce
 - Other notification types show an × to dismiss via `markNotificationRead(id)`
-- Responses saved in `data` jsonb — future organizer view can read `data.response` per player
+- Responses saved in `data` jsonb — `data.response: 'accepted'|'declined'`
+- `checkAllAccepted(inviteData)` — chiamata dopo ogni "Accetto": controlla se tutti e 3 i notifs dello stesso invito hanno `data.response='accepted'`; se sì, inserisce una notifica `type='match_confirmed'` al responsabile del circolo dell'organizzatore (evita duplicati)
+- Il manager riceve la notifica 🎾 "Partita confermata" con data, ora, luogo e nome·cognome dei 4 giocatori
 
 ### ELO Rating Logic
 

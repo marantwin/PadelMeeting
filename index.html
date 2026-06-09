@@ -485,7 +485,7 @@ function viewHome(){
       <div style="padding:10px 16px 8px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ivoryFaint);text-transform:uppercase">Notifiche</div>
       ${unread.map(n=>`
         <div class="notif-card">
-          <div class="notif-card-icon">📬</div>
+          <div class="notif-card-icon">${n.type==='match_confirmed'?'🎾':'📬'}</div>
           <div class="notif-card-body">
             <div class="notif-card-title">${esc(n.title)}</div>
             ${n.body?`<div class="notif-card-text">${esc(n.body)}</div>`:''}
@@ -1266,7 +1266,42 @@ async function respondNotification(id, response){
   const newData={...(n?.data||{}), response};
   await sb.from('pm_notifications').update({read:true, data:newData}).eq('id',id);
   if(n){ n.read=true; n.data=newData; }
+  if(response==='accepted' && n?.type==='match_invite') await checkAllAccepted(n.data);
   render();
+}
+
+async function checkAllAccepted(inviteData){
+  if(!inviteData?.organizer) return;
+  const {data:allNotifs}=await sb.from('pm_notifications')
+    .select('data').eq('type','match_invite')
+    .filter('data->>organizer','eq',inviteData.organizer)
+    .filter('data->>date','eq',inviteData.date||'')
+    .filter('data->>time','eq',inviteData.time||'');
+  if(!allNotifs||allNotifs.length<3) return;
+  if(!allNotifs.every(n=>n.data?.response==='accepted')) return;
+
+  const organizer=players.find(p=>p.id===inviteData.organizer);
+  if(!organizer) return;
+  const manager=players.find(p=>p.role==='manager'&&p.club===organizer.club&&p.id!==organizer.id);
+  if(!manager) return;
+
+  // evita duplicati
+  const {data:existing}=await sb.from('pm_notifications')
+    .select('id').eq('user_id',manager.id).eq('type','match_confirmed')
+    .filter('data->>organizer','eq',inviteData.organizer)
+    .filter('data->>date','eq',inviteData.date||'').limit(1);
+  if(existing?.length) return;
+
+  const getName=id=>players.find(p=>p.id===id)?.full_name||'?';
+  const nomi=[inviteData.organizer,inviteData.partner,inviteData.opp1,inviteData.opp2].map(getName).join(' · ');
+  const luogo=inviteData.venue?` a ${inviteData.venue}`:'';
+  await sb.from('pm_notifications').insert({
+    user_id:manager.id,
+    type:'match_confirmed',
+    title:'Partita confermata',
+    body:`${inviteData.date||'?'} alle ${inviteData.time||'?'}${luogo} — ${nomi}`,
+    data:inviteData
+  });
 }
 
 async function loadProfile(user){
