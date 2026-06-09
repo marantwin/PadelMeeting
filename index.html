@@ -484,13 +484,24 @@ function viewHome(){
     <div class="card rise" style="margin-bottom:12px;padding:0;overflow:hidden">
       <div style="padding:10px 16px 8px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ivoryFaint);text-transform:uppercase">Notifiche</div>
       ${unread.map(n=>`
-        <div class="notif-card" onclick="markNotificationRead('${n.id}')">
+        <div class="notif-card">
           <div class="notif-card-icon">📬</div>
           <div class="notif-card-body">
             <div class="notif-card-title">${esc(n.title)}</div>
             ${n.body?`<div class="notif-card-text">${esc(n.body)}</div>`:''}
+            ${n.type==='match_invite'?`
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button onclick="respondNotification('${n.id}','accepted')"
+                style="flex:1;padding:7px 0;border-radius:8px;background:var(--neon);color:#0E2723;font-weight:700;font-size:13px;border:none;cursor:pointer">
+                ✓ Accetto
+              </button>
+              <button onclick="respondNotification('${n.id}','declined')"
+                style="flex:1;padding:7px 0;border-radius:8px;background:var(--rust);color:#fff;font-weight:700;font-size:13px;border:none;cursor:pointer">
+                ✗ Declino
+              </button>
+            </div>`:''}
           </div>
-          <div style="color:var(--ivoryFaint);font-size:18px;flex-shrink:0">×</div>
+          ${n.type!=='match_invite'?`<div onclick="markNotificationRead('${n.id}')" style="color:var(--ivoryFaint);font-size:18px;flex-shrink:0;cursor:pointer">×</div>`:''}
         </div>`).join('')}
     </div>`:'';
   return `<div class="page">
@@ -1247,6 +1258,14 @@ async function markNotificationRead(id){
   await sb.from('pm_notifications').update({read:true}).eq('id',id);
   const n=notifications.find(x=>x.id===id);
   if(n) n.read=true;
+  render();
+}
+
+async function respondNotification(id, response){
+  const n=notifications.find(x=>x.id===id);
+  const newData={...(n?.data||{}), response};
+  await sb.from('pm_notifications').update({read:true, data:newData}).eq('id',id);
+  if(n){ n.read=true; n.data=newData; }
   render();
 }
 
