@@ -16,7 +16,7 @@
   --void:#0E2723; --p900:#123430; --p800:#16403A; --p700:#1B4D45; --p600:#235C52;
   --line:rgba(124,238,208,.26); --lineSoft:rgba(124,238,208,.14);
   --neon:#5BF0CB; --neonDim:#34C9A8;
-  --ivory:#F7F0DC; --ivoryDim:rgba(247,240,220,.82); --ivoryFaint:rgba(247,240,220,.50);
+  --ivory:#F7F0DC; --ivoryDim:rgba(247,240,220,.92); --ivoryFaint:rgba(247,240,220,.78);
   --rust:#E07B4A; --gold:#EFD06A; --danger:#F06A80;
   --sans:'Outfit',system-ui,sans-serif;
   --serif:'Cormorant Garamond',serif;
@@ -56,9 +56,9 @@ body{background:var(--void);font-family:var(--sans);color:var(--ivory);display:f
 .card{background:var(--p900);border:1px solid var(--lineSoft);border-radius:16px;padding:20px;margin-bottom:14px}
 
 /* Section tag */
-.stag{font-size:10.5px;font-family:var(--mono);letter-spacing:.1em;color:var(--ivoryFaint);
+.stag{font-size:12px;font-family:var(--mono);letter-spacing:.08em;color:var(--ivoryFaint);
       text-transform:uppercase;padding:4px 2px 8px;display:flex;align-items:center;gap:7px}
-.stag::before{content:'◆';font-size:6.5px;color:var(--neon)}
+.stag::before{content:'◆';font-size:7px;color:var(--neon)}
 
 /* Hero card */
 .hero-card{
@@ -81,7 +81,7 @@ body{background:var(--void);font-family:var(--sans);color:var(--ivory);display:f
 @keyframes sweep{0%{transform:translateX(-120%)}60%{transform:translateX(120%)}100%{transform:translateX(120%)}}
 
 .hero-name{font-family:var(--serif);font-size:27px;font-style:italic;margin-bottom:3px;position:relative;z-index:1}
-.hero-club{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ivoryFaint);
+.hero-club{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ivoryFaint);
            text-transform:uppercase;margin-bottom:20px;position:relative;z-index:1}
 .hero-pr{
   font-family:var(--mono);font-size:76px;font-weight:700;color:var(--neon);line-height:1;
@@ -111,8 +111,8 @@ body{background:var(--void);font-family:var(--sans);color:var(--ivory);display:f
 .metric.m-str::after{background:var(--gold);box-shadow:0 0 10px var(--gold)}
 .metric.m-dlt::after{background:var(--rust);box-shadow:0 0 10px var(--rust)}
 .metric-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;margin-bottom:5px}
-.metric-lbl{font-size:9.5px;letter-spacing:.07em;color:var(--ivoryFaint);text-transform:uppercase;font-weight:600}
-.metric-sub{font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px}
+.metric-lbl{font-size:11px;letter-spacing:.06em;color:var(--ivoryFaint);text-transform:uppercase;font-weight:600}
+.metric-sub{font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px}
 
 /* Chart */
 .chart-wrap{position:relative;height:180px;margin-top:6px}
@@ -126,30 +126,30 @@ body{background:var(--void);font-family:var(--sans);color:var(--ivory);display:f
 /* Partner rows */
 .prow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--lineSoft)}
 .prow:last-child{border-bottom:none;padding-bottom:0}
-.prow-rank{font-family:var(--mono);font-size:12px;color:var(--ivoryFaint);width:16px;text-align:center;flex-shrink:0}
+.prow-rank{font-family:var(--mono);font-size:13px;color:var(--ivoryFaint);width:16px;text-align:center;flex-shrink:0}
 .prow-av{
-  width:36px;height:36px;border-radius:50%;
+  width:38px;height:38px;border-radius:50%;
   background:var(--p700);border:1.5px solid var(--lineSoft);
   display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:700;flex-shrink:0;
+  font-size:15px;font-weight:700;flex-shrink:0;
 }
 .prow-info{flex:1;min-width:0}
-.prow-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prow-sub{font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:2px}
+.prow-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow-sub{font-size:12px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:2px}
 .prow-stat{text-align:right;flex-shrink:0}
-.prow-pct{font-family:var(--mono);font-size:17px;font-weight:700}
-.prow-wl{font-size:10px;color:var(--ivoryFaint);font-family:var(--mono)}
+.prow-pct{font-family:var(--mono);font-size:18px;font-weight:700}
+.prow-wl{font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)}
 
 /* Club donut layout */
 .donut-wrap{display:flex;align-items:center;gap:18px;margin-top:4px}
 .donut-canvas-wrap{width:116px;height:116px;flex-shrink:0}
 .band-legend{display:flex;flex-direction:column;gap:9px;flex:1}
 .brand-row{display:flex;align-items:center;gap:8px}
-.brand-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.brand-name{flex:1;font-size:12px;font-weight:600}
-.brand-bar-wrap{width:60px;height:3.5px;border-radius:2px;background:var(--lineSoft);overflow:hidden;flex-shrink:0}
+.brand-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.brand-name{flex:1;font-size:13px;font-weight:600}
+.brand-bar-wrap{width:60px;height:4px;border-radius:2px;background:var(--lineSoft);overflow:hidden;flex-shrink:0}
 .brand-bar{height:100%;border-radius:2px;width:0%;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
-.brand-count{font-family:var(--mono);font-size:11px;color:var(--ivoryFaint);width:16px;text-align:right;flex-shrink:0}
+.brand-count{font-family:var(--mono);font-size:12px;color:var(--ivoryFaint);width:16px;text-align:right;flex-shrink:0}
 
 /* Skeleton */
 .sk{background:linear-gradient(90deg,var(--p800) 25%,var(--p700) 50%,var(--p800) 75%);
