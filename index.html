@@ -705,7 +705,18 @@ function viewMatches(){
 }
 async function actMatch(id,status){
   const upd={status};
-  if(status==='approved') upd.approved_by=ME;
+  if(status==='approved'){
+    upd.approved_by=ME;
+    const m=matches.find(x=>x.id===id)||clubPendingMatches.find(x=>x.id===id);
+    if(m){
+      const r=pid=>players.find(p=>p.id===pid)?.rating??0;
+      const clamp=v=>+Math.max(0,Math.min(100,v)).toFixed(1);
+      upd.rating_after_a1=clamp(r(m.t1[0])+(m.deltas[m.t1[0]]??0));
+      upd.rating_after_a2=clamp(r(m.t1[1])+(m.deltas[m.t1[1]]??0));
+      upd.rating_after_b1=clamp(r(m.t2[0])+(m.deltas[m.t2[0]]??0));
+      upd.rating_after_b2=clamp(r(m.t2[1])+(m.deltas[m.t2[1]]??0));
+    }
+  }
   const {error}=await sb.from('pm_matches').update(upd).eq('id',id);
   if(error){ alert('Errore: '+error.message); return; }
   await loadMatches();
@@ -865,6 +876,19 @@ function viewProfileManager(){
       <div class="irow"><span class="k">Account</span><span class="v">${esc(u.email||'—')}</span></div>
       <div class="irow"><span class="k">Stato</span><span class="v c-good">Attivo</span></div>
     </div>
+    <a href="/statistiche.html" style="display:flex;align-items:center;justify-content:space-between;
+      margin:4px 0 14px;padding:16px 22px;border-radius:14px;text-decoration:none;
+      background:linear-gradient(110deg,#5BF0CB 0%,#EFD06A 100%);
+      box-shadow:0 0 28px rgba(91,240,203,.22),0 4px 18px rgba(0,0,0,.28)">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span style="font-size:22px">📊</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#0A1C19">Statistiche circolo</div>
+          <div style="font-size:11px;color:rgba(10,28,25,.6);margin-top:1px;font-weight:500">Giocatori · Fasce · Attività</div>
+        </div>
+      </div>
+      <span style="font-size:18px;color:rgba(10,28,25,.7)">→</span>
+    </a>
     ${changePasswordSection()}
     <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
       Esci dall'account
@@ -890,6 +914,20 @@ function viewProfile(){
       ${statCard('Rating',M.rating.toFixed(1),bandName(M.rating),bandColor(M.rating))}
       ${statCard('Partite',''+M.games,'giocate',C.gold)}
     </div>
+    <a href="/statistiche.html" style="display:flex;align-items:center;justify-content:space-between;
+      margin:4px 0 14px;padding:16px 22px;border-radius:14px;text-decoration:none;
+      background:linear-gradient(110deg,#5BF0CB 0%,#EFD06A 100%);
+      box-shadow:0 0 28px rgba(91,240,203,.22),0 4px 18px rgba(0,0,0,.28);
+      transition:box-shadow .2s,transform .15s">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span style="font-size:22px">📊</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#0A1C19">Le mie statistiche</div>
+          <div style="font-size:11px;color:rgba(10,28,25,.6);margin-top:1px;font-weight:500">Andamento · Partner · Record</div>
+        </div>
+      </div>
+      <span style="font-size:18px;color:rgba(10,28,25,.7)">→</span>
+    </a>
     ${stag('Stato profilo')}
     <div class="card">
       <div class="irow"><span class="k">Circolo</span><span class="v">${esc(M.club)} (affiliato)</span></div>

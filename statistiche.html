@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E2723">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Statistiche — PadelMeeting</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0E2723; --p900:#123430; --p800:#16403A; --p700:#1B4D45; --p600:#235C52;
+  --line:rgba(124,238,208,.26); --lineSoft:rgba(124,238,208,.14);
+  --neon:#5BF0CB; --neonDim:#34C9A8;
+  --ivory:#F7F0DC; --ivoryDim:rgba(247,240,220,.82); --ivoryFaint:rgba(247,240,220,.50);
+  --rust:#E07B4A; --gold:#EFD06A; --danger:#F06A80;
+  --sans:'Outfit',system-ui,sans-serif;
+  --serif:'Cormorant Garamond',serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;min-height:100dvh}
+body{background:var(--void);font-family:var(--sans);color:var(--ivory);display:flex;justify-content:center}
+::-webkit-scrollbar{width:0}
+
+.shell{width:100%;max-width:440px;min-height:100dvh;display:flex;flex-direction:column}
+
+/* Top bar */
+.top-bar{
+  position:sticky;top:0;z-index:10;
+  background:rgba(14,39,35,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--lineSoft);
+  padding:calc(14px + env(safe-area-inset-top)) 20px 14px;
+  display:flex;align-items:center;gap:12px;
+}
+.back-btn{
+  display:flex;align-items:center;gap:5px;
+  color:var(--neon);font-size:13px;font-weight:600;font-family:var(--mono);
+  border:none;background:none;cursor:pointer;padding:6px 0;letter-spacing:.02em;
+  flex-shrink:0;
+}
+.page-title{
+  font-family:var(--serif);font-size:21px;font-style:italic;color:var(--ivory);
+  flex:1;text-align:center;
+}
+.top-spacer{width:64px;flex-shrink:0}
+
+/* Scrollable main */
+.main{flex:1;overflow-y:auto;padding:20px 18px calc(36px + env(safe-area-inset-bottom))}
+
+/* Card */
+.card{background:var(--p900);border:1px solid var(--lineSoft);border-radius:16px;padding:20px;margin-bottom:14px}
+
+/* Section tag */
+.stag{font-size:10.5px;font-family:var(--mono);letter-spacing:.1em;color:var(--ivoryFaint);
+      text-transform:uppercase;padding:4px 2px 8px;display:flex;align-items:center;gap:7px}
+.stag::before{content:'◆';font-size:6.5px;color:var(--neon)}
+
+/* Hero card */
+.hero-card{
+  background:linear-gradient(145deg,var(--p700) 0%,var(--p900) 100%);
+  border:1px solid var(--lineSoft);border-radius:20px;
+  padding:30px 24px 26px;margin-bottom:14px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.hero-card::before{
+  content:'';position:absolute;top:-30%;left:-10%;width:120%;height:160%;
+  background:radial-gradient(ellipse at 50% 35%,rgba(91,240,203,.10) 0%,transparent 68%);
+  pointer-events:none;
+}
+.hero-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(120deg,transparent,rgba(91,240,203,.06),transparent);
+  transform:translateX(-120%);animation:sweep 4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes sweep{0%{transform:translateX(-120%)}60%{transform:translateX(120%)}100%{transform:translateX(120%)}}
+
+.hero-name{font-family:var(--serif);font-size:27px;font-style:italic;margin-bottom:3px;position:relative;z-index:1}
+.hero-club{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ivoryFaint);
+           text-transform:uppercase;margin-bottom:20px;position:relative;z-index:1}
+.hero-pr{
+  font-family:var(--mono);font-size:76px;font-weight:700;color:var(--neon);line-height:1;
+  position:relative;z-index:1;margin-bottom:8px;
+  text-shadow:0 0 40px rgba(91,240,203,.55),0 0 90px rgba(91,240,203,.22);
+  animation:prGlow 3s ease-in-out infinite;
+}
+@keyframes prGlow{
+  0%,100%{text-shadow:0 0 40px rgba(91,240,203,.55),0 0 90px rgba(91,240,203,.22)}
+  50%{text-shadow:0 0 65px rgba(91,240,203,.85),0 0 130px rgba(91,240,203,.38)}
+}
+.hero-band{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 16px;border-radius:20px;
+  font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.06em;
+  position:relative;z-index:1;
+}
+.band-dot-sm{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Metrics row */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.metric{
+  background:var(--p900);border:1px solid var(--lineSoft);border-radius:14px;
+  padding:16px 10px 14px;text-align:center;position:relative;overflow:hidden;
+}
+.metric::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2.5px;border-radius:0 0 14px 14px}
+.metric.m-win::after{background:var(--neon);box-shadow:0 0 10px var(--neon)}
+.metric.m-str::after{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.metric.m-dlt::after{background:var(--rust);box-shadow:0 0 10px var(--rust)}
+.metric-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;margin-bottom:5px}
+.metric-lbl{font-size:9.5px;letter-spacing:.07em;color:var(--ivoryFaint);text-transform:uppercase;font-weight:600}
+.metric-sub{font-size:10px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:3px}
+
+/* Chart */
+.chart-wrap{position:relative;height:180px;margin-top:6px}
+.chart-empty{
+  height:160px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:8px;color:var(--ivoryFaint);font-size:13px;
+  text-align:center;line-height:1.6;
+}
+.chart-empty-icon{font-size:34px;opacity:.45;margin-bottom:2px}
+
+/* Partner rows */
+.prow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--lineSoft)}
+.prow:last-child{border-bottom:none;padding-bottom:0}
+.prow-rank{font-family:var(--mono);font-size:12px;color:var(--ivoryFaint);width:16px;text-align:center;flex-shrink:0}
+.prow-av{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--p700);border:1.5px solid var(--lineSoft);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;flex-shrink:0;
+}
+.prow-info{flex:1;min-width:0}
+.prow-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow-sub{font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-top:2px}
+.prow-stat{text-align:right;flex-shrink:0}
+.prow-pct{font-family:var(--mono);font-size:17px;font-weight:700}
+.prow-wl{font-size:10px;color:var(--ivoryFaint);font-family:var(--mono)}
+
+/* Club donut layout */
+.donut-wrap{display:flex;align-items:center;gap:18px;margin-top:4px}
+.donut-canvas-wrap{width:116px;height:116px;flex-shrink:0}
+.band-legend{display:flex;flex-direction:column;gap:9px;flex:1}
+.brand-row{display:flex;align-items:center;gap:8px}
+.brand-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.brand-name{flex:1;font-size:12px;font-weight:600}
+.brand-bar-wrap{width:60px;height:3.5px;border-radius:2px;background:var(--lineSoft);overflow:hidden;flex-shrink:0}
+.brand-bar{height:100%;border-radius:2px;width:0%;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.brand-count{font-family:var(--mono);font-size:11px;color:var(--ivoryFaint);width:16px;text-align:right;flex-shrink:0}
+
+/* Skeleton */
+.sk{background:linear-gradient(90deg,var(--p800) 25%,var(--p700) 50%,var(--p800) 75%);
+    background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Entrance animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.r0{animation:fadeUp .36s ease both}
+.r1{animation:fadeUp .36s .07s ease both}
+.r2{animation:fadeUp .36s .14s ease both}
+.r3{animation:fadeUp .36s .21s ease both}
+.r4{animation:fadeUp .36s .28s ease both}
+.r5{animation:fadeUp .36s .35s ease both}
+
+/* Loading screen */
+#loading{position:fixed;inset:0;background:var(--void);display:flex;align-items:center;
+          justify-content:center;z-index:100;transition:opacity .3s ease}
+#loading.out{opacity:0;pointer-events:none}
+.ld{width:8px;height:8px;border-radius:50%;background:var(--neon);margin:0 4px;
+    animation:ldBounce 1.2s ease-in-out infinite}
+.ld:nth-child(2){animation-delay:.2s}
+.ld:nth-child(3){animation-delay:.4s}
+@keyframes ldBounce{0%,80%,100%{transform:scale(.55);opacity:.35}40%{transform:scale(1);opacity:1}}
+
+@media(prefers-reduced-motion:reduce){
+  .r0,.r1,.r2,.r3,.r4,.r5{animation:none;opacity:1}
+  .hero-pr,.hero-card::after{animation:none}
+  .sk{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div id="loading"><div style="display:flex"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div></div>
+
+<div class="shell">
+  <div class="top-bar">
+    <button class="back-btn" onclick="history.back()">← Profilo</button>
+    <div class="page-title">Statistiche</div>
+    <div class="top-spacer"></div>
+  </div>
+  <div class="main" id="main"></div>
+</div>
+
+<script>
+const SB_URL='https://yhcmsrsqrvnzsdgsqwul.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloY21zcnNxcnZuenNkZ3Nxd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNDExMDksImV4cCI6MjA5NTYxNzEwOX0.w3gNnmkzE5sd5BLAzIkdNwvZDEBtTEPJaU4GCl8xWGI';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+
+const BANDS=[
+  {name:'Ferro',  min:0, max:25, color:'#7B8FA1'},
+  {name:'Bronzo', min:26,max:45, color:'#CD7F32'},
+  {name:'Argento',min:46,max:65, color:'#C0C0C0'},
+  {name:'Oro',    min:66,max:80, color:'#EFD06A'},
+  {name:'Platino',min:81,max:95, color:'#5BF0CB'},
+  {name:'Élite',  min:96,max:100,color:'#F06A80'},
+];
+const bandIdx=r=>{const i=BANDS.findIndex(b=>r<=b.max);return i===-1?BANDS.length-1:i};
+const bandName=r=>BANDS[bandIdx(r)].name;
+const bandColor=r=>BANDS[bandIdx(r)].color;
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function countUp(el,target,decimals,duration){
+  const start=performance.now();
+  const fmt=v=>decimals?v.toFixed(decimals):Math.round(v);
+  const tick=now=>{
+    const t=Math.min((now-start)/duration,1);
+    const e=1-Math.pow(1-t,3);
+    el.textContent=fmt(target*e);
+    if(t<1)requestAnimationFrame(tick);
+    else el.textContent=fmt(target);
+  };
+  requestAnimationFrame(tick);
+}
+
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='/';return}
+  const uid=session.user.id;
+
+  const {data:profile}=await sb.from('pm_profiles').select('*').eq('id',uid).single();
+  if(!profile||profile.status!=='active'){window.location.href='/';return}
+
+  const {data:raw}=await sb.from('pm_matches')
+    .select('id,played_at,winner,team_a1,team_a2,team_b1,team_b2,delta_a1,delta_a2,delta_b1,delta_b2,rating_after_a1,rating_after_a2,rating_after_b1,rating_after_b2')
+    .eq('status','approved')
+    .or(`team_a1.eq.${uid},team_a2.eq.${uid},team_b1.eq.${uid},team_b2.eq.${uid}`)
+    .order('played_at',{ascending:true});
+  const matches=raw||[];
+
+  const {data:allP}=await sb.from('pm_profiles').select('id,full_name,rating,club').eq('status','active');
+  const players=allP||[];
+
+  let clubPlayers=[],clubMatches=[];
+  if(profile.role==='manager'){
+    clubPlayers=players.filter(p=>p.club===profile.club);
+    const ids=clubPlayers.map(p=>p.id);
+    if(ids.length){
+      const or=ids.flatMap(id=>[`team_a1.eq.${id}`,`team_a2.eq.${id}`,`team_b1.eq.${id}`,`team_b2.eq.${id}`]).join(',');
+      const cutoff=new Date(Date.now()-30*24*60*60*1000).toISOString().split('T')[0];
+      const {data:cm}=await sb.from('pm_matches').select('id,played_at,team_a1,team_a2,team_b1,team_b2')
+        .eq('status','approved').or(or).gte('played_at',cutoff);
+      clubMatches=cm||[];
+    }
+  }
+
+  document.getElementById('loading').classList.add('out');
+  setTimeout(()=>document.getElementById('loading')?.remove(),350);
+  render(profile,matches,players,clubPlayers,clubMatches);
+}
+
+function computeStats(uid,matches){
+  let wins=0,losses=0,totalDelta=0;
+  const pMap={};
+  const prHistory=[];
+  for(const m of matches){
+    const onA=m.team_a1===uid||m.team_a2===uid;
+    const onB=m.team_b1===uid||m.team_b2===uid;
+    if(!onA&&!onB)continue;
+    const won=(onA&&m.winner==='A')||(onB&&m.winner==='B');
+    won?wins++:losses++;
+    const dk=onA?(m.team_a1===uid?'delta_a1':'delta_a2'):(m.team_b1===uid?'delta_b1':'delta_b2');
+    totalDelta+=m[dk]??0;
+    const pid=onA?(m.team_a1===uid?m.team_a2:m.team_a1):(m.team_b1===uid?m.team_b2:m.team_b1);
+    if(pid){if(!pMap[pid])pMap[pid]={w:0,l:0};won?pMap[pid].w++:pMap[pid].l++}
+    const rk=onA?(m.team_a1===uid?'rating_after_a1':'rating_after_a2'):(m.team_b1===uid?'rating_after_b1':'rating_after_b2');
+    if(m[rk]!=null)prHistory.push({date:m.played_at,rating:m[rk]});
+  }
+  const total=wins+losses;
+  const topPartners=Object.entries(pMap)
+    .map(([id,s])=>({id,...s,pct:s.w+s.l>0?Math.round(s.w/(s.w+s.l)*100):0}))
+    .sort((a,b)=>(b.w+b.l)-(a.w+a.l)).slice(0,3);
+  return{wins,losses,total,winPct:total>0?Math.round(wins/total*100):0,
+         avgDelta:total>0?totalDelta/total:0,topPartners,prHistory};
+}
+
+function render(profile,matches,players,clubPlayers,clubMatches){
+  const stats=computeStats(profile.id,matches);
+  const bc=bandColor(profile.rating);
+  const bn=bandName(profile.rating);
+  const streak=profile.streak??0;
+  const streakColor=streak>0?'#5BF0CB':streak<0?'#E07B4A':'var(--ivory)';
+  const streakLabel=streak>0?'win streak':streak<0?'loss streak':'neutro';
+  const deltaColor=stats.avgDelta>=0?'#5BF0CB':'#E07B4A';
+  const deltaSign=stats.avgDelta>=0?'+':'';
+
+  const partnerRows=stats.topPartners.length===0
+    ?`<div style="text-align:center;color:var(--ivoryFaint);font-size:13px;padding:14px 0">Nessuna partita ancora</div>`
+    :stats.topPartners.map((p,i)=>{
+      const pl=players.find(x=>x.id===p.id);
+      const pc=p.pct>=60?'#5BF0CB':p.pct>=40?'#EFD06A':'#E07B4A';
+      return `<div class="prow">
+        <div class="prow-rank">${i+1}</div>
+        <div class="prow-av" style="border-color:${pl?bandColor(pl.rating)+'55':'var(--line)'}">${pl?esc(pl.full_name[0]):'?'}</div>
+        <div class="prow-info">
+          <div class="prow-name">${pl?esc(pl.full_name):'Sconosciuto'}</div>
+          <div class="prow-sub">${pl?bandName(pl.rating):'—'} · ${p.w+p.l} partite</div>
+        </div>
+        <div class="prow-stat">
+          <div class="prow-pct" style="color:${pc}">${p.pct}%</div>
+          <div class="prow-wl">${p.w}V ${p.l}S</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  document.getElementById('main').innerHTML=`
+    <div class="hero-card r0">
+      <div class="hero-name">${esc(profile.full_name)}</div>
+      <div class="hero-club">${esc(profile.club||'—')} · ${esc(profile.provincia||'—')}</div>
+      <div class="hero-pr" id="v-pr">—</div>
+      <span class="hero-band" style="background:${bc}18;border:1px solid ${bc}50;color:${bc}">
+        <span class="band-dot-sm" style="background:${bc};box-shadow:0 0 6px ${bc}88"></span>${esc(bn)}
+      </span>
+    </div>
+
+    <div class="metrics">
+      <div class="metric m-win r1">
+        <div class="metric-val" id="v-win" style="color:#5BF0CB">—</div>
+        <div class="metric-lbl">Vittorie</div>
+        <div class="metric-sub" id="v-wl">—</div>
+      </div>
+      <div class="metric m-str r1">
+        <div class="metric-val" id="v-str" style="color:${streakColor}">—</div>
+        <div class="metric-lbl">Striscia</div>
+        <div class="metric-sub">${esc(streakLabel)}</div>
+      </div>
+      <div class="metric m-dlt r1">
+        <div class="metric-val" id="v-dlt" style="color:${deltaColor}">—</div>
+        <div class="metric-lbl">Δ medio</div>
+        <div class="metric-sub">per partita</div>
+      </div>
+    </div>
+
+    <div class="stag r2">Andamento PR</div>
+    <div class="card r2" style="padding:18px 16px 14px">
+      ${stats.prHistory.length>=2
+        ?'<div class="chart-wrap"><canvas id="pr-chart"></canvas></div>'
+        :`<div class="chart-empty">
+            <div class="chart-empty-icon">📈</div>
+            <div>Il grafico apparirà<br>dopo le prime partite approvate</div>
+          </div>`}
+    </div>
+
+    <div class="stag r3">Partner</div>
+    <div class="card r3" style="padding:16px 20px">${partnerRows}</div>
+
+    ${profile.role==='manager'?renderClub(profile,clubPlayers,clubMatches):''}
+  `;
+
+  // Countup animations
+  const prEl=document.getElementById('v-pr');
+  const winEl=document.getElementById('v-win');
+  const wlEl=document.getElementById('v-wl');
+  const strEl=document.getElementById('v-str');
+  const dltEl=document.getElementById('v-dlt');
+
+  animCount(prEl,profile.rating,1,1000);
+  animPct(winEl,stats.winPct,820);
+  if(wlEl) wlEl.textContent=`${stats.wins}V · ${stats.losses}S`;
+  animStreak(strEl,streak,750);
+  animDelta(dltEl,stats.avgDelta,800);
+
+  // PR chart
+  if(stats.prHistory.length>=2){
+    const ctx=document.getElementById('pr-chart').getContext('2d');
+    const labels=stats.prHistory.map(p=>{
+      const d=new Date(p.date);
+      return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'});
+    });
+    const data=stats.prHistory.map(p=>p.rating);
+    new Chart(ctx,{
+      type:'line',
+      data:{labels,datasets:[{
+        data,
+        borderColor:'#5BF0CB',borderWidth:2.5,
+        backgroundColor:c=>{
+          const g=c.chart.ctx.createLinearGradient(0,0,0,180);
+          g.addColorStop(0,'rgba(91,240,203,.20)');g.addColorStop(1,'rgba(91,240,203,.00)');return g;
+        },
+        fill:true,tension:.4,
+        pointRadius:data.length<=12?4:2,
+        pointBackgroundColor:'#5BF0CB',pointBorderColor:'#0E2723',pointBorderWidth:2,pointHoverRadius:7,
+      }]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        animation:{duration:1000,easing:'easeOutQuart'},
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:'#1B4D45',borderColor:'rgba(91,240,203,.3)',borderWidth:1,
+            titleColor:'rgba(247,240,220,.5)',bodyColor:'#5BF0CB',
+            bodyFont:{family:"'JetBrains Mono',monospace",size:14,weight:'700'},
+            padding:10,callbacks:{label:c=>' PR '+c.parsed.y.toFixed(1)}
+          }
+        },
+        scales:{
+          x:{grid:{color:'rgba(91,240,203,.06)'},border:{display:false},
+             ticks:{color:'rgba(247,240,220,.4)',font:{family:"'JetBrains Mono',monospace",size:9.5},maxRotation:0,autoSkip:true,maxTicksLimit:6}},
+          y:{grid:{color:'rgba(91,240,203,.06)'},border:{display:false},
+             ticks:{color:'rgba(247,240,220,.4)',font:{family:"'JetBrains Mono',monospace",size:9.5},callback:v=>v.toFixed(0)}}
+        }
+      }
+    });
+  }
+
+  // Donut
+  if(profile.role==='manager'&&document.getElementById('donut-c')){
+    const bc2=BANDS.map(b=>({...b,count:clubPlayers.filter(p=>bandName(p.rating)===b.name).length}));
+    new Chart(document.getElementById('donut-c').getContext('2d'),{
+      type:'doughnut',
+      data:{labels:bc2.map(b=>b.name),datasets:[{
+        data:bc2.map(b=>b.count),
+        backgroundColor:bc2.map(b=>b.color+'BB'),
+        borderColor:bc2.map(b=>b.color),borderWidth:1.5,hoverOffset:5,
+      }]},
+      options:{
+        responsive:true,maintainAspectRatio:false,cutout:'66%',
+        animation:{duration:900,easing:'easeOutQuart'},
+        plugins:{legend:{display:false},tooltip:{
+          backgroundColor:'#1B4D45',borderColor:'rgba(91,240,203,.3)',borderWidth:1,
+          titleColor:'#5BF0CB',bodyColor:'rgba(247,240,220,.82)',padding:10,
+        }}
+      }
+    });
+    const tot=clubPlayers.length||1;
+    setTimeout(()=>{
+      bc2.forEach((b,i)=>{
+        const el=document.getElementById('bbar-'+i);
+        if(el)el.style.width=Math.round(b.count/tot*100)+'%';
+      });
+    },120);
+  }
+}
+
+function renderClub(profile,clubPlayers,clubMatches){
+  if(!clubPlayers.length)return'';
+  const tot=clubPlayers.length;
+  const bc=BANDS.map((b,i)=>({...b,i,count:clubPlayers.filter(p=>bandName(p.rating)===b.name).length})).filter(b=>b.count>0);
+  const activeIds=new Set();
+  clubMatches.forEach(m=>[m.team_a1,m.team_a2,m.team_b1,m.team_b2].forEach(id=>{if(clubPlayers.find(p=>p.id===id))activeIds.add(id)}));
+  const topA=clubPlayers
+    .map(p=>({...p,mc:clubMatches.filter(m=>[m.team_a1,m.team_a2,m.team_b1,m.team_b2].includes(p.id)).length}))
+    .sort((a,b)=>b.mc-a.mc).slice(0,5).filter(p=>p.mc>0);
+
+  return `
+    <div class="stag r4">Circolo · ${esc(profile.club||'—')}</div>
+    <div class="card r4">
+      <div style="font-size:11.5px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:16px">${tot} giocatori · ${activeIds.size} attivi questo mese</div>
+      <div class="donut-wrap">
+        <div class="donut-canvas-wrap"><canvas id="donut-c"></canvas></div>
+        <div class="band-legend">
+          ${bc.map(b=>`
+            <div class="brand-row">
+              <div class="brand-dot" style="background:${b.color};box-shadow:0 0 5px ${b.color}77"></div>
+              <div class="brand-name" style="color:${b.color}">${b.name}</div>
+              <div class="brand-bar-wrap"><div class="brand-bar" id="bbar-${b.i}" style="background:${b.color}"></div></div>
+              <div class="brand-count">${b.count}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="stag r5">Più attivi (30 giorni)</div>
+    <div class="card r5" style="padding:16px 20px">
+      ${topA.length===0
+        ?'<div style="text-align:center;color:var(--ivoryFaint);font-size:13px;padding:14px 0">Nessuna partita questo mese</div>'
+        :topA.map((p,i)=>`
+          <div class="prow">
+            <div class="prow-rank">${i+1}</div>
+            <div class="prow-av" style="border-color:${bandColor(p.rating)}55">${esc(p.full_name[0])}</div>
+            <div class="prow-info">
+              <div class="prow-name">${esc(p.full_name)}</div>
+              <div class="prow-sub">${bandName(p.rating)} · PR ${p.rating.toFixed(1)}</div>
+            </div>
+            <div class="prow-stat">
+              <div class="prow-pct" style="color:var(--gold)">${p.mc}</div>
+              <div class="prow-wl">partite</div>
+            </div>
+          </div>`).join('')
+      }
+    </div>`;
+}
+
+// --- Animated counters ---
+function animCount(el,target,dec,dur){
+  if(!el)return;
+  const start=performance.now();
+  const fmt=v=>dec?v.toFixed(dec):Math.round(v);
+  const tick=now=>{
+    const t=Math.min((now-start)/dur,1);
+    const e=1-Math.pow(1-t,3);
+    el.textContent=fmt(target*e);
+    if(t<1)requestAnimationFrame(tick);else el.textContent=fmt(target);
+  };
+  requestAnimationFrame(tick);
+}
+function animPct(el,target,dur){
+  if(!el)return;
+  const start=performance.now();
+  const tick=now=>{
+    const t=Math.min((now-start)/dur,1);
+    const e=1-Math.pow(1-t,3);
+    el.textContent=Math.round(target*e)+'%';
+    if(t<1)requestAnimationFrame(tick);else el.textContent=target+'%';
+  };
+  requestAnimationFrame(tick);
+}
+function animStreak(el,streak,dur){
+  if(!el)return;
+  const abs=Math.abs(streak);
+  const start=performance.now();
+  const tick=now=>{
+    const t=Math.min((now-start)/dur,1);
+    const e=1-Math.pow(1-t,3);
+    const v=Math.round(abs*e);
+    el.textContent=streak>0?'+'+v:streak<0?'-'+v:'0';
+    if(t<1)requestAnimationFrame(tick);
+    else el.textContent=streak>0?'+'+abs:streak<0?'-'+abs:'0';
+  };
+  requestAnimationFrame(tick);
+}
+function animDelta(el,delta,dur){
+  if(!el)return;
+  const abs=Math.abs(delta);
+  const sign=delta>=0?'+':'-';
+  const start=performance.now();
+  const tick=now=>{
+    const t=Math.min((now-start)/dur,1);
+    const e=1-Math.pow(1-t,3);
+    el.textContent=sign+(abs*e).toFixed(1);
+    if(t<1)requestAnimationFrame(tick);else el.textContent=sign+abs.toFixed(1);
+  };
+  requestAnimationFrame(tick);
+}
+
+init();
+</script>
+</body>
+</html>
