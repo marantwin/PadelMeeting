@@ -903,7 +903,9 @@ function viewProfile(){
     ${stag('Modifica dati personali')}
     <div class="card">
       <div class="auth-field"><label class="auth-label">Circolo</label>
-        <input id="ep-club" type="text" class="auth-input" value="${esc(M.club||'')}" placeholder="Nome circolo"></div>
+        <select id="ep-club" class="auth-input" autocomplete="off">
+          ${clubs_list.map(c=>`<option value="${esc(c.name)}" ${M.club===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}
+        </select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
         <div><label class="auth-label">Città</label>
           <input id="ep-city" type="text" class="auth-input" value="${esc(M.city||'')}" placeholder="Napoli"></div>
