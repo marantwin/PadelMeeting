@@ -226,7 +226,67 @@ function countUp(el,target,decimals,duration){
   requestAnimationFrame(tick);
 }
 
+function initDemo(){
+  const profile={
+    id:'demo-me', full_name:'Marco Ferretti', club:'S.S.D. EVOsport',
+    provincia:'SA', rating:61.4, games:23, streak:3, role:'manager', status:'active'
+  };
+  const p={
+    p1:{id:'p1',full_name:'Luca Marini',    rating:58.2,club:'S.S.D. EVOsport'},
+    p2:{id:'p2',full_name:'Cosimo Greco',   rating:44.7,club:'S.S.D. EVOsport'},
+    p3:{id:'p3',full_name:'Andrea Vitolo',  rating:67.1,club:'S.S.D. EVOsport'},
+    p4:{id:'p4',full_name:'Davide Russo',   rating:35.0,club:'S.S.D. EVOsport'},
+    p5:{id:'p5',full_name:'Simone Ferrara', rating:38.5,club:'S.S.D. EVOsport'},
+    p6:{id:'p6',full_name:'Tiziano Conte',  rating:72.3,club:'S.S.D. EVOsport'},
+    p7:{id:'p7',full_name:'Roberto Amato',  rating:55.8,club:'S.S.D. EVOsport'},
+    p8:{id:'p8',full_name:'Fabio Langella',  rating:49.1,club:'S.S.D. EVOsport'},
+    p9:{id:'p9',full_name:'Enzo De Luca',   rating:81.0,club:'S.S.D. EVOsport'},
+  };
+  const players=Object.values(p);
+  const me='demo-me';
+  // 23 partite approvate con rating_after che mostra progressione
+  const rawPR=[35,36.5,35.2,37.1,38.8,37.4,39.2,41.0,39.6,42.3,44.1,43.0,45.8,47.2,46.0,48.9,50.4,52.1,51.0,54.3,56.7,58.9,61.4];
+  const dates=['2025-09-05','2025-09-12','2025-09-18','2025-09-26','2025-10-03','2025-10-10','2025-10-17','2025-10-24','2025-11-02','2025-11-08','2025-11-15','2025-11-22','2025-11-29','2025-12-06','2025-12-13','2025-12-20','2026-01-10','2026-01-18','2026-01-25','2026-02-07','2026-02-21','2026-03-08','2026-03-22'];
+  const partners=['p1','p3','p1','p2','p3','p1','p2','p3','p1','p3','p2','p1','p3','p1','p2','p3','p1','p1','p3','p2','p1','p3','p1'];
+  const wins=    [true,true,false,true,true,false,true,true,true,false,true,true,true,false,true,true,true,false,true,true,false,true,true];
+  const matches=dates.map((date,i)=>{
+    const pid=partners[i];
+    const won=wins[i];
+    const delta=rawPR[i]-(i>0?rawPR[i-1]:35);
+    return{
+      played_at:date,winner:won?'A':'B',
+      team_a1:me,team_a2:pid,team_b1:'p5',team_b2:'p6',
+      delta_a1:delta,delta_a2:delta*0.6,delta_b1:-delta,delta_b2:-delta,
+      rating_after_a1:rawPR[i],rating_after_a2:null,rating_after_b1:null,rating_after_b2:null,
+    };
+  });
+  const clubPlayers=[
+    {...p.p1},{...p.p2},{...p.p3},{...p.p4},{...p.p5},{...p.p6},{...p.p7},{...p.p8},{...p.p9},
+    {id:'demo-me',full_name:'Marco Ferretti',rating:61.4,club:'S.S.D. EVOsport'}
+  ];
+  const cutoff=new Date(Date.now()-30*24*60*60*1000).toISOString().split('T')[0];
+  const clubMatches=matches.filter(m=>m.played_at>=cutoff).map((m,i)=>({
+    id:'cm'+i,played_at:m.played_at,
+    team_a1:me,team_a2:m.team_a2,team_b1:m.team_b1,team_b2:m.team_b2
+  }));
+  // aggiungo attività ad altri giocatori
+  clubMatches.push(
+    {id:'cx1',played_at:'2026-03-20',team_a1:'p3',team_a2:'p9',team_b1:'p6',team_b2:'p1'},
+    {id:'cx2',played_at:'2026-03-18',team_a1:'p1',team_a2:'p7',team_b1:'p3',team_b2:'p8'},
+    {id:'cx3',played_at:'2026-03-15',team_a1:'p6',team_a2:'p9',team_b1:'p2',team_b2:'p4'},
+    {id:'cx4',played_at:'2026-03-12',team_a1:'p3',team_a2:'p1',team_b1:'p5',team_b2:'p8'},
+    {id:'cx5',played_at:'2026-03-10',team_a1:'p9',team_a2:'p7',team_b1:'p6',team_b2:'p2'},
+    {id:'cx6',played_at:'2026-03-08',team_a1:'p1',team_a2:'p3',team_b1:'p7',team_b2:'p8'},
+  );
+
+  document.getElementById('loading').classList.add('out');
+  setTimeout(()=>document.getElementById('loading')?.remove(),350);
+  render(profile,matches,players,clubPlayers,clubMatches);
+}
+
 async function init(){
+  if(new URLSearchParams(location.search).get('demo')==='1'){initDemo();return}
+
   const {data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='/';return}
   const uid=session.user.id;
