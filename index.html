@@ -602,7 +602,7 @@ function viewPlay(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   const valid=new Set([...t1,...t2]).size===4;
   const calc=valid?computeMatch(t1,t2,'classic',pl.winner):null;
-  const opt=(sel,exclude)=>sortedOthers.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>(${p.provincia}) ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}</option>`).join('');
+  const opt=(sel,exclude)=>'<option value="">— seleziona —</option>'+sortedOthers.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>(${p.provincia}) ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}</option>`).join('');
 
   let preview='';
   if(calc){
@@ -652,7 +652,7 @@ function viewPlay(){
     <button class="cta" ${valid?'':'disabled'} onclick="confirmMatch()"><span>Conferma e invia ↗</span></button>
   </div>`;
 }
-function setPlay(k,v){pl[k]=v;render()}
+function setPlay(k,v){pl[k]=v||null;render()}
 function resetPlay(){pl.done=false;render()}
 async function confirmMatch(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
@@ -1079,16 +1079,6 @@ function toggleRule(i){ruleOpen=ruleOpen===i?-1:i;render()}
 let org = { date:'', time:'18:00', venue:'', venueCustom:'', partner:null, opp1:null, opp2:null, sent:false };
 
 function viewOrganize(){
-  if(!org.sent && (org.partner===null||org.opp1===null||org.opp2===null)){
-    const avail=players.filter(p=>p.id!==ME).slice().sort((a,b)=>{
-      const p=a.provincia.localeCompare(b.provincia); if(p!==0) return p;
-      const c=a.club.localeCompare(b.club); if(c!==0) return c;
-      return bandIdx(b.rating)-bandIdx(a.rating);
-    });
-    if(org.partner===null&&avail[0]) org.partner=avail[0].id;
-    if(org.opp1===null&&avail[1]) org.opp1=avail[1].id;
-    if(org.opp2===null&&avail[2]) org.opp2=avail[2].id;
-  }
   if(org.sent){
     return `<div class="page"><div class="card rise center" style="padding:44px 24px;margin-top:16px">
       <div style="font-size:40px;margin-bottom:8px">📅</div>
@@ -1109,7 +1099,7 @@ function viewOrganize(){
     const f=bandIdx(b.rating)-bandIdx(a.rating); if(f!==0) return f;
     return a.name.split(' ').pop().localeCompare(b.name.split(' ').pop());
   });
-  const opt = (sel, exclude) => sortedOthers.map(p =>
+  const opt = (sel, exclude) => '<option value="">— seleziona —</option>'+sortedOthers.map(p =>
     `<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>
       (${p.provincia}) ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}
     </option>`).join('');
@@ -1192,15 +1182,15 @@ function viewOrganize(){
         <div class="tt" style="color:${C.neon}">La tua coppia</div>
         <div class="selWrap"><span class="selLabel">Tu</span><div class="selBox fixed">${esc(pName(ME))}</div></div>
         <div class="selWrap"><span class="selLabel">Compagno</span>
-          <select class="selBox" onchange="org.partner=this.value;render()">${opt(org.partner,[org.opp1,org.opp2])}</select></div>
+          <select class="selBox" onchange="org.partner=this.value||null;render()">${opt(org.partner,[org.opp1,org.opp2])}</select></div>
       </div>
       <div class="vs">VS</div>
       <div class="teamBlock" style="border-left:2px solid ${C.rust}">
         <div class="tt" style="color:${C.rust}">Avversari</div>
         <div class="selWrap"><span class="selLabel">Avversario 1</span>
-          <select class="selBox" onchange="org.opp1=this.value;render()">${opt(org.opp1,[org.partner,org.opp2])}</select></div>
+          <select class="selBox" onchange="org.opp1=this.value||null;render()">${opt(org.opp1,[org.partner,org.opp2])}</select></div>
         <div class="selWrap"><span class="selLabel">Avversario 2</span>
-          <select class="selBox" onchange="org.opp2=this.value;render()">${opt(org.opp2,[org.partner,org.opp1])}</select></div>
+          <select class="selBox" onchange="org.opp2=this.value||null;render()">${opt(org.opp2,[org.partner,org.opp1])}</select></div>
       </div>
     </div>
 
