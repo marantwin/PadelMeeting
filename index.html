@@ -656,7 +656,7 @@ function setPlay(k,v){pl[k]=v||null;render()}
 function resetPlay(){pl.done=false;render()}
 async function confirmMatch(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
-  if(new Set([...t1,...t2]).size!==4) return;
+  if(![...t1,...t2].every(Boolean)||new Set([...t1,...t2]).size!==4) return;
   const calc=computeMatch(t1,t2,'classic',pl.winner);
   const winnerStr=pl.winner===1?'A':'B';
   const score=$('#play-score')?.value?.trim()||'';
