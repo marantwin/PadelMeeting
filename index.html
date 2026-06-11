@@ -1788,7 +1788,7 @@ async function initAuth(){
 initAuth();
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
 }
 function dismissCookie(){
   localStorage.setItem('pm_cookie_ok','1');
