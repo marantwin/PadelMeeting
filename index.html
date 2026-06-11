@@ -600,7 +600,7 @@ function viewPlay(){
     return a.name.split(' ').pop().localeCompare(b.name.split(' ').pop());
   });
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
-  const valid=new Set([...t1,...t2]).size===4;
+  const valid=[...t1,...t2].every(Boolean)&&new Set([...t1,...t2]).size===4;
   const calc=valid?computeMatch(t1,t2,'classic',pl.winner):null;
   const opt=(sel,exclude)=>'<option value="">— seleziona —</option>'+sortedOthers.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>(${p.provincia}) ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}</option>`).join('');
 
@@ -1105,7 +1105,7 @@ function viewOrganize(){
     </option>`).join('');
 
   const t1=[ME,org.partner], t2=[org.opp1,org.opp2];
-  const valid = new Set([...t1,...t2]).size===4;
+  const valid = [...t1,...t2].every(Boolean)&&new Set([...t1,...t2]).size===4;
   const calc  = valid ? computeMatch(t1,t2,'classic',1) : null;
 
   let preview='';
