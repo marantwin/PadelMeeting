@@ -400,6 +400,7 @@ let tab = 'home';
 let clubs_list = [];
 let notifications = [];
 let clubPendingMatches = [];
+let pendingPlayers = [];
 let pl = { partner:null, opp1:null, opp2:null, winner:1, done:false };
 
 /* ============ HELPERS ============ */
@@ -814,18 +815,17 @@ function viewCircolo(){
     ${stag('Partite contestate')}
     <div class="card">${contestateSection}</div>
 
-    ${stag('Valutazione iniziale')}
+    ${stag('Giocatori in attesa')}
     <div class="card">${(()=>{
-      const unrated=clubPlayers.filter(p=>p.rating===0);
-      if(unrated.length===0) return `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Nessun giocatore in attesa di valutazione</div>`;
+      if(pendingPlayers.length===0) return `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:8px 0">Nessun giocatore in attesa di attivazione</div>`;
       return `<div style="font-size:13px;color:var(--ivoryDim);line-height:1.6;margin-bottom:14px">
-        Giocatori in attesa di attivazione. Ogni nuovo giocatore parte con <b style="color:${C.neon};font-family:var(--mono)">PR 35</b>.
+        Nuovi iscritti in attesa. Ogni giocatore parte con <b style="color:${C.neon};font-family:var(--mono)">PR 35</b>.
       </div>
-      ${unrated.map(p=>`
+      ${pendingPlayers.map(p=>`
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--lineSoft)">
           <div>
             <div style="font-size:14px;font-weight:600">${esc(p.name)}</div>
-            <div style="font-size:12px;color:var(--ivoryDim)">${esc(p.club||'—')}</div>
+            <div style="font-size:12px;color:var(--ivoryFaint);font-family:var(--mono)">${esc(p.email||'—')}</div>
           </div>
           <button class="btnSolidSm" onclick="submitValutazione('${p.id}')">Attiva — PR 35</button>
         </div>
@@ -838,6 +838,7 @@ async function submitValutazione(id){
   const {error}=await sb.from('pm_profiles').update({rating:35,status:'active'}).eq('id',id);
   if(error){alert('Errore: '+error.message);return;}
   await loadPlayers();
+  await loadPendingPlayers();
   render();
 }
 
@@ -1316,6 +1317,13 @@ async function loadMatches(){
   }
 }
 
+async function loadPendingPlayers(){
+  const club=auth.user?.club;
+  if(!club) return;
+  const {data}=await sb.from('pm_profiles').select('id,full_name,club,email').eq('status','pending').eq('club',club);
+  if(data) pendingPlayers=data.map(p=>({...p,name:p.full_name}));
+}
+
 async function loadClubMatches(){
   const club=auth.user?.club;
   if(!club) return;
@@ -1401,7 +1409,7 @@ async function loadProfile(user){
   await loadPlayers();
   await loadMatches();
   await loadNotifications();
-  if(profile.role==='manager') await loadClubMatches();
+  if(profile.role==='manager'){ await loadClubMatches(); await loadPendingPlayers(); }
   if(profile.role==='admin') adminLoadAll();
   hideGate();
 }
