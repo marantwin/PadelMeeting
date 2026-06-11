@@ -1079,6 +1079,16 @@ function toggleRule(i){ruleOpen=ruleOpen===i?-1:i;render()}
 let org = { date:'', time:'18:00', venue:'', venueCustom:'', partner:null, opp1:null, opp2:null, sent:false };
 
 function viewOrganize(){
+  if(!org.sent && (org.partner===null||org.opp1===null||org.opp2===null)){
+    const avail=players.filter(p=>p.id!==ME).slice().sort((a,b)=>{
+      const p=a.provincia.localeCompare(b.provincia); if(p!==0) return p;
+      const c=a.club.localeCompare(b.club); if(c!==0) return c;
+      return bandIdx(b.rating)-bandIdx(a.rating);
+    });
+    if(org.partner===null&&avail[0]) org.partner=avail[0].id;
+    if(org.opp1===null&&avail[1]) org.opp1=avail[1].id;
+    if(org.opp2===null&&avail[2]) org.opp2=avail[2].id;
+  }
   if(org.sent){
     return `<div class="page"><div class="card rise center" style="padding:44px 24px;margin-top:16px">
       <div style="font-size:40px;margin-bottom:8px">📅</div>
@@ -1201,7 +1211,7 @@ function viewOrganize(){
     </button>
   </div>`;
 }
-function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:1,opp1:3,opp2:4,sent:false};render()}
+function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false};render()}
 async function sendOrg(){
   if(new Set([ME,org.partner,org.opp1,org.opp2]).size!==4) return;
   const M=me();
