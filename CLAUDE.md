@@ -12,9 +12,10 @@ There is **no build process, no npm, no bundler**. Development is:
 1. Edit `index.html` directly
 2. Open in browser (or run a static server: `python -m http.server 8080`)
 3. The Supabase anon key is intentionally embedded in the client (Row Level Security enforces access control server-side)
-4. Deploy: `scp index.html root@genius.superidea.it:/home/PadelMeeting/`
-
-Service worker versioning: bump `padelmeeting-v26` in `sw.js` when deploying changes that need cache invalidation.
+4. Deploy: `scp index.html sw.js root@genius.superidea.it:/home/PadelMeeting/`
+   - **SEMPRE** bumpa il numero versione in `sw.js` (`padelmeeting-vN` → `vN+1`) prima di ogni deploy
+   - Includi sempre `sw.js` nell'scp insieme a `index.html`
+   - Con `updateViaCache:'none'` + `skipWaiting` + `clients.claim`, gli utenti ricevono i file aggiornati all'apertura successiva del PWA
 
 ## Architecture
 
