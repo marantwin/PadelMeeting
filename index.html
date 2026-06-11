@@ -1203,7 +1203,7 @@ function viewOrganize(){
 }
 function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false};render()}
 async function sendOrg(){
-  if(new Set([ME,org.partner,org.opp1,org.opp2]).size!==4) return;
+  if(![ME,org.partner,org.opp1,org.opp2].every(Boolean)||new Set([ME,org.partner,org.opp1,org.opp2]).size!==4) return;
   const M=me();
   const nome=M?M.full_name:'Qualcuno';
   const dataStr=org.date||'data da definire';
