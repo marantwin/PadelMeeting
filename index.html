@@ -835,7 +835,7 @@ function viewCircolo(){
 }
 async function submitValutazione(id){
   if(!id){alert('ID giocatore mancante.');return;}
-  const {error}=await sb.from('pm_profiles').update({rating:35,status:'active'}).eq('id',id);
+  const {error}=await sb.rpc('pm_set_profile_status',{profile_id:id,new_status:'active'});
   if(error){alert('Errore: '+error.message);return;}
   await loadPlayers();
   await loadPendingPlayers();
