@@ -1238,7 +1238,14 @@ function renderNav(){
       ${badge}<span class="ic">${ic}</span><span class="nl">${l}</span>${active?'<span class="dot"></span>':''}</button>`;
   }).join('');
 }
-function go(t){tab=t;if(t!=='play')pl.done=false;window.scrollTo&&($('#view').scrollTop=0);render()}
+function go(t){
+  tab=t;
+  if(t==='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false};
+  if(t==='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false};
+  else if(t!=='play') pl.done=false;
+  window.scrollTo&&($('#view').scrollTop=0);
+  render();
+}
 function render(){
   const v={home:viewHome,rank:viewRank,play:viewPlay,organize:viewOrganize,matches:viewMatches,profile:viewProfile,rules:viewRules,circolo:viewCircolo}[tab];
   $('#view').innerHTML=v();
