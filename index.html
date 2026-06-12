@@ -1077,18 +1077,43 @@ function viewRules(){
 function toggleRule(i){ruleOpen=ruleOpen===i?-1:i;render()}
 
 /* ============ ORGANIZZA ============ */
-let org = { date:'', time:'18:00', venue:'', venueCustom:'', partner:null, opp1:null, opp2:null, sent:false };
+let org = { date:'', time:'18:00', venue:'', venueCustom:'', partner:null, opp1:null, opp2:null, sent:false, inviteStatus:[] };
 
 function viewOrganize(){
   if(org.sent){
-    return `<div class="page"><div class="card rise center" style="padding:44px 24px;margin-top:16px">
-      <div style="font-size:40px;margin-bottom:8px">📅</div>
-      <div style="font-family:var(--serif);font-size:28px;font-style:italic;color:${C.gold};text-shadow:0 0 14px #EFD06A44">Inviti inviati!</div>
-      ${(org.venue&&org.venue!=='__altro__')||org.venueCustom?`<div style="font-size:13px;color:${C.ivoryFaint};font-family:var(--mono);margin-top:6px">${esc(org.venue==='__altro__'?org.venueCustom:org.venue)}</div>`:''}
-      <p class="c-dim" style="font-size:13px;line-height:1.65;max-width:300px;margin:12px auto 0">I giocatori riceveranno una notifica. La partita sarà confermata quando tutti e 4 avranno accettato.</p>
-      <div style="margin-top:24px;display:flex;gap:10px;justify-content:center">
-        <button class="btnGhost" onclick="resetOrg()">Nuova</button>
-        <button class="btnSolid" onclick="go('home')">Home</button>
+    const venue=(org.venue&&org.venue!=='__altro__')?org.venue:(org.venueCustom||'');
+    const allAccepted=org.inviteStatus.length===3&&org.inviteStatus.every(s=>s.response==='accepted');
+    const anyDeclined=org.inviteStatus.some(s=>s.response==='declined');
+    const statusRows=org.inviteStatus.map(s=>{
+      const icon=s.response==='accepted'?'✅':s.response==='declined'?'❌':'⏳';
+      const color=s.response==='accepted'?'var(--neon)':s.response==='declined'?'var(--danger)':'var(--ivoryFaint)';
+      const label=s.response==='accepted'?'Accettato':s.response==='declined'?'Declinato':'In attesa';
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--lineSoft)">
+        <div style="font-size:14px;font-weight:600">${esc(s.name)}</div>
+        <div style="font-size:12px;color:${color};font-family:var(--mono)">${icon} ${label}</div>
+      </div>`;
+    }).join('');
+    const summaryMsg=allAccepted
+      ?`<div style="color:var(--neon);font-size:13px;font-weight:700;margin-top:6px">🎾 Tutti hanno accettato!</div>`
+      :anyDeclined
+      ?`<div style="color:var(--danger);font-size:13px;margin-top:6px">⚠ Un giocatore ha declinato.</div>`
+      :'';
+    return `<div class="page"><div class="card rise" style="padding:24px;margin-top:16px">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:36px;margin-bottom:6px">📅</div>
+        <div style="font-family:var(--serif);font-size:24px;font-style:italic;color:${C.gold}">Inviti inviati</div>
+        ${venue?`<div style="font-size:12px;color:${C.ivoryFaint};font-family:var(--mono);margin-top:4px">${esc(venue)}</div>`:''}
+        ${org.date?`<div style="font-size:12px;color:${C.ivoryFaint};font-family:var(--mono)">${org.date} · ${org.time}</div>`:''}
+        ${summaryMsg}
+      </div>
+      ${org.inviteStatus.length
+        ? `<div style="margin-bottom:16px">${statusRows}</div>`
+        : `<p style="font-size:13px;color:var(--ivoryFaint);text-align:center;margin:0 0 16px">Premi Aggiorna per vedere le risposte.</p>`
+      }
+      <div style="display:flex;gap:8px">
+        <button class="btnGhost" style="flex:1" onclick="loadOrgInviteStatus()">🔄 Aggiorna</button>
+        <button class="btnGhost" style="flex:1" onclick="resetOrg()">Nuova</button>
+        <button class="btnSolid" style="flex:1" onclick="go('home')">Home</button>
       </div>
     </div></div>`;
   }
@@ -1202,7 +1227,7 @@ function viewOrganize(){
     </button>
   </div>`;
 }
-function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false};render()}
+function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};render()}
 async function sendOrg(){
   if(![ME,org.partner,org.opp1,org.opp2].every(Boolean)||new Set([ME,org.partner,org.opp1,org.opp2]).size!==4) return;
   const M=me();
@@ -1222,6 +1247,22 @@ async function sendOrg(){
     await sb.from('pm_notifications').insert(rows);
   }
   org.sent=true;
+  await loadOrgInviteStatus();
+  render();
+}
+async function loadOrgInviteStatus(){
+  if(!org.sent) return;
+  const {data}=await sb.from('pm_notifications')
+    .select('user_id,data')
+    .eq('type','match_invite')
+    .filter('data->>organizer','eq',ME)
+    .filter('data->>date','eq',org.date||'')
+    .filter('data->>time','eq',org.time||'');
+  if(data) org.inviteStatus=data.map(n=>({
+    user_id:n.user_id,
+    name:pName(n.user_id),
+    response:n.data?.response||null
+  }));
   render();
 }
 
@@ -1241,7 +1282,7 @@ function renderNav(){
 function go(t){
   const prev=tab;
   tab=t;
-  if(t==='organize'&&prev!=='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false};
+  if(t==='organize'&&prev!=='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};
   if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false};
   else if(t!=='play') pl.done=false;
   window.scrollTo&&($('#view').scrollTop=0);
