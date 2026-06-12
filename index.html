@@ -1660,11 +1660,17 @@ function viewAuth(){
     <p style="color:var(--ivoryDim);font-size:13px;line-height:1.65">Abbiamo inviato un link di conferma. Clicca il link per attivare l'account.</p>
     <button class="auth-btn" style="margin-top:20px;background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none" onclick="setAuthTab('login')">Torna al login</button></div>`;
 
-  if(auth.pendingProfile) return `${glows}<div class="auth-card rise" style="text-align:center">
+  if(auth.pendingProfile){
+    const isManager=auth.pendingProfile.role==='manager';
+    const msg=isManager
+      ?'Il tuo account come Responsabile Circolo è in corso di verifica da parte dell\'amministratore.'
+      :'Il tuo profilo è in attesa di attivazione da parte del responsabile del tuo circolo.';
+    return `${glows}<div class="auth-card rise" style="text-align:center">
     ${logo}<div style="font-size:44px;margin-bottom:10px">⏳</div>
     <div style="font-family:var(--serif);font-size:22px;font-style:italic;color:${C.gold};margin-bottom:10px">In attesa di approvazione</div>
-    <p style="color:var(--ivoryDim);font-size:13px;line-height:1.65">Il tuo account come Responsabile Circolo è in corso di verifica da parte dell'amministratore.</p>
+    <p style="color:var(--ivoryDim);font-size:13px;line-height:1.65">${msg}</p>
     <button class="auth-btn" style="margin-top:20px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none" onclick="doLogout()">Esci</button></div>`;
+  }
 
   if(auth.rejectedProfile) return `${glows}<div class="auth-card rise" style="text-align:center">
     ${logo}<div style="font-size:44px;margin-bottom:10px">❌</div>
