@@ -1,7 +1,8 @@
-const CACHE = 'padelmeeting-v37';
+const CACHE = 'padelmeeting-v38';
 const PRECACHE = [
   '/',
   '/index.html',
+  '/supabase.js',
   '/overview.html',
   '/manifest.json',
   '/icons/icon-192.png',
