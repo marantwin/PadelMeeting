@@ -1255,11 +1255,14 @@ async function loadOrgInviteStatus(){
     .filter('data->>organizer','eq',ME)
     .filter('data->>date','eq',org.date||'')
     .filter('data->>time','eq',org.time||'');
-  if(data) org.inviteStatus=data.map(n=>({
-    user_id:n.user_id,
-    name:pName(n.user_id),
-    response:n.data?.response||null
-  }));
+  if(data && data.length){
+    const byUser=Object.fromEntries(data.map(n=>[n.user_id,n]));
+    org.inviteStatus=[org.partner,org.opp1,org.opp2].map(id=>({
+      user_id:id,
+      name:pName(id),
+      response:byUser[id]?.data?.response||null
+    }));
+  }
   render();
 }
 
