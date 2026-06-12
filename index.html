@@ -654,7 +654,7 @@ function viewPlay(){
   </div>`;
 }
 function setPlay(k,v){pl[k]=v||null;render()}
-function resetPlay(){pl.done=false;render()}
+function resetPlay(){pl={partner:null,opp1:null,opp2:null,winner:1,done:false};render()}
 async function confirmMatch(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   if(![...t1,...t2].every(Boolean)||new Set([...t1,...t2]).size!==4) return;
@@ -1239,9 +1239,10 @@ function renderNav(){
   }).join('');
 }
 function go(t){
+  const prev=tab;
   tab=t;
-  if(t==='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false};
-  if(t==='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false};
+  if(t==='organize'&&prev!=='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false};
+  if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false};
   else if(t!=='play') pl.done=false;
   window.scrollTo&&($('#view').scrollTop=0);
   render();
@@ -1416,7 +1417,7 @@ async function loadProfile(user){
   await loadPlayers();
   await loadMatches();
   await loadNotifications();
-  if(profile.role==='manager'){ await loadClubMatches(); await loadPendingPlayers(); }
+  if(profile.role==='manager'){ await Promise.all([loadClubMatches(), loadPendingPlayers()]); }
   if(profile.role==='admin') adminLoadAll();
   hideGate();
 }
@@ -1528,6 +1529,7 @@ function changePasswordSection(){
 
 async function doLogout(){
   await sb.auth.signOut();
+  players=[];matches=[];notifications=[];clubPendingMatches=[];pendingPlayers=[];ME=null;
   auth={tab:'login',role:'player',err:'',loading:false,user:null,loggedIn:false};
   showGate();
 }
