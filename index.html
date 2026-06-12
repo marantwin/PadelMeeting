@@ -1224,7 +1224,7 @@ function viewOrganize(){
     </button>
   </div>`;
 }
-function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};render()}
+function resetOrg(){if(ME)localStorage.removeItem('pm_pending_org_'+ME);org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};render()}
 async function sendOrg(){
   if(![ME,org.partner,org.opp1,org.opp2].every(Boolean)||new Set([ME,org.partner,org.opp1,org.opp2]).size!==4) return;
   const M=me();
@@ -1245,6 +1245,7 @@ async function sendOrg(){
   }
   org.sent=true;
   org.inviteStatus=[org.partner,org.opp1,org.opp2].map(id=>({user_id:id,name:pName(id),response:null}));
+  localStorage.setItem('pm_pending_org_'+ME, JSON.stringify({date:org.date,time:org.time,venue:org.venue,venueCustom:org.venueCustom,partner:org.partner,opp1:org.opp1,opp2:org.opp2}));
   render();
 }
 async function loadOrgInviteStatus(){
@@ -1282,7 +1283,11 @@ function renderNav(){
 function go(t){
   const prev=tab;
   tab=t;
-  if(t==='organize'&&prev!=='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};
+  if(t==='organize'&&prev!=='organize'){
+    const saved=ME&&localStorage.getItem('pm_pending_org_'+ME);
+    if(saved){try{const s=JSON.parse(saved);org={...s,sent:true,inviteStatus:[s.partner,s.opp1,s.opp2].map(id=>({user_id:id,name:pName(id),response:null}))};loadOrgInviteStatus();}catch(e){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};}}
+    else org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};
+  }
   if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false};
   else if(t!=='play') pl.done=false;
   window.scrollTo&&($('#view').scrollTop=0);
@@ -1570,6 +1575,7 @@ function changePasswordSection(){
 
 async function doLogout(){
   await sb.auth.signOut();
+  if(ME) localStorage.removeItem('pm_pending_org_'+ME);
   players=[];matches=[];notifications=[];clubPendingMatches=[];pendingPlayers=[];ME=null;
   auth={tab:'login',role:'player',err:'',loading:false,user:null,loggedIn:false};
   showGate();
