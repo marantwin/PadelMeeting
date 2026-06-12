@@ -1106,10 +1106,7 @@ function viewOrganize(){
         ${org.date?`<div style="font-size:12px;color:${C.ivoryFaint};font-family:var(--mono)">${org.date} · ${org.time}</div>`:''}
         ${summaryMsg}
       </div>
-      ${org.inviteStatus.length
-        ? `<div style="margin-bottom:16px">${statusRows}</div>`
-        : `<p style="font-size:13px;color:var(--ivoryFaint);text-align:center;margin:0 0 16px">Premi Aggiorna per vedere le risposte.</p>`
-      }
+      <div style="margin-bottom:16px">${statusRows}</div>
       <div style="display:flex;gap:8px">
         <button class="btnGhost" style="flex:1" onclick="loadOrgInviteStatus()">🔄 Aggiorna</button>
         <button class="btnGhost" style="flex:1" onclick="resetOrg()">Nuova</button>
@@ -1247,7 +1244,7 @@ async function sendOrg(){
     await sb.from('pm_notifications').insert(rows);
   }
   org.sent=true;
-  await loadOrgInviteStatus();
+  org.inviteStatus=[org.partner,org.opp1,org.opp2].map(id=>({user_id:id,name:pName(id),response:null}));
   render();
 }
 async function loadOrgInviteStatus(){
