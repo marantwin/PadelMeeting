@@ -401,6 +401,7 @@ let clubs_list = [];
 let notifications = [];
 let clubPendingMatches = [];
 let pendingPlayers = [];
+let myInvites = [];
 let pl = { partner:null, opp1:null, opp2:null, winner:1, done:false };
 
 /* ============ HELPERS ============ */
@@ -702,7 +703,31 @@ function viewMatches(){
       <div class="mgrid">${side(m.t1,m.winner===1,'left')}<div class="mscore">${m.score}</div>${side(m.t2,m.winner===2,'right')}</div>
       <div class="mfoot">${foot}</div></div>`;
   }).join('');
-  return `<div class="page">${stag('Le mie partite')}${cards}</div>`;
+  const inviteCards=myInvites.map(inv=>{
+    const allAccepted=inv.players.length===3&&inv.players.every(s=>s.response==='accepted');
+    const anyDeclined=inv.players.some(s=>s.response==='declined');
+    const venue=inv.venue||'';
+    const rows=inv.players.map(s=>{
+      const icon=s.response==='accepted'?'✅':s.response==='declined'?'❌':'⏳';
+      const color=s.response==='accepted'?'var(--neon)':s.response==='declined'?'var(--danger)':'var(--ivoryFaint)';
+      const label=s.response==='accepted'?'Accettato':s.response==='declined'?'Declinato':'In attesa';
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
+        <div style="font-size:14px;font-weight:500">${esc(s.name)}</div>
+        <div style="font-size:12px;color:${color};font-family:var(--mono)">${icon} ${label}</div>
+      </div>`;
+    }).join('');
+    const summary=allAccepted?`<div style="margin-top:10px;font-size:13px;color:var(--neon);font-weight:700">🎾 Tutti hanno accettato!</div>`
+      :anyDeclined?`<div style="margin-top:10px;font-size:13px;color:var(--danger)">⚠ Un giocatore ha declinato.</div>`:'';
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="mhead">
+        <span style="font-size:11px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;text-transform:uppercase">Invito</span>
+        <span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${inv.date||'—'} · ${inv.time||'—'}${venue?' · '+esc(venue):''}</span>
+      </div>
+      ${rows}${summary}
+    </div>`;
+  }).join('');
+  const orgSection=myInvites.length?`${stag('In organizzazione')}${inviteCards}`:'';
+  return `<div class="page">${orgSection}${stag('Le mie partite')}${cards||`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:24px 0">Nessuna partita ancora.</div>`}</div>`;
 }
 async function actMatch(id,status){
   const upd={status};
@@ -1082,35 +1107,15 @@ let org = { date:'', time:'18:00', venue:'', venueCustom:'', partner:null, opp1:
 function viewOrganize(){
   if(org.sent){
     const venue=(org.venue&&org.venue!=='__altro__')?org.venue:(org.venueCustom||'');
-    const allAccepted=org.inviteStatus.length===3&&org.inviteStatus.every(s=>s.response==='accepted');
-    const anyDeclined=org.inviteStatus.some(s=>s.response==='declined');
-    const statusRows=org.inviteStatus.map(s=>{
-      const icon=s.response==='accepted'?'✅':s.response==='declined'?'❌':'⏳';
-      const color=s.response==='accepted'?'var(--neon)':s.response==='declined'?'var(--danger)':'var(--ivoryFaint)';
-      const label=s.response==='accepted'?'Accettato':s.response==='declined'?'Declinato':'In attesa';
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--lineSoft)">
-        <div style="font-size:14px;font-weight:600">${esc(s.name)}</div>
-        <div style="font-size:12px;color:${color};font-family:var(--mono)">${icon} ${label}</div>
-      </div>`;
-    }).join('');
-    const summaryMsg=allAccepted
-      ?`<div style="color:var(--neon);font-size:13px;font-weight:700;margin-top:6px">🎾 Tutti hanno accettato!</div>`
-      :anyDeclined
-      ?`<div style="color:var(--danger);font-size:13px;margin-top:6px">⚠ Un giocatore ha declinato.</div>`
-      :'';
-    return `<div class="page"><div class="card rise" style="padding:24px;margin-top:16px">
-      <div style="text-align:center;margin-bottom:16px">
-        <div style="font-size:36px;margin-bottom:6px">📅</div>
-        <div style="font-family:var(--serif);font-size:24px;font-style:italic;color:${C.gold}">Inviti inviati</div>
-        ${venue?`<div style="font-size:12px;color:${C.ivoryFaint};font-family:var(--mono);margin-top:4px">${esc(venue)}</div>`:''}
-        ${org.date?`<div style="font-size:12px;color:${C.ivoryFaint};font-family:var(--mono)">${org.date} · ${org.time}</div>`:''}
-        ${summaryMsg}
-      </div>
-      <div style="margin-bottom:16px">${statusRows}</div>
-      <div style="display:flex;gap:8px">
-        <button class="btnGhost" style="flex:1" onclick="loadOrgInviteStatus()">🔄 Aggiorna</button>
-        <button class="btnGhost" style="flex:1" onclick="resetOrg()">Nuova</button>
-        <button class="btnSolid" style="flex:1" onclick="go('home')">Home</button>
+    return `<div class="page"><div class="card rise center" style="padding:44px 24px;margin-top:16px">
+      <div style="font-size:40px;margin-bottom:8px">📅</div>
+      <div style="font-family:var(--serif);font-size:26px;font-style:italic;color:${C.gold}">Inviti inviati!</div>
+      ${venue?`<div style="font-size:12px;color:${C.ivoryFaint};font-family:var(--mono);margin-top:4px">${esc(venue)}</div>`:''}
+      ${org.date?`<div style="font-size:12px;color:${C.ivoryFaint};font-family:var(--mono);margin-top:2px">${org.date} · ${org.time}</div>`:''}
+      <p class="c-dim" style="font-size:13px;line-height:1.65;max-width:300px;margin:16px auto 0">Le risposte dei giocatori le trovi in <b style="color:var(--neon)">Le mie partite</b>.</p>
+      <div style="margin-top:24px;display:flex;gap:10px;justify-content:center">
+        <button class="btnGhost" onclick="resetOrg()">Nuova</button>
+        <button class="btnSolid" onclick="go('matches')">Le mie partite →</button>
       </div>
     </div></div>`;
   }
@@ -1224,7 +1229,7 @@ function viewOrganize(){
     </button>
   </div>`;
 }
-function resetOrg(){if(ME)localStorage.removeItem('pm_pending_org_'+ME);org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};render()}
+function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};render()}
 async function sendOrg(){
   if(![ME,org.partner,org.opp1,org.opp2].every(Boolean)||new Set([ME,org.partner,org.opp1,org.opp2]).size!==4) return;
   const M=me();
@@ -1244,26 +1249,7 @@ async function sendOrg(){
     await sb.from('pm_notifications').insert(rows);
   }
   org.sent=true;
-  org.inviteStatus=[org.partner,org.opp1,org.opp2].map(id=>({user_id:id,name:pName(id),response:null}));
-  localStorage.setItem('pm_pending_org_'+ME, JSON.stringify({date:org.date,time:org.time,venue:org.venue,venueCustom:org.venueCustom,partner:org.partner,opp1:org.opp1,opp2:org.opp2}));
-  render();
-}
-async function loadOrgInviteStatus(){
-  if(!org.sent) return;
-  const {data}=await sb.from('pm_notifications')
-    .select('user_id,data')
-    .eq('type','match_invite')
-    .filter('data->>organizer','eq',ME)
-    .filter('data->>date','eq',org.date||'')
-    .filter('data->>time','eq',org.time||'');
-  if(data && data.length){
-    const byUser=Object.fromEntries(data.map(n=>[n.user_id,n]));
-    org.inviteStatus=[org.partner,org.opp1,org.opp2].map(id=>({
-      user_id:id,
-      name:pName(id),
-      response:byUser[id]?.data?.response||null
-    }));
-  }
+  await loadMyInvites();
   render();
 }
 
@@ -1283,13 +1269,10 @@ function renderNav(){
 function go(t){
   const prev=tab;
   tab=t;
-  if(t==='organize'&&prev!=='organize'){
-    const saved=ME&&localStorage.getItem('pm_pending_org_'+ME);
-    if(saved){try{const s=JSON.parse(saved);org={...s,sent:true,inviteStatus:[s.partner,s.opp1,s.opp2].map(id=>({user_id:id,name:pName(id),response:null}))};loadOrgInviteStatus();}catch(e){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};}}
-    else org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};
-  }
+  if(t==='organize'&&prev!=='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};
   if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false};
   else if(t!=='play') pl.done=false;
+  if(t==='matches'&&prev!=='matches') loadMyInvites().then(()=>render());
   window.scrollTo&&($('#view').scrollTop=0);
   render();
 }
@@ -1397,6 +1380,24 @@ async function loadClubMatches(){
   }));
 }
 
+async function loadMyInvites(){
+  if(!ME) return;
+  const {data}=await sb.from('pm_notifications')
+    .select('user_id,data,created_at')
+    .eq('type','match_invite')
+    .filter('data->>organizer','eq',ME)
+    .order('created_at',{ascending:false});
+  if(!data){myInvites=[];return;}
+  const groups={};
+  data.forEach(n=>{
+    const key=(n.data?.date||'')+'|'+(n.data?.time||'');
+    if(!groups[key]) groups[key]={date:n.data?.date,time:n.data?.time,venue:n.data?.venue,
+      partner:n.data?.partner,opp1:n.data?.opp1,opp2:n.data?.opp2,created_at:n.created_at,players:[]};
+    groups[key].players.push({user_id:n.user_id,name:pName(n.user_id),response:n.data?.response||null});
+  });
+  myInvites=Object.values(groups).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+}
+
 async function loadNotifications(){
   if(!ME) return;
   const {data}=await sb.from('pm_notifications').select('*').eq('user_id',ME).eq('read',false).order('created_at',{ascending:false}).limit(20);
@@ -1461,8 +1462,7 @@ async function loadProfile(user){
   auth.user={...user,...profile}; auth.loggedIn=true;
   ME=user.id;
   await loadPlayers();
-  await loadMatches();
-  await loadNotifications();
+  await Promise.all([loadMatches(), loadNotifications(), loadMyInvites()]);
   if(profile.role==='manager'){ await Promise.all([loadClubMatches(), loadPendingPlayers()]); }
   if(profile.role==='admin') adminLoadAll();
   hideGate();
@@ -1575,8 +1575,7 @@ function changePasswordSection(){
 
 async function doLogout(){
   await sb.auth.signOut();
-  if(ME) localStorage.removeItem('pm_pending_org_'+ME);
-  players=[];matches=[];notifications=[];clubPendingMatches=[];pendingPlayers=[];ME=null;
+  players=[];matches=[];notifications=[];clubPendingMatches=[];pendingPlayers=[];myInvites=[];ME=null;
   auth={tab:'login',role:'player',err:'',loading:false,user:null,loggedIn:false};
   showGate();
 }
