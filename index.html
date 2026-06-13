@@ -718,12 +718,17 @@ function viewMatches(){
     }).join('');
     const summary=allAccepted?`<div style="margin-top:10px;font-size:13px;color:var(--neon);font-weight:700">🎾 Tutti hanno accettato!</div>`
       :anyDeclined?`<div style="margin-top:10px;font-size:13px;color:var(--danger)">⚠ Un giocatore ha declinato.</div>`:'';
+    const dateKey=encodeURIComponent(inv.date||'');
+    const timeKey=encodeURIComponent(inv.time||'');
     return `<div class="card" style="margin-bottom:12px">
       <div class="mhead">
         <span style="font-size:11px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;text-transform:uppercase">Invito</span>
         <span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${inv.date||'—'} · ${inv.time||'—'}${venue?' · '+esc(venue):''}</span>
       </div>
       ${rows}${summary}
+      <div style="margin-top:12px;text-align:right">
+        <button class="btnGhostSm" onclick="cancelInvite('${dateKey}','${timeKey}')">Annulla invito</button>
+      </div>
     </div>`;
   }).join('');
   const orgSection=myInvites.length?`${stag('In organizzazione')}${inviteCards}`:'';
@@ -1379,6 +1384,17 @@ async function loadClubMatches(){
     winner:m.winner==='A'?1:2, mover:m.submitted_by,
     deltas:{[m.team_a1]:m.delta_a1,[m.team_a2]:m.delta_a2,[m.team_b1]:m.delta_b1,[m.team_b2]:m.delta_b2}
   }));
+}
+
+async function cancelInvite(date, time){
+  const {error}=await sb.from('pm_notifications').delete()
+    .eq('type','match_invite')
+    .filter('data->>organizer','eq',ME)
+    .filter('data->>date','eq',decodeURIComponent(date))
+    .filter('data->>time','eq',decodeURIComponent(time));
+  if(error){alert('Errore: '+error.message);return;}
+  await loadMyInvites();
+  render();
 }
 
 async function loadMyInvites(){
