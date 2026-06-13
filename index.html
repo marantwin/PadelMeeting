@@ -1235,7 +1235,7 @@ async function sendOrg(){
   const M=me();
   const nome=M?M.full_name:'Qualcuno';
   const dataStr=org.date||'data da definire';
-  const luogo=org.venue==='__custom__'?(org.venueCustom||''):(org.venue||'');
+  const luogo=org.venue==='__altro__'?(org.venueCustom||''):(org.venue||'');
   const bodyTxt=`${nome} ti ha invitato a una partita il ${dataStr} alle ${org.time}${luogo?' a '+luogo:''}`;
   const invited=[org.partner,org.opp1,org.opp2].filter(id=>id&&id!==ME);
   if(invited.length){
@@ -1246,7 +1246,8 @@ async function sendOrg(){
       body:bodyTxt,
       data:{organizer:ME,date:org.date,time:org.time,venue:luogo,partner:org.partner,opp1:org.opp1,opp2:org.opp2}
     }));
-    await sb.from('pm_notifications').insert(rows);
+    const {error}=await sb.from('pm_notifications').insert(rows);
+    if(error){alert('Errore nell\'invio degli inviti: '+error.message);return;}
   }
   org.sent=true;
   await loadMyInvites();
