@@ -402,6 +402,8 @@ let notifications = [];
 let clubPendingMatches = [];
 let pendingPlayers = [];
 let myInvites = [];
+let pushEnabled = (typeof Notification!=='undefined' && Notification.permission==='granted');
+let pushBannerDismissed = false;
 let pl = { partner:null, opp1:null, opp2:null, winner:1, done:false };
 
 /* ============ HELPERS ============ */
@@ -514,6 +516,7 @@ function viewHome(){
            style="width:220px;height:auto;filter:drop-shadow(0 0 18px #5BF0CB33)">
     </div>
 
+    ${pushBanner()}
     ${notifSection}
 
     <!-- TILE PRINCIPALE: Organizza -->
@@ -703,7 +706,15 @@ function viewMatches(){
       <div class="mgrid">${side(m.t1,m.winner===1,'left')}<div class="mscore">${m.score}</div>${side(m.t2,m.winner===2,'right')}</div>
       <div class="mfoot">${foot}</div></div>`;
   }).join('');
-  const inviteCards=myInvites.map(inv=>{
+  const activeInvites=myInvites.filter(inv=>{
+    if(inv.players.length>=3&&inv.players.every(p=>p.response)) return false;
+    const invSet=new Set([ME,inv.partner,inv.opp1,inv.opp2].filter(Boolean));
+    return !matches.some(m=>{
+      const mSet=new Set([...m.t1,...m.t2]);
+      return [...invSet].every(id=>mSet.has(id));
+    });
+  });
+  const inviteCards=activeInvites.map(inv=>{
     const allAccepted=inv.players.length===3&&inv.players.every(s=>s.response==='accepted');
     const anyDeclined=inv.players.some(s=>s.response==='declined');
     const venue=inv.venue||'';
@@ -718,8 +729,7 @@ function viewMatches(){
     }).join('');
     const summary=allAccepted?`<div style="margin-top:10px;font-size:13px;color:var(--neon);font-weight:700">🎾 Tutti hanno accettato!</div>`
       :anyDeclined?`<div style="margin-top:10px;font-size:13px;color:var(--danger)">⚠ Un giocatore ha declinato.</div>`:'';
-    const dateKey=encodeURIComponent(inv.date||'');
-    const timeKey=encodeURIComponent(inv.time||'');
+    const cancelArg=inv.invite_id?`'${inv.invite_id}'`:`null,'${encodeURIComponent(inv.date||'')}','${encodeURIComponent(inv.time||'')}'`;
     return `<div class="card" style="margin-bottom:12px">
       <div class="mhead">
         <span style="font-size:11px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;text-transform:uppercase">Invito</span>
@@ -727,29 +737,44 @@ function viewMatches(){
       </div>
       ${rows}${summary}
       <div style="margin-top:12px;text-align:right">
-        <button class="btnGhostSm" onclick="cancelInvite('${dateKey}','${timeKey}')">Annulla invito</button>
+        <button class="btnGhostSm" onclick="cancelInvite(${cancelArg})">Annulla invito</button>
       </div>
     </div>`;
   }).join('');
-  const orgSection=myInvites.length?`${stag('In organizzazione')}${inviteCards}`:'';
+  const orgSection=activeInvites.length?`${stag('In organizzazione')}${inviteCards}`:'';
   return `<div class="page">${orgSection}${stag('Le mie partite')}${cards||`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:24px 0">Nessuna partita ancora.</div>`}</div>`;
 }
 async function actMatch(id,status){
   const upd={status};
+  let ratingUpdates=null;
   if(status==='approved'){
     upd.approved_by=ME;
     const m=matches.find(x=>x.id===id)||clubPendingMatches.find(x=>x.id===id);
     if(m){
       const r=pid=>players.find(p=>p.id===pid)?.rating??0;
       const clamp=v=>+Math.max(0,Math.min(100,v)).toFixed(1);
-      upd.rating_after_a1=clamp(r(m.t1[0])+(m.deltas[m.t1[0]]??0));
-      upd.rating_after_a2=clamp(r(m.t1[1])+(m.deltas[m.t1[1]]??0));
-      upd.rating_after_b1=clamp(r(m.t2[0])+(m.deltas[m.t2[0]]??0));
-      upd.rating_after_b2=clamp(r(m.t2[1])+(m.deltas[m.t2[1]]??0));
+      ratingUpdates={
+        [m.t1[0]]:clamp(r(m.t1[0])+(m.deltas[m.t1[0]]??0)),
+        [m.t1[1]]:clamp(r(m.t1[1])+(m.deltas[m.t1[1]]??0)),
+        [m.t2[0]]:clamp(r(m.t2[0])+(m.deltas[m.t2[0]]??0)),
+        [m.t2[1]]:clamp(r(m.t2[1])+(m.deltas[m.t2[1]]??0)),
+      };
+      upd.rating_after_a1=ratingUpdates[m.t1[0]];
+      upd.rating_after_a2=ratingUpdates[m.t1[1]];
+      upd.rating_after_b1=ratingUpdates[m.t2[0]];
+      upd.rating_after_b2=ratingUpdates[m.t2[1]];
     }
   }
   const {error}=await sb.from('pm_matches').update(upd).eq('id',id);
   if(error){ alert('Errore: '+error.message); return; }
+  if(ratingUpdates){
+    const ratingsArr=Object.entries(ratingUpdates).map(([pid,newRating])=>{
+      const p=players.find(x=>x.id===pid);
+      return {id:pid,rating:newRating,games:(p?.games||0)+1};
+    });
+    const {error:rErr}=await sb.rpc('pm_update_ratings',{ratings:ratingsArr});
+    if(rErr){ alert('Errore aggiornamento rating: '+rErr.message); return; }
+  }
   await loadMatches();
   if(status==='approved') await loadPlayers();
   if(auth.user?.role==='manager') await loadClubMatches();
@@ -920,11 +945,54 @@ function viewProfileManager(){
       </div>
       <span style="font-size:18px;color:rgba(10,28,25,.7)">→</span>
     </a>
+    ${pushCard()}
     ${changePasswordSection()}
     <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
       Esci dall'account
     </button>
   </div>`;
+}
+
+function dismissPushBanner(){ pushBannerDismissed=true; render(); }
+function pushBanner(){
+  if(!ME || !pushSupported() || pushBannerDismissed) return '';
+  const perm = Notification.permission;
+  if(perm==='granted') return '';
+  if(perm==='denied'){
+    return `<div class="card rise" style="margin-bottom:12px;display:flex;align-items:center;gap:12px;border:1px solid #E07B4A66;background:linear-gradient(135deg,#E07B4A1f,transparent)">
+      <div style="font-size:22px">🔕</div>
+      <div style="flex:1;font-size:12.5px;line-height:1.5;color:var(--ivory)">Notifiche bloccate. Sbloccale dalle impostazioni del browser/telefono per ricevere gli inviti alle partite.</div>
+      <div onclick="dismissPushBanner()" style="color:var(--ivoryFaint);font-size:18px;cursor:pointer;flex-shrink:0">×</div>
+    </div>`;
+  }
+  return `<div class="card rise" style="margin-bottom:12px;display:flex;align-items:center;gap:12px;border:1px solid #5BF0CB55;background:linear-gradient(135deg,#5BF0CB1f,transparent);cursor:pointer" onclick="enablePush()">
+    <div style="font-size:24px">🔔</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;color:var(--neon)">Attiva le notifiche</div>
+      <div style="font-size:12px;color:var(--ivory);margin-top:2px">Ti avvisiamo quando ti invitano a una partita. Tocca qui per abilitarle.</div>
+    </div>
+    <div onclick="event.stopPropagation();dismissPushBanner()" style="color:var(--ivoryFaint);font-size:18px;cursor:pointer;flex-shrink:0">×</div>
+  </div>`;
+}
+function pushCard(){
+  const granted = typeof Notification!=='undefined' && Notification.permission==='granted';
+  const denied  = typeof Notification!=='undefined' && Notification.permission==='denied';
+  let inner;
+  if(!pushSupported()){
+    inner=`<div style="font-size:13px;color:var(--ivoryFaint);line-height:1.6">Le notifiche non sono supportate da questo browser. Su iPhone installa l'app sulla schermata Home (Safari → Condividi → Aggiungi a schermata Home) per riceverle.</div>`;
+  } else if(denied){
+    inner=`<div style="font-size:13px;color:var(--rust);line-height:1.6">🔕 Notifiche bloccate. Abilitale dalle impostazioni del browser per questo sito.</div>`;
+  } else if(pushEnabled && granted){
+    inner=`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div><div style="font-size:14px;font-weight:600;color:var(--neon)">🔔 Notifiche attive</div>
+      <div style="font-size:12px;color:var(--ivoryFaint);margin-top:2px">Ricevi un avviso quando ti invitano a una partita.</div></div></div>`;
+  } else {
+    inner=`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:160px"><div style="font-size:14px;font-weight:600">Notifiche partite</div>
+      <div style="font-size:12px;color:var(--ivoryFaint);margin-top:2px">Avviso sul telefono quando ti invitano a giocare.</div></div>
+      <button class="btnSolidSm" onclick="enablePush()">🔔 Attiva</button></div>`;
+  }
+  return `${stag('Notifiche')}<div class="card">${inner}</div>`;
 }
 
 function viewProfile(){
@@ -969,6 +1037,7 @@ function viewProfile(){
       <div class="irow"><span class="k">Ammonizioni (3 mesi)</span><span class="v">0 / 2</span></div>
 
     </div>
+    ${pushCard()}
     ${stag('Modifica dati personali')}
     <div class="card">
       <div class="auth-field"><label class="auth-label">Circolo</label>
@@ -1244,15 +1313,17 @@ async function sendOrg(){
   const bodyTxt=`${nome} ti ha invitato a una partita il ${dataStr} alle ${org.time}${luogo?' a '+luogo:''}`;
   const invited=[org.partner,org.opp1,org.opp2].filter(id=>id&&id!==ME);
   if(invited.length){
+    const inviteId=crypto.randomUUID();
     const rows=invited.map(uid=>({
       user_id:uid,
       type:'match_invite',
       title:'Invito partita',
       body:bodyTxt,
-      data:{organizer:ME,date:org.date,time:org.time,venue:luogo,partner:org.partner,opp1:org.opp1,opp2:org.opp2}
+      data:{invite_id:inviteId,organizer:ME,date:org.date,time:org.time,venue:luogo,partner:org.partner,opp1:org.opp1,opp2:org.opp2}
     }));
     const {error}=await sb.from('pm_notifications').insert(rows);
     if(error){alert('Errore nell\'invio degli inviti: '+error.message);return;}
+    sendPush(invited, '🎾 Invito partita', bodyTxt, '/');
   }
   org.sent=true;
   await loadMyInvites();
@@ -1315,14 +1386,15 @@ function renderAuth(){ $('#auth-gate').innerHTML=viewAuth(); }
 
 async function loadPlayers(){
   const {data,error}=await sb.from('pm_profiles')
-    .select('id,full_name,club,city,provincia,rating,games,streak,role,status')
+    .select('id,full_name,club,city,provincia,rating,games,streak,role,status,telefono')
     .eq('status','active')
     .order('rating',{ascending:false});
   if(!error && data){
     players=data.map(p=>({
       id:p.id, name:p.full_name||'—',
       club:p.club||'', city:p.city||'', provincia:p.provincia||'',
-      rating:p.rating??50, games:p.games??0, streak:p.streak??0, role:p.role
+      rating:p.rating??50, games:p.games??0, streak:p.streak??0, role:p.role,
+      telefono:p.telefono||''
     }));
     // Inizializza pl e org con i primi giocatori disponibili (escluso ME)
     const others=players.filter(p=>p.id!==ME);
@@ -1386,12 +1458,11 @@ async function loadClubMatches(){
   }));
 }
 
-async function cancelInvite(date, time){
-  const {error}=await sb.from('pm_notifications').delete()
-    .eq('type','match_invite')
-    .filter('data->>organizer','eq',ME)
-    .filter('data->>date','eq',decodeURIComponent(date))
-    .filter('data->>time','eq',decodeURIComponent(time));
+async function cancelInvite(inviteId, date, time){
+  let q=sb.from('pm_notifications').delete().eq('type','match_invite').filter('data->>organizer','eq',ME);
+  if(inviteId) q=q.filter('data->>invite_id','eq',inviteId);
+  else q=q.filter('data->>date','eq',decodeURIComponent(date)).filter('data->>time','eq',decodeURIComponent(time));
+  const {error}=await q;
   if(error){alert('Errore: '+error.message);return;}
   await loadMyInvites();
   render();
@@ -1407,10 +1478,11 @@ async function loadMyInvites(){
   if(!data){myInvites=[];return;}
   const groups={};
   data.forEach(n=>{
-    const key=(n.data?.date||'')+'|'+(n.data?.time||'');
-    if(!groups[key]) groups[key]={date:n.data?.date,time:n.data?.time,venue:n.data?.venue,
+    const key=n.data?.invite_id||(n.data?.date||'')+'|'+(n.data?.time||'');
+    if(!groups[key]) groups[key]={invite_id:n.data?.invite_id||null,date:n.data?.date,time:n.data?.time,venue:n.data?.venue,
       partner:n.data?.partner,opp1:n.data?.opp1,opp2:n.data?.opp2,created_at:n.created_at,players:[]};
-    groups[key].players.push({user_id:n.user_id,name:pName(n.user_id),response:n.data?.response||null});
+    if(!groups[key].players.some(p=>p.user_id===n.user_id))
+      groups[key].players.push({user_id:n.user_id,name:pName(n.user_id),response:n.data?.response||null});
   });
   myInvites=Object.values(groups).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
 }
@@ -1439,11 +1511,11 @@ async function respondNotification(id, response){
 
 async function checkAllAccepted(inviteData){
   if(!inviteData?.organizer) return;
-  const {data:allNotifs}=await sb.from('pm_notifications')
-    .select('data').eq('type','match_invite')
-    .filter('data->>organizer','eq',inviteData.organizer)
-    .filter('data->>date','eq',inviteData.date||'')
-    .filter('data->>time','eq',inviteData.time||'');
+  let notifsQ=sb.from('pm_notifications').select('data').eq('type','match_invite')
+    .filter('data->>organizer','eq',inviteData.organizer);
+  if(inviteData.invite_id) notifsQ=notifsQ.filter('data->>invite_id','eq',inviteData.invite_id);
+  else notifsQ=notifsQ.filter('data->>date','eq',inviteData.date||'').filter('data->>time','eq',inviteData.time||'');
+  const {data:allNotifs}=await notifsQ;
   if(!allNotifs||allNotifs.length<3) return;
   if(!allNotifs.every(n=>n.data?.response==='accepted')) return;
 
@@ -1453,22 +1525,25 @@ async function checkAllAccepted(inviteData){
   if(!manager) return;
 
   // evita duplicati
+  const dupKey=inviteData.invite_id||inviteData.date||'';
+  const dupField=inviteData.invite_id?'data->>invite_id':'data->>date';
   const {data:existing}=await sb.from('pm_notifications')
     .select('id').eq('user_id',manager.id).eq('type','match_confirmed')
-    .filter('data->>organizer','eq',inviteData.organizer)
-    .filter('data->>date','eq',inviteData.date||'').limit(1);
+    .filter(dupField,'eq',dupKey).limit(1);
   if(existing?.length) return;
 
   const getName=id=>players.find(p=>p.id===id)?.full_name||'?';
   const nomi=[inviteData.organizer,inviteData.partner,inviteData.opp1,inviteData.opp2].map(getName).join(' · ');
   const luogo=inviteData.venue?` a ${inviteData.venue}`:'';
+  const confirmBody=`${inviteData.date||'?'} alle ${inviteData.time||'?'}${luogo} — ${nomi}`;
   await sb.from('pm_notifications').insert({
     user_id:manager.id,
     type:'match_confirmed',
     title:'Partita confermata',
-    body:`${inviteData.date||'?'} alle ${inviteData.time||'?'}${luogo} — ${nomi}`,
+    body:confirmBody,
     data:inviteData
   });
+  sendPush([manager.id], '🎾 Partita confermata', confirmBody, '/');
 }
 
 async function loadProfile(user){
@@ -1483,6 +1558,7 @@ async function loadProfile(user){
   if(profile.role==='manager'){ await Promise.all([loadClubMatches(), loadPendingPlayers()]); }
   if(profile.role==='admin') adminLoadAll();
   hideGate();
+  syncPushSubscription();
 }
 
 async function doLogin(){
@@ -1513,8 +1589,8 @@ async function doRegister(){
   const city=$('#ar-city').value.trim();
   const provincia=$('#ar-provincia').value.trim().toUpperCase();
   const indirizzo=auth.role==='manager'?$('#ar-indirizzo').value.trim():'';
-  const telefono=auth.role==='manager'?$('#ar-telefono').value.trim():'';
-  if(!nome||!cognome||!email||!pass||!pass2||!club||!city||!provincia||(auth.role==='manager'&&(!indirizzo||!telefono))){
+  const telefono=$('#ar-telefono')?.value.trim()||'';
+  if(!nome||!cognome||!email||!pass||!pass2||!club||!city||!provincia||!telefono||(auth.role==='manager'&&!indirizzo)){
     auth.err='Compila tutti i campi'; renderAuth(); return; }
   if(!$('#ar-age')?.checked){ auth.err='Devi dichiarare di avere almeno 18 anni'; renderAuth(); return; }
   if(!$('#ar-termini')?.checked){ auth.err='Devi accettare i Termini d\'uso'; renderAuth(); return; }
@@ -1797,6 +1873,9 @@ function viewAuth(){
       <div><label class="auth-label">Provincia</label>
         <input id="ar-provincia" type="text" class="auth-input" placeholder="NA" maxlength="3"></div>
     </div>
+    ${auth.role==='player'?`
+    <div class="auth-field" style="margin-top:15px"><label class="auth-label">Telefono</label>
+      <input id="ar-telefono" type="tel" class="auth-input" placeholder="+39 333 1234567" autocomplete="tel"></div>`:''}
     ${auth.role==='manager'?`
     <div class="auth-field"><label class="auth-label">Indirizzo circolo</label>
       <input id="ar-indirizzo" type="text" class="auth-input" placeholder="Via Roma 1, Napoli" autocomplete="street-address"></div>
@@ -1873,8 +1952,82 @@ async function initAuth(){
 }
 initAuth();
 
+// Ricarica i dati quando la PWA torna in primo piano (riapertura da background).
+// Senza questo, inviti/notifiche restano fermi allo stato del primo avvio.
+let lastRefresh = Date.now();
+async function refreshData(){
+  if(!ME) return;
+  await loadPlayers();
+  await Promise.all([loadMatches(), loadNotifications(), loadMyInvites()]);
+  if(auth.user?.role==='manager'){ await Promise.all([loadClubMatches(), loadPendingPlayers()]); }
+  render();
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState!=='visible' || !ME) return;
+  if(Date.now()-lastRefresh < 2000) return; // evita refetch ravvicinati
+  lastRefresh = Date.now();
+  refreshData();
+});
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
+}
+
+/* ============ WEB PUSH ============ */
+const VAPID_PUBLIC_KEY = 'BOwAOhYnrXREYKwCn1oH7kIUsWiYMr5kmIVJ8-UTxyE-jCKU91Xr56gCKK8-p1oZfB4bf3ZIB0ethxVvKUyCC9M';
+
+function urlB64ToUint8Array(b64){
+  const pad='='.repeat((4-b64.length%4)%4);
+  const base=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(base);
+  const arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+
+function pushSupported(){
+  return 'serviceWorker' in navigator && 'PushManager' in window && typeof Notification!=='undefined';
+}
+
+// Salva/aggiorna la subscription del dispositivo corrente per l'utente loggato.
+async function saveSubscription(sub){
+  return sb.from('pm_push_subscriptions')
+    .upsert({user_id:ME,endpoint:sub.endpoint,subscription:sub.toJSON()},{onConflict:'endpoint'});
+}
+
+// Chiamata dal bottone "Attiva notifiche": chiede permesso e crea la subscription.
+async function enablePush(){
+  if(!pushSupported()){ alert('Le notifiche non sono supportate da questo browser. Su iPhone installa prima l\'app sulla schermata Home (Safari → Condividi → Aggiungi a schermata Home).'); return; }
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){ alert('Permesso notifiche negato. Puoi abilitarle dalle impostazioni del browser.'); return; }
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8Array(VAPID_PUBLIC_KEY)});
+    const {error}=await saveSubscription(sub);
+    if(error){ alert('Errore salvataggio notifiche: '+error.message); return; }
+    pushEnabled=true; render();
+    alert('Notifiche attivate! 🎾 Riceverai un avviso quando ti invitano a una partita.');
+  }catch(e){ alert('Errore attivazione notifiche: '+e.message); }
+}
+
+// Aggiorna silenziosamente la subscription al login se il permesso è già concesso.
+async function syncPushSubscription(){
+  if(!ME || !pushSupported() || Notification.permission!=='granted') return;
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8Array(VAPID_PUBLIC_KEY)});
+    await saveSubscription(sub);
+    pushEnabled=true;
+  }catch(_){}
+}
+
+// Invia una notifica push (fire-and-forget) tramite la Edge Function.
+function sendPush(userIds, title, body, url){
+  const ids=(userIds||[]).filter(Boolean);
+  if(!ids.length) return;
+  sb.functions.invoke('send-push',{body:{user_ids:ids,title,body,url:url||'/'}}).catch(()=>{});
 }
 function dismissCookie(){
   localStorage.setItem('pm_cookie_ok','1');

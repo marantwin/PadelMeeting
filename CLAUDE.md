@@ -196,7 +196,12 @@ The manager can suspend the inactivity counter (e.g. for injury); it restarts fr
 - `overview.html` — A4 print-friendly feature guide; standalone
 - `regolamento.html` — Full official ruleset; standalone
 - `termini.pdf` — Terms of use; includes 60-day free trial clause and €49.97/month subscription after trial
-- `sw.js` — Service worker with cache-first strategy; current version `padelmeeting-v26`; precaches `index.html` + icons
+- `sw.js` — Service worker, current version `padelmeeting-v51`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
+  - **Supabase requests (`hostname.includes('supabase')`): network-only, never cached.** Critical — caching them serves stale invites/notifications/matches. This was the root cause of "stale data on reopen" bugs.
+  - **Navigation (`request.mode === 'navigate'`, i.e. `index.html`): network-first**, falls back to cache offline — keeps app code fresh when online.
+  - **Google Fonts: network-first**, cache fallback.
+  - **Other same-origin assets (icons, `supabase.js`, manifest): cache-first.**
+  - Note: the running page is still controlled by the previously-active SW; a new SW version takes over only after a full close + reopen (sometimes twice).
 - `manifest.json` — PWA manifest; icons use `"purpose": "any"` (not maskable) to avoid Android adaptive cropping
 - `icons/` — PWA icons: `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` — all generated from `icona_PM.png`
 
