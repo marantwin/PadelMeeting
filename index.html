@@ -412,6 +412,8 @@ const me = ()=>players.find(p=>p.id===ME);
 const pName = id => (players.find(p=>p.id===id)||{}).name || '—';
 const ranked = ()=>[...players].sort((a,b)=>b.rating-a.rating);
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// Data odierna in formato YYYY-MM-DD secondo il fuso locale (per il min dei campi date)
+const todayLocal = ()=>{ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().split('T')[0]; };
 
 const dynK = games => 3.6;
 function teamAvg(ids){return ids.reduce((s,id)=>s+((players.find(p=>p.id===id)||{}).rating||0),0)/ids.length}
@@ -1205,8 +1207,9 @@ function viewOrganize(){
     </option>`).join('');
 
   const t1=[ME,org.partner], t2=[org.opp1,org.opp2];
-  const valid = [...t1,...t2].every(Boolean)&&new Set([...t1,...t2]).size===4;
-  const calc  = valid ? computeMatch(t1,t2,'classic',1) : null;
+  const playersOk = [...t1,...t2].every(Boolean)&&new Set([...t1,...t2]).size===4;
+  const valid = playersOk && !!org.date && !!org.time;
+  const calc  = playersOk ? computeMatch(t1,t2,'classic',1) : null;
 
   let preview='';
   if(calc){
@@ -1256,7 +1259,7 @@ function viewOrganize(){
     <div class="card rise">
       <div style="font-size:11px;letter-spacing:.16em;font-family:var(--mono);color:var(--ivoryFaint);text-transform:uppercase;margin-bottom:10px">Quando</div>
       <div class="org-row">
-        <input type="date" class="org-date" value="${org.date}" onchange="org.date=this.value;render()">
+        <input type="date" class="org-date" value="${org.date}" min="${todayLocal()}" onchange="org.date=this.value;render()">
         <input type="time" class="org-time" value="${org.time}" onchange="org.time=this.value;render()">
       </div>
     </div>
@@ -1304,6 +1307,11 @@ function viewOrganize(){
 function resetOrg(){org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};render()}
 async function sendOrg(){
   if(![ME,org.partner,org.opp1,org.opp2].every(Boolean)||new Set([ME,org.partner,org.opp1,org.opp2]).size!==4) return;
+  // Data e ora obbligatorie
+  if(!org.date||!org.time){ alert('Inserisci data e ora della partita.'); return; }
+  // Data e ora non possono essere nel passato
+  const quando=new Date(org.date+'T'+org.time);
+  if(quando.getTime()<Date.now()){ alert('La data e l\'ora della partita non possono essere nel passato.'); return; }
   const M=me();
   const nome=M?M.name:'Qualcuno';
   const dataStr=org.date||'data da definire';
