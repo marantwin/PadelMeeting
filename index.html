@@ -1342,6 +1342,10 @@ const NAV_MANAGER=[['home','Home','◈'],['circolo','Circolo','🏟️'],['play'
 function renderNav(){
   const nav=auth.user&&auth.user.role==='manager'?NAV_MANAGER:NAV_PLAYER;
   const unread=notifications.filter(n=>!n.read).length;
+  // Sincronizza il badge sull'icona dell'app col numero di notifiche non lette
+  if(navigator.setAppBadge){
+    try{ unread>0 ? navigator.setAppBadge(unread) : navigator.clearAppBadge(); }catch(_){}
+  }
   $('#nav').innerHTML=nav.map(([k,l,ic])=>{
     const active=tab===k;
     const badge=k==='home'&&unread>0?`<span class="notif-badge">${unread}</span>`:'';
@@ -1976,7 +1980,22 @@ document.addEventListener('visibilitychange', () => {
 });
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
+  // Aggiornamento automatico: quando un nuovo service worker prende il controllo
+  // (nuova versione deployata), ricarica la pagina per avere codice e cache freschi.
+  let swRefreshing = false;
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (swRefreshing || !hadController) return; // non ricaricare alla primissima installazione
+    swRefreshing = true;
+    window.location.reload();
+  });
+  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(reg => {
+    reg.update(); // controlla subito se c'è una versione nuova
+    // ricontrolla ogni volta che l'app torna in primo piano
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update();
+    });
+  }).catch(() => {});
 }
 
 /* ============ WEB PUSH ============ */

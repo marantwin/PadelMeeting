@@ -1,4 +1,4 @@
-const CACHE = 'padelmeeting-v59';
+const CACHE = 'padelmeeting-v61';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -38,6 +38,11 @@ self.addEventListener('push', e => {
     tag: data.tag || 'pm-notif',
     renotify: true,
   };
+  // Mostra il pallino sull'icona dell'app (anche ad app chiusa).
+  // Il numero esatto verrà sincronizzato dall'app alla prossima apertura.
+  if (self.navigator && self.navigator.setAppBadge) {
+    try { self.navigator.setAppBadge(); } catch (_) {}
+  }
   e.waitUntil(self.registration.showNotification(title, options));
 });
 
