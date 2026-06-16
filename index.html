@@ -707,12 +707,10 @@ function viewMatches(){
       <div class="mfoot">${foot}</div></div>`;
   }).join('');
   const activeInvites=myInvites.filter(inv=>{
+    // Nascondi solo quando tutti e 3 gli invitati hanno risposto (accettato o declinato).
+    // L'organizzatore può comunque rimuoverlo a mano con "Annulla invito".
     if(inv.players.length>=3&&inv.players.every(p=>p.response)) return false;
-    const invSet=new Set([ME,inv.partner,inv.opp1,inv.opp2].filter(Boolean));
-    return !matches.some(m=>{
-      const mSet=new Set([...m.t1,...m.t2]);
-      return [...invSet].every(id=>mSet.has(id));
-    });
+    return true;
   });
   const inviteCards=activeInvites.map(inv=>{
     const allAccepted=inv.players.length===3&&inv.players.every(s=>s.response==='accepted');

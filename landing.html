@@ -95,16 +95,25 @@ section{position:relative;z-index:1;padding:110px 24px}
 .join-card{background:linear-gradient(135deg,rgba(14,39,35,.95),rgba(4,16,14,.98));border:1px solid rgba(91,240,203,.25);border-radius:24px;padding:72px 48px;max-width:660px;margin:0 auto;box-shadow:0 0 80px rgba(91,240,203,.07),0 0 160px rgba(255,62,255,.04);opacity:0;transform:translateY(28px);transition:.7s}
 .join-card.visible{opacity:1;transform:translateY(0)}
 .join-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(22px,4vw,38px);letter-spacing:-.01em;margin-bottom:18px;line-height:1.15}
-.join-sub{color:var(--dim);font-size:14px;margin-bottom:36px;line-height:1.7}
-.install-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}
-.btn-install{display:flex;align-items:center;gap:10px;padding:14px 26px;border-radius:12px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:.25s;border:none;text-decoration:none;white-space:nowrap}
-.btn-android{background:var(--neon);color:#04100E;box-shadow:0 0 30px rgba(91,240,203,.35)}
-.btn-android:hover{box-shadow:0 0 55px rgba(91,240,203,.65);transform:translateY(-2px)}
+.join-sub{color:var(--dim);font-size:14px;margin-bottom:30px;line-height:1.7}
+/* Riquadro download evidenziato */
+.download-box{position:relative;max-width:520px;margin:0 auto 26px;padding:30px 26px 28px;border-radius:22px;
+  background:linear-gradient(150deg,rgba(91,240,203,.12),rgba(0,207,255,.06));
+  border:1.5px solid rgba(91,240,203,.4);
+  box-shadow:0 0 60px rgba(91,240,203,.14),inset 0 0 36px rgba(91,240,203,.05)}
+.download-box-label{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--neon);text-shadow:0 0 16px rgba(91,240,203,.6),0 0 32px rgba(91,240,203,.25);margin-bottom:22px;display:flex;align-items:center;justify-content:center;gap:10px}
+.download-box-label span{font-size:20px}
+.install-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.btn-install{flex:1;min-width:175px;display:flex;align-items:center;justify-content:center;gap:9px;padding:17px 18px;border-radius:14px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;transition:.25s;border:none;text-decoration:none;white-space:nowrap}
+.btn-android{background:var(--neon);color:#04100E;box-shadow:0 0 32px rgba(91,240,203,.45)}
+.btn-android:hover{box-shadow:0 0 60px rgba(91,240,203,.7);transform:translateY(-2px)}
 .btn-android:disabled{opacity:.45;cursor:default;transform:none;box-shadow:none}
-.btn-ios{background:transparent;border:1.5px solid rgba(0,207,255,.4);color:var(--blue)}
-.btn-ios:hover{border-color:var(--blue);box-shadow:0 0 24px rgba(0,207,255,.2);transform:translateY(-2px)}
-.ios-tip{margin:0 auto 28px;max-width:360px;background:rgba(0,207,255,.07);border:1px solid rgba(0,207,255,.2);border-radius:14px;padding:20px 24px;text-align:left;font-size:13px;line-height:1.85;color:var(--ivory);display:none}
+.btn-ios{background:var(--blue);color:#04100E;box-shadow:0 0 32px rgba(0,207,255,.4)}
+.btn-ios:hover{box-shadow:0 0 60px rgba(0,207,255,.65);transform:translateY(-2px)}
+.ios-tip{margin:18px auto 0;max-width:380px;background:rgba(0,207,255,.08);border:1px solid rgba(0,207,255,.22);border-radius:14px;padding:18px 22px;text-align:left;font-size:13px;line-height:1.85;color:var(--ivory);display:none}
 .ios-tip strong{color:var(--blue)}
+.join-enter{display:inline-block;padding:13px 32px;border:1.5px solid var(--neon);border-radius:10px;color:var(--neon);font-family:'Orbitron',sans-serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:.25s}
+.join-enter:hover{box-shadow:0 0 20px rgba(91,240,203,.35);background:rgba(91,240,203,.08)}
 
 /* ─── FOOTER ─── */
 footer{position:relative;z-index:1;padding:36px;border-top:1px solid rgba(91,240,203,.09);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
@@ -227,25 +236,28 @@ footer{position:relative;z-index:1;padding:36px;border-top:1px solid rgba(91,240
   <div class="container">
     <div class="join-card">
       <h2 class="join-title">TU E IL TUO CIRCOLO<br>MERITATE UNA CLASSIFICA.</h2>
-      <p class="join-sub">Scarica l'app sul cellulare — nessun App Store necessario.</p>
-      <div class="install-btns">
-        <button class="btn-install btn-android" id="btn-android" style="display:none" onclick="installAndroid()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.714.714 0 0 1-.712.712.714.714 0 0 1-.712-.712V9.875a.714.714 0 0 1 .712-.712.714.714 0 0 1 .712.712zm-9.334 0a.714.714 0 0 1-.712.712.714.714 0 0 1-.712-.712V9.875a.714.714 0 0 1 .712-.712.714.714 0 0 1 .712.712zM6.825 7.5l-1.05-1.928a.179.179 0 0 0-.243-.066.179.179 0 0 0-.066.243l1.066 1.957A7.21 7.21 0 0 0 3.5 13.5h17a7.21 7.21 0 0 0-3.032-5.794l1.066-1.957a.179.179 0 0 0-.066-.243.179.179 0 0 0-.243.066L17.175 7.5A7.17 7.17 0 0 0 12 6a7.17 7.17 0 0 0-5.175 1.5zm3.55-1.537a.536.536 0 1 1 1.073 0 .536.536 0 0 1-1.073 0zm4.25 0a.536.536 0 1 1 1.073 0 .536.536 0 0 1-1.073 0z"/></svg>
-          Installa su Android (Chrome)
-        </button>
-        <button class="btn-install btn-ios" id="btn-ios" onclick="toggleIosTip()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-          Installa su iPhone
-        </button>
+      <p class="join-sub">Installa l'app sul cellulare. Nessun App Store necessario.</p>
+      <div class="download-box">
+        <div class="download-box-label"><span>📲</span> Scarica l'app</div>
+        <div class="install-btns">
+          <button class="btn-install btn-android" id="btn-android" onclick="installAndroid()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.714.714 0 0 1-.712.712.714.714 0 0 1-.712-.712V9.875a.714.714 0 0 1 .712-.712.714.714 0 0 1 .712.712zm-9.334 0a.714.714 0 0 1-.712.712.714.714 0 0 1-.712-.712V9.875a.714.714 0 0 1 .712-.712.714.714 0 0 1 .712.712zM6.825 7.5l-1.05-1.928a.179.179 0 0 0-.243-.066.179.179 0 0 0-.066.243l1.066 1.957A7.21 7.21 0 0 0 3.5 13.5h17a7.21 7.21 0 0 0-3.032-5.794l1.066-1.957a.179.179 0 0 0-.066-.243.179.179 0 0 0-.243.066L17.175 7.5A7.17 7.17 0 0 0 12 6a7.17 7.17 0 0 0-5.175 1.5zm3.55-1.537a.536.536 0 1 1 1.073 0 .536.536 0 0 1-1.073 0zm4.25 0a.536.536 0 1 1 1.073 0 .536.536 0 0 1-1.073 0z"/></svg>
+            Android (Chrome)
+          </button>
+          <button class="btn-install btn-ios" id="btn-ios" onclick="toggleIosTip()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            iPhone (Safari)
+          </button>
+        </div>
+        <div id="android-note" style="font-size:11px;color:var(--dim);margin:14px 0 0;display:none">Se il bottone non appare, apri questa pagina con <strong style="color:var(--ivory)">Chrome</strong></div>
+        <div class="ios-tip" id="ios-tip">
+          1. Apri questa pagina con <strong>Safari</strong><br>
+          2. Tocca il tasto <strong>Condividi</strong> (□↑) in basso<br>
+          3. Scorri e tocca <strong>"Aggiungi a schermata Home"</strong><br>
+          4. Tocca <strong>Aggiungi</strong> in alto a destra
+        </div>
       </div>
-      <div id="android-note" style="font-size:11px;color:var(--dim);margin:-18px 0 20px;display:none">Se il bottone non appare, apri questa pagina con <strong style="color:var(--ivory)">Chrome</strong></div>
-      <div class="ios-tip" id="ios-tip">
-        1. Apri questa pagina con <strong>Safari</strong><br>
-        2. Tocca il tasto <strong>Condividi</strong> (□↑) in basso<br>
-        3. Scorri e tocca <strong>"Aggiungi a schermata Home"</strong><br>
-        4. Tocca <strong>Aggiungi</strong> in alto a destra
-      </div>
-      <a href="https://padelmeeting.superidea.it" class="btn-primary">Entra in PadelMeeting →</a>
+      <a href="https://padelmeeting.superidea.it" class="join-enter">Ho già l'app · Entra →</a>
     </div>
   </div>
 </section>
@@ -492,12 +504,14 @@ window.addEventListener('scroll', () => {
 });
 
 // ─── PWA INSTALL ───
+// Entrambi i bottoni sono SEMPRE visibili (stessa resa su PC e mobile).
+// Android: se il browser supporta l'installazione automatica (Chrome) la lancia,
+// altrimenti mostra le istruzioni per aprire con Chrome.
 let deferredPrompt = null;
 
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
-  document.getElementById('btn-android').style.display = 'flex';
 });
 
 window.addEventListener('appinstalled', () => {
@@ -505,18 +519,23 @@ window.addEventListener('appinstalled', () => {
   btn.textContent = '✓ Installata!';
   btn.disabled = true;
   deferredPrompt = null;
+  document.getElementById('android-note').style.display = 'none';
 });
 
 async function installAndroid() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  if (outcome === 'accepted') {
-    const btn = document.getElementById('btn-android');
-    btn.textContent = '✓ Installata!';
-    btn.disabled = true;
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (outcome === 'accepted') {
+      const btn = document.getElementById('btn-android');
+      btn.textContent = '✓ Installata!';
+      btn.disabled = true;
+    }
+    return;
   }
+  // Nessuna installazione automatica disponibile: mostra le istruzioni
+  document.getElementById('android-note').style.display = 'block';
 }
 
 function toggleIosTip() {
@@ -524,25 +543,12 @@ function toggleIosTip() {
   tip.style.display = tip.style.display === 'block' ? 'none' : 'block';
 }
 
-// Su iOS mostra sempre il bottone iPhone; su Android aspetta beforeinstallprompt
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const isAndroid = /Android/.test(navigator.userAgent);
+// Se l'app è già installata (aperta come PWA), nascondi i bottoni di download
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-if (isIOS && !isStandalone) {
-  document.getElementById('ios-tip').style.display = 'block';
-}
-if (isAndroid && !isStandalone) {
-  // mostra la nota "usa Chrome" dopo 3s se beforeinstallprompt non è ancora scattato
-  setTimeout(() => {
-    if (!deferredPrompt && document.getElementById('btn-android').style.display === 'none') {
-      document.getElementById('android-note').style.display = 'block';
-    }
-  }, 3000);
-}
 if (isStandalone) {
-  // già installata, nascondi entrambi i bottoni
   document.getElementById('btn-android').style.display = 'none';
   document.getElementById('btn-ios').style.display = 'none';
+  document.querySelector('.download-box-label').textContent = '✓ App installata';
 }
 </script>
 </body>
