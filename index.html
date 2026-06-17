@@ -708,40 +708,42 @@ function viewMatches(){
       <div class="mgrid">${side(m.t1,m.winner===1,'left')}<div class="mscore">${m.score}</div>${side(m.t2,m.winner===2,'right')}</div>
       <div class="mfoot">${foot}</div></div>`;
   }).join('');
-  const activeInvites=myInvites.filter(inv=>{
-    // Nascondi solo quando tutti e 3 gli invitati hanno risposto (accettato o declinato).
-    // L'organizzatore può comunque rimuoverlo a mano con "Annulla invito".
-    if(inv.players.length>=3&&inv.players.every(p=>p.response)) return false;
-    return true;
-  });
-  const inviteCards=activeInvites.map(inv=>{
-    const allAccepted=inv.players.length===3&&inv.players.every(s=>s.response==='accepted');
+  const inviteCards=myInvites.map(inv=>{
+    const amOrganizer=inv.organizer===ME;
+    const allAccepted=inv.players.length>=3&&inv.players.every(s=>s.response==='accepted');
     const anyDeclined=inv.players.some(s=>s.response==='declined');
     const venue=inv.venue||'';
     const rows=inv.players.map(s=>{
+      const mine=s.user_id===ME;
       const icon=s.response==='accepted'?'✅':s.response==='declined'?'❌':'⏳';
       const color=s.response==='accepted'?'var(--neon)':s.response==='declined'?'var(--danger)':'var(--ivoryFaint)';
       const label=s.response==='accepted'?'Accettato':s.response==='declined'?'Declinato':'In attesa';
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--lineSoft)">
-        <div style="font-size:14px;font-weight:500">${esc(s.name)}</div>
+        <div style="font-size:14px;font-weight:${mine?700:500}">${esc(s.name)}${mine?' <span style="font-size:10px;color:var(--ivoryFaint)">(tu)</span>':''}</div>
         <div style="font-size:12px;color:${color};font-family:var(--mono)">${icon} ${label}</div>
       </div>`;
     }).join('');
-    const summary=allAccepted?`<div style="margin-top:10px;font-size:13px;color:var(--neon);font-weight:700">🎾 Tutti hanno accettato!</div>`
-      :anyDeclined?`<div style="margin-top:10px;font-size:13px;color:var(--danger)">⚠ Un giocatore ha declinato.</div>`:'';
+    const outcome=allAccepted
+      ? `<div style="margin-top:10px;font-size:13px;color:var(--neon);font-weight:700">🎾 Partita organizzata</div>`
+      : anyDeclined
+        ? `<div style="margin-top:10px;font-size:13px;color:var(--danger);font-weight:600">Partita non organizzata</div>`
+        : `<div style="margin-top:10px;font-size:13px;color:var(--ivoryFaint)">In attesa di risposta</div>`;
+    const keyArg=`'${encodeURIComponent(inv.key)}'`;
     const cancelArg=inv.invite_id?`'${inv.invite_id}'`:`null,'${encodeURIComponent(inv.date||'')}','${encodeURIComponent(inv.time||'')}'`;
+    const headLabel=amOrganizer?'Hai organizzato':`Invito da ${esc(pName(inv.organizer))}`;
     return `<div class="card" style="margin-bottom:12px">
       <div class="mhead">
-        <span style="font-size:11px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;text-transform:uppercase">Invito</span>
+        <span style="font-size:11px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;text-transform:uppercase">${headLabel}</span>
         <span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${inv.date||'—'} · ${inv.time||'—'}${venue?' · '+esc(venue):''}</span>
       </div>
-      ${rows}${summary}
-      <div style="margin-top:12px;text-align:right">
-        <button class="btnGhostSm" onclick="cancelInvite(${cancelArg})">Annulla invito</button>
+      ${rows}${outcome}
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btnGhostSm" onclick="hideInvite(${keyArg})">Rimuovi dalla lista</button>
+        ${amOrganizer?`<button class="btnGhostSm" onclick="cancelInvite(${cancelArg})">Cancella partita</button>`:''}
       </div>
     </div>`;
   }).join('');
-  const orgSection=activeInvites.length?`${stag('In organizzazione')}${inviteCards}`:'';
+  const orgSection=myInvites.length?`${stag('Inviti partita')}${inviteCards}`:'';
   return `<div class="page">${orgSection}${stag('Le mie partite')}${cards||`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:24px 0">Nessuna partita ancora.</div>`}</div>`;
 }
 async function actMatch(id,status){
@@ -1469,6 +1471,7 @@ async function loadClubMatches(){
 }
 
 async function cancelInvite(inviteId, date, time){
+  if(!confirm('Cancellare definitivamente questa partita per tutti i giocatori?')) return;
   let q=sb.from('pm_notifications').delete().eq('type','match_invite').filter('data->>organizer','eq',ME);
   if(inviteId) q=q.filter('data->>invite_id','eq',inviteId);
   else q=q.filter('data->>date','eq',decodeURIComponent(date)).filter('data->>time','eq',decodeURIComponent(time));
@@ -1478,23 +1481,57 @@ async function cancelInvite(inviteId, date, time){
   render();
 }
 
+// Inviti "nascosti dalla propria vista": effetto solo locale (questo dispositivo),
+// non tocca il database né la vista degli altri giocatori.
+function getHiddenInvites(){
+  try{ return JSON.parse(localStorage.getItem('pm_hidden_invites')||'[]'); }catch(_){ return []; }
+}
+function hideInvite(key){
+  key=decodeURIComponent(key);
+  const h=getHiddenInvites();
+  if(!h.includes(key)){ h.push(key); localStorage.setItem('pm_hidden_invites',JSON.stringify(h)); }
+  myInvites=myInvites.filter(inv=>inv.key!==key);
+  render();
+}
+
 async function loadMyInvites(){
   if(!ME) return;
-  const {data}=await sb.from('pm_notifications')
-    .select('user_id,data,created_at')
-    .eq('type','match_invite')
-    .filter('data->>organizer','eq',ME)
-    .order('created_at',{ascending:false});
-  if(!data){myInvites=[];return;}
+  // Carico sia gli inviti che HO ORGANIZZATO (tutte le righe dei 3 invitati),
+  // sia quelli che HO RICEVUTO io (la mia riga).
+  const [orgRes, recRes] = await Promise.all([
+    sb.from('pm_notifications').select('user_id,data,created_at')
+      .eq('type','match_invite').filter('data->>organizer','eq',ME).order('created_at',{ascending:false}),
+    sb.from('pm_notifications').select('user_id,data,created_at')
+      .eq('type','match_invite').eq('user_id',ME).order('created_at',{ascending:false}),
+  ]);
+  const orgRows=orgRes.data||[];
+  const recRows=recRes.data||[];
+  const keyOf=n=>n.data?.invite_id||((n.data?.date||'')+'|'+(n.data?.time||''));
+  // Per gli inviti RICEVUTI (non organizzati da me) recupero le righe degli altri invitati,
+  // così posso mostrare lo stato completo (chi ha accettato/declinato).
+  const organizedKeys=new Set(orgRows.map(keyOf));
+  const receivedIds=[...new Set(recRows
+    .filter(n=>n.data?.organizer!==ME && n.data?.invite_id && !organizedKeys.has(keyOf(n)))
+    .map(n=>n.data.invite_id))];
+  let sibRows=[];
+  if(receivedIds.length){
+    const {data:sib}=await sb.from('pm_notifications').select('user_id,data,created_at')
+      .eq('type','match_invite').filter('data->>invite_id','in',`(${receivedIds.join(',')})`);
+    sibRows=sib||[];
+  }
+  const hidden=new Set(getHiddenInvites());
   const groups={};
-  data.forEach(n=>{
-    const key=n.data?.invite_id||(n.data?.date||'')+'|'+(n.data?.time||'');
-    if(!groups[key]) groups[key]={invite_id:n.data?.invite_id||null,date:n.data?.date,time:n.data?.time,venue:n.data?.venue,
+  [...orgRows,...recRows,...sibRows].forEach(n=>{
+    const key=keyOf(n);
+    if(!groups[key]) groups[key]={key,invite_id:n.data?.invite_id||null,organizer:n.data?.organizer||null,
+      date:n.data?.date,time:n.data?.time,venue:n.data?.venue,
       partner:n.data?.partner,opp1:n.data?.opp1,opp2:n.data?.opp2,created_at:n.created_at,players:[]};
     if(!groups[key].players.some(p=>p.user_id===n.user_id))
       groups[key].players.push({user_id:n.user_id,name:pName(n.user_id),response:n.data?.response||null});
   });
-  myInvites=Object.values(groups).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  myInvites=Object.values(groups)
+    .filter(g=>!hidden.has(g.key))
+    .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
 }
 
 async function loadNotifications(){
