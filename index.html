@@ -707,20 +707,36 @@ function viewMatches(){
     const side=(ids,win,align)=>`<div class="mside" style="text-align:${align}">
       ${ids.map(id=>`<div class="pl" style="color:${win?C.neon:C.ivory};font-weight:${win?700:500}">${esc(pName(id).replace(' (Demo)',''))}</div>`).join('')}
       ${win?`<div style="font-size:9px;color:${C.gold};font-family:var(--mono);letter-spacing:.1em;margin-top:2px">★ VITTORIA</div>`:''}</div>`;
+    // Box di stato visibile a tutti i giocatori: spiega a che punto è la doppia
+    // validazione e cosa manca prima che la classifica si muova.
+    const statusBox=(border,bg,col,txt)=>`<div style="margin-top:8px;padding:9px 11px;border:1px solid ${border};background:${bg};border-radius:9px;font-size:12px;line-height:1.5;color:${col}">${txt}</div>`;
     let foot='';
     if(m.status==='pending'){
       foot=pill('In attesa responsabile','gold');
       if(m.mover===ME) foot+=`<span style="font-size:11px;color:var(--ivoryFaint);font-style:italic;margin-left:6px">Inviata da te</span>`;
+      foot+=statusBox('var(--gold)','rgba(239,208,106,.07)','var(--gold)','⏳ <b>Passo 1 di 2</b> — In attesa di approvazione del responsabile del circolo. La classifica si muove dopo approvazione del responsabile e validazione di un avversario.');
     } else if(m.status==='manager_approved'){
       const submitterOnT1=m.t1.includes(m.mover);
       const iCanValidate=submitterOnT1?m.t2.includes(ME):m.t1.includes(ME);
       foot=pill('Approvata dal responsabile','gold');
-      if(iCanValidate) foot+=`<div style="display:flex;gap:8px;margin-top:8px">
+      if(iCanValidate){
+        foot+=statusBox('var(--neon)','rgba(91,240,203,.07)','var(--neon)','✓ <b>Passo 2 di 2</b> — Il responsabile ha approvato. Valida il punteggio per aggiornare la classifica, oppure contestalo se è sbagliato.');
+        foot+=`<div style="display:flex;gap:8px;margin-top:8px">
         <button class="btnGhostSm" onclick="actMatch('${m.id}','disputed')">✗ Contesta</button>
         <button class="btnSolidSm" onclick="actMatch('${m.id}','approved')">✓ Valida punteggio</button></div>`;
-      else foot+=`<span style="font-size:11px;color:var(--ivoryFaint);font-style:italic;margin-left:6px">In attesa validazione avversari</span>`;
-    } else if(m.status==='approved') foot=pill('✓ Approvata','neon');
-    else if(m.status==='disputed') foot=pill('Contestata','danger');
+      } else {
+        foot+=statusBox('var(--gold)','rgba(239,208,106,.07)','var(--gold)','⏳ <b>Passo 2 di 2</b> — Approvata dal responsabile. In attesa che un avversario validi il punteggio: solo allora la classifica si aggiorna.');
+      }
+    } else if(m.status==='approved'){
+      foot=pill('✓ Approvata','neon');
+      foot+=statusBox('var(--neon)','rgba(91,240,203,.07)','var(--neon)','✅ Partita approvata e validata — classifica aggiornata.');
+    } else if(m.status==='disputed'){
+      foot=pill('Contestata','danger');
+      foot+=statusBox('var(--danger)','rgba(240,106,128,.07)','var(--danger)','⚠ Punteggio contestato. Deciderà il responsabile del circolo; la classifica resta ferma fino alla decisione.');
+    } else if(m.status==='rejected'){
+      foot=pill('Rifiutata','danger');
+      foot+=statusBox('var(--danger)','rgba(240,106,128,.07)','var(--danger)','❌ Partita rifiutata dal responsabile del circolo — non conteggiata in classifica.');
+    }
     return `<div class="card" style="margin-bottom:12px">
       <div class="mhead">${pill(m.format,m.format==='Classica'?'neon':'ghost')}<span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${m.when}</span></div>
       <div class="mgrid">${side(m.t1,m.winner===1,'left')}<div class="mscore">${m.score}</div>${side(m.t2,m.winner===2,'right')}</div>
