@@ -24,6 +24,7 @@
   --blue:#00CFFF;
   --rust:#E07B4A;
   --gold:#EFD06A;
+  --lime:#C6FF3D;
   --ivory:#F7F0DC;
   --dim:rgba(247,240,220,.58);
 }
@@ -46,7 +47,9 @@ nav.solid{background:rgba(4,16,14,.96);backdrop-filter:blur(12px);border-bottom:
 .hero-title .line2{color:var(--neon);text-shadow:0 0 40px rgba(91,240,203,.6),0 0 80px rgba(91,240,203,.2)}
 .hero-title .line3{background:linear-gradient(90deg,var(--mag),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hero-sub{font-size:clamp(14px,2vw,17px);color:var(--ivory);max-width:480px;line-height:1.7;margin-bottom:46px;animation:fadeUp .7s .24s ease both}
-.hero-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;animation:fadeUp .7s .36s ease both}
+.hero-btns{display:flex;flex-direction:column;gap:14px;align-items:center;animation:fadeUp .7s .36s ease both}
+.btn-discover{margin-top:34px;padding:13px 34px;border:1.5px solid var(--lime);border-radius:8px;color:var(--lime);background:transparent;font-family:'Orbitron',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;text-decoration:none;text-transform:uppercase;transition:.25s;text-shadow:0 0 12px rgba(198,255,61,.55);box-shadow:0 0 18px rgba(198,255,61,.18)}
+.btn-discover:hover{background:rgba(198,255,61,.10);box-shadow:0 0 32px rgba(198,255,61,.45);transform:translateY(-2px)}
 .btn-primary{padding:15px 38px;background:var(--neon);color:#04100E;border-radius:8px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;text-decoration:none;text-transform:uppercase;transition:.25s;box-shadow:0 0 36px rgba(91,240,203,.5)}
 .btn-primary:hover{box-shadow:0 0 60px rgba(91,240,203,.75);transform:translateY(-2px)}
 .btn-ghost{padding:15px 38px;border:1.5px solid rgba(91,240,203,.3);border-radius:8px;color:var(--ivory);font-family:'Orbitron',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;text-decoration:none;text-transform:uppercase;transition:.25s}
@@ -151,9 +154,30 @@ footer{position:relative;z-index:1;padding:36px;border-top:1px solid rgba(91,240
     <span class="line2">VINCI.</span><br>
     <span class="line3">SCALA LA CLASSIFICA.</span>
   </h1>
+  <p class="hero-sub">Installa l'app sul cellulare in 10 secondi. Nessun App Store necessario.</p>
+  <div class="download-box">
+    <div class="download-box-label"><span>📲</span> Scarica l'app</div>
+    <div class="install-btns">
+      <button class="btn-install btn-android" id="btn-android" onclick="installAndroid()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.714.714 0 0 1-.712.712.714.714 0 0 1-.712-.712V9.875a.714.714 0 0 1 .712-.712.714.714 0 0 1 .712.712zm-9.334 0a.714.714 0 0 1-.712.712.714.714 0 0 1-.712-.712V9.875a.714.714 0 0 1 .712-.712.714.714 0 0 1 .712.712zM6.825 7.5l-1.05-1.928a.179.179 0 0 0-.243-.066.179.179 0 0 0-.066.243l1.066 1.957A7.21 7.21 0 0 0 3.5 13.5h17a7.21 7.21 0 0 0-3.032-5.794l1.066-1.957a.179.179 0 0 0-.066-.243.179.179 0 0 0-.243.066L17.175 7.5A7.17 7.17 0 0 0 12 6a7.17 7.17 0 0 0-5.175 1.5zm3.55-1.537a.536.536 0 1 1 1.073 0 .536.536 0 0 1-1.073 0zm4.25 0a.536.536 0 1 1 1.073 0 .536.536 0 0 1-1.073 0z"/></svg>
+        Android (Chrome)
+      </button>
+      <button class="btn-install btn-ios" id="btn-ios" onclick="toggleIosTip()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        iPhone (Safari)
+      </button>
+    </div>
+    <div id="android-note" style="font-size:11px;color:var(--dim);margin:14px 0 0;display:none">Se il bottone non appare, apri questa pagina con <strong style="color:var(--ivory)">Chrome</strong></div>
+    <div class="ios-tip" id="ios-tip">
+      1. Apri questa pagina con <strong>Safari</strong><br>
+      2. Tocca il tasto <strong>Condividi</strong> (□↑) in basso<br>
+      3. Scorri e tocca <strong>"Aggiungi a schermata Home"</strong><br>
+      4. Tocca <strong>Aggiungi</strong> in alto a destra
+    </div>
+  </div>
   <div class="hero-btns">
-    <a href="https://padelmeeting.superidea.it" class="btn-primary">Inizia a giocare</a>
-    <a href="#come-funziona" class="btn-ghost">Scopri come</a>
+    <a href="https://padelmeeting.superidea.it" class="btn-primary">Ho già l'app · Entra</a>
+    <a href="#come-funziona" class="btn-discover">Scopri come funziona</a>
   </div>
   <div class="hero-scroll">↓</div>
 </section>
@@ -161,7 +185,7 @@ footer{position:relative;z-index:1;padding:36px;border-top:1px solid rgba(91,240
 <section id="perche">
   <div class="container">
     <div class="section-label">Perché PadelMeeting</div>
-    <h2 class="section-title">NON SOLO<br>PARTITE.</h2>
+    <h2 class="section-title">INIZIA<br>LA SFIDA.</h2>
     <div class="cards">
       <div class="card">
         <div class="card-icon">🎯</div>
@@ -185,7 +209,7 @@ footer{position:relative;z-index:1;padding:36px;border-top:1px solid rgba(91,240
 <section id="come-funziona">
   <div class="container">
     <div class="section-label">Come funziona</div>
-    <h2 class="section-title">TRE PASSI.<br>ZERO BUROCRAZIA.</h2>
+    <h2 class="section-title">DIVENTA<br>IL MIGLIORE.</h2>
     <div class="steps">
       <div class="step">
         <div class="step-num">01</div>
@@ -236,27 +260,7 @@ footer{position:relative;z-index:1;padding:36px;border-top:1px solid rgba(91,240
   <div class="container">
     <div class="join-card">
       <h2 class="join-title">TU E IL TUO CIRCOLO<br>MERITATE UNA CLASSIFICA.</h2>
-      <p class="join-sub">Installa l'app sul cellulare. Nessun App Store necessario.</p>
-      <div class="download-box">
-        <div class="download-box-label"><span>📲</span> Scarica l'app</div>
-        <div class="install-btns">
-          <button class="btn-install btn-android" id="btn-android" onclick="installAndroid()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.714.714 0 0 1-.712.712.714.714 0 0 1-.712-.712V9.875a.714.714 0 0 1 .712-.712.714.714 0 0 1 .712.712zm-9.334 0a.714.714 0 0 1-.712.712.714.714 0 0 1-.712-.712V9.875a.714.714 0 0 1 .712-.712.714.714 0 0 1 .712.712zM6.825 7.5l-1.05-1.928a.179.179 0 0 0-.243-.066.179.179 0 0 0-.066.243l1.066 1.957A7.21 7.21 0 0 0 3.5 13.5h17a7.21 7.21 0 0 0-3.032-5.794l1.066-1.957a.179.179 0 0 0-.066-.243.179.179 0 0 0-.243.066L17.175 7.5A7.17 7.17 0 0 0 12 6a7.17 7.17 0 0 0-5.175 1.5zm3.55-1.537a.536.536 0 1 1 1.073 0 .536.536 0 0 1-1.073 0zm4.25 0a.536.536 0 1 1 1.073 0 .536.536 0 0 1-1.073 0z"/></svg>
-            Android (Chrome)
-          </button>
-          <button class="btn-install btn-ios" id="btn-ios" onclick="toggleIosTip()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-            iPhone (Safari)
-          </button>
-        </div>
-        <div id="android-note" style="font-size:11px;color:var(--dim);margin:14px 0 0;display:none">Se il bottone non appare, apri questa pagina con <strong style="color:var(--ivory)">Chrome</strong></div>
-        <div class="ios-tip" id="ios-tip">
-          1. Apri questa pagina con <strong>Safari</strong><br>
-          2. Tocca il tasto <strong>Condividi</strong> (□↑) in basso<br>
-          3. Scorri e tocca <strong>"Aggiungi a schermata Home"</strong><br>
-          4. Tocca <strong>Aggiungi</strong> in alto a destra
-        </div>
-      </div>
+      <p class="join-sub">Scarica l'app dall'alto di questa pagina e inizia subito. Nessun App Store necessario.</p>
       <a href="https://padelmeeting.superidea.it" class="join-enter">Ho già l'app · Entra →</a>
     </div>
   </div>
