@@ -1550,8 +1550,10 @@ async function loadMyInvites(){
     .map(n=>n.data.invite_id))];
   let sibRows=[];
   if(receivedIds.length){
-    const {data:sib}=await sb.from('pm_notifications').select('user_id,data,created_at')
-      .eq('type','match_invite').filter('data->>invite_id','in',`(${receivedIds.join(',')})`);
+    // Le righe degli altri invitati non sono leggibili direttamente (RLS: ognuno vede
+    // solo le proprie notifiche o quelle che ha organizzato). Le otteniamo con una RPC
+    // SECURITY DEFINER che restituisce gli stati solo se sei partecipante dell'invito.
+    const {data:sib}=await sb.rpc('pm_get_invites',{p_invite_ids:receivedIds});
     sibRows=sib||[];
   }
   const hidden=new Set(getHiddenInvites());
