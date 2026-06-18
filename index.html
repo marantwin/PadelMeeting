@@ -661,6 +661,24 @@ function viewPlay(){
 }
 function setPlay(k,v){pl[k]=v||null;render()}
 function resetPlay(){pl={partner:null,opp1:null,opp2:null,winner:1,done:false};render()}
+// Da una partita organizzata: precompila i 4 giocatori in "Registra".
+// ME viene sempre messo nella SUA coppia reale, così l'ELO è calcolato correttamente.
+function registerFromInvite(key){
+  key=decodeURIComponent(key);
+  const inv=myInvites.find(i=>i.key===key);
+  let myPartner=null, opps=null;
+  if(inv){
+    if(ME===inv.organizer){ myPartner=inv.partner; opps=[inv.opp1,inv.opp2]; }
+    else if(ME===inv.partner){ myPartner=inv.organizer; opps=[inv.opp1,inv.opp2]; }
+    else if(ME===inv.opp1){ myPartner=inv.opp2; opps=[inv.organizer,inv.partner]; }
+    else if(ME===inv.opp2){ myPartner=inv.opp1; opps=[inv.organizer,inv.partner]; }
+  }
+  if(!opps){ go('play'); return; }
+  pl={partner:myPartner, opp1:opps[0], opp2:opps[1], winner:1, done:false};
+  tab='play';
+  if($('#view')) $('#view').scrollTop=0;
+  render();
+}
 async function confirmMatch(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   if(![...t1,...t2].every(Boolean)||new Set([...t1,...t2]).size!==4) return;
@@ -737,7 +755,8 @@ function viewMatches(){
         <span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${inv.date||'—'} · ${inv.time||'—'}${venue?' · '+esc(venue):''}</span>
       </div>
       ${rows}${outcome}
-      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+        ${allAccepted?`<button class="btnSolidSm" onclick="registerFromInvite(${keyArg})">⚡ Registra risultato</button>`:''}
         <button class="btnGhostSm" onclick="hideInvite(${keyArg})">Rimuovi dalla lista</button>
         ${amOrganizer?`<button class="btnGhostSm" onclick="cancelInvite(${cancelArg})">Cancella partita</button>`:''}
       </div>
