@@ -55,7 +55,10 @@ let adminAllPlayers = []; // All players (admin only)
 | `pm_clubs` | id, name, city, provincia, status (pending/active), created_at |
 | `pm_notifications` | id, user_id, type (`match_invite`\|`match_confirmed`), title, body, data (jsonb), read (bool), created_at |
 
-**RPC functions**: `pm_get_pending_managers()`, `pm_set_profile_status(profile_id, new_status)`
+**RPC functions** (all `SECURITY DEFINER`, used to bypass RLS for cross-user operations):
+- `pm_get_pending_managers()`, `pm_set_profile_status(profile_id, new_status)`
+- `pm_update_ratings(ratings jsonb)` — applies new rating+games to multiple profiles at once (a player approving a match must update the other 3 players' profiles, which RLS would otherwise block). Called in `actMatch()` when a match becomes `approved`.
+- `pm_get_invites(p_invite_ids text[])` — returns the `match_invite` rows (user_id, data, created_at) for the given invites, but ONLY if the caller is a participant of that invite. Needed because RLS on `pm_notifications` lets a user read only their own rows or invites they organized — so an invitee could not otherwise see the other invitees' accept/decline status. Defined in `supabase/invite_rls_fix.sql`. Called in `loadMyInvites()`.
 
 Supabase client is initialized at the top of the script:
 ```js
@@ -73,17 +76,23 @@ Clubs go through a full lifecycle:
 
 ### Notifications System (`pm_notifications`)
 
-In-app only (no email/push). Flow:
-- User clicks "Invia inviti" in Organizza → `sendOrg()` inserts one row per invited player
+In-app card + Web Push (see Web Push section). Flow:
+- User clicks "Invia inviti" in Organizza → `sendOrg()` inserts one row per invited player, all sharing one `data.invite_id` (crypto.randomUUID); also fires `sendPush()` to the invited.
 - On login, `loadNotifications()` fetches unread rows for current user into `notifications[]`
-- Badge (red dot with count) appears on Home nav tab when `notifications.filter(n=>!n.read).length > 0`
+- Badge (red dot with count) appears on Home nav tab when `notifications.filter(n=>!n.read).length > 0` (also on the app icon via the App Badging API in `renderNav()` + `sw.js` push handler)
 - `viewHome()` renders a notifications card at the top when there are unread items
 - Notifications of type `match_invite` show two buttons: **✓ Accetto** / **✗ Declino**
-  - `respondNotification(id, 'accepted'|'declined')` → saves response in `data.response` (jsonb), marks `read=true`, card sparisce
+  - `respondNotification(id, 'accepted'|'declined')` → saves response in `data.response` (jsonb), marks `read=true`
 - Other notification types show an × to dismiss via `markNotificationRead(id)`
-- Responses saved in `data` jsonb — `data.response: 'accepted'|'declined'`
-- `checkAllAccepted(inviteData)` — chiamata dopo ogni "Accetto": controlla se tutti e 3 i notifs dello stesso invito hanno `data.response='accepted'`; se sì, inserisce una notifica `type='match_confirmed'` al responsabile del circolo dell'organizzatore (evita duplicati)
-- Il manager riceve la notifica 🎾 "Partita confermata" con data, ora, luogo e nome·cognome dei 4 giocatori
+- `checkAllAccepted(inviteData)` — chiamata dopo ogni "Accetto": controlla se tutti e 3 i notifs dello stesso invito hanno `data.response='accepted'`; se sì, inserisce una notifica `type='match_confirmed'` al responsabile del circolo dell'organizzatore (evita duplicati) + push.
+
+#### Invites in "Le mie partite" (`loadMyInvites()` + invite cards in `viewMatches()`)
+- `loadMyInvites()` loads invites the user **organized** (RLS: `data->>organizer = ME`) AND invites they **received** (`user_id = ME`); for received ones it fills the other invitees' rows via the `pm_get_invites` RPC (RLS would hide them otherwise — see RPC functions).
+- Cards are grouped by `invite_id` and show every invitee's status (✅ accepted / ❌ declined / ⏳ pending) plus an **esito**: 🎾 *Partita organizzata* (all accepted) · *Partita non organizzata* (someone declined) · *In attesa di risposta*. Visible to organizer AND invitees.
+- Buttons: **Cancella partita** (organizer only, deletes the whole invite for everyone, with confirm) · **Rimuovi dalla lista** (anyone; hides only in your own view via `localStorage` key `pm_hidden_invites`, no DB write) · **⚡ Registra risultato** (shown when organizzata; `registerFromInvite()` prefills the 4 players in "Registra" with the current user always placed in their real pair).
+
+#### Match status boxes (`viewMatches()`)
+Each registered match shows an explanatory status box visible to all players (so they understand the double-validation pipeline and when the ranking moves): `pending` → ⏳ Passo 1/2 (responsabile); `manager_approved` → Passo 2/2 (validate buttons for the opposing team, "in attesa" for the rest); `approved` → classifica aggiornata; `disputed`; `rejected`.
 
 ### ELO Rating Logic
 
@@ -196,7 +205,7 @@ The manager can suspend the inactivity counter (e.g. for injury); it restarts fr
 - `overview.html` — A4 print-friendly feature guide; standalone
 - `regolamento.html` — Full official ruleset; standalone
 - `termini.pdf` — Terms of use; includes 60-day free trial clause and €49.97/month subscription after trial
-- `sw.js` — Service worker, current version `padelmeeting-v51`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
+- `sw.js` — Service worker, current version `padelmeeting-v65`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
   - **Supabase requests (`hostname.includes('supabase')`): network-only, never cached.** Critical — caching them serves stale invites/notifications/matches. This was the root cause of "stale data on reopen" bugs.
   - **Navigation (`request.mode === 'navigate'`, i.e. `index.html`): network-first**, falls back to cache offline — keeps app code fresh when online.
   - **Google Fonts: network-first**, cache fallback.
