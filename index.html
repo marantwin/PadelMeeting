@@ -181,6 +181,17 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior
 .selLabel{font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);width:76px;flex-shrink:0;letter-spacing:.02em}
 .selBox{flex:1;min-width:0;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--ivory);font-size:13px;-webkit-appearance:none;appearance:none;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .selBox.fixed{color:var(--neon)}
+/* Box inserimento punteggio (set per set) */
+.score-box{margin-top:8px;padding:14px 14px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.22)}
+.score-head{display:grid;grid-template-columns:64px 1fr 18px 1fr;align-items:center;gap:8px;margin-bottom:8px}
+.score-head span{grid-column:auto;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ivoryFaint);text-align:center}
+.score-head span:first-of-type{grid-column:2}
+.score-row{display:grid;grid-template-columns:64px 1fr 18px 1fr;align-items:center;gap:8px;margin-bottom:8px}
+.score-setlbl{font-size:12px;font-weight:700;color:var(--neon);font-family:var(--mono);letter-spacing:.04em}
+.score-in{width:100%;text-align:center;padding:11px 0;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--ivory);font-size:18px;font-weight:700;font-family:var(--mono);outline:none}
+.score-in:focus{border-color:var(--neon);box-shadow:0 0 0 2px rgba(91,240,203,.18)}
+.score-in-bad{border-color:var(--danger)!important;box-shadow:0 0 0 2px rgba(240,106,128,.22)!important}
+.score-sep{text-align:center;color:var(--ivoryFaint);font-size:16px}
 .vs{text-align:center;margin:10px 0;font-family:var(--serif);font-style:italic;font-size:18px;color:var(--rust);letter-spacing:.2em}
 
 /* preview rows */
@@ -652,14 +663,83 @@ function viewPlay(){
       <button class="segBtn ${pl.winner===2?'active':''}" onclick="setPlay('winner',2)">Vincono gli avversari</button>
     </div>
     ${preview}
-    <div class="auth-field" style="margin-top:14px">
-      <label class="auth-label">Punteggio (es. 6-3 / 4-6 / 7-5)</label>
-      <input id="play-score" type="text" class="auth-input" placeholder="6-3 / 4-6 / 7-5">
+    <div style="margin-top:14px">
+      <label class="auth-label">Punteggio — 2 set su 3</label>
+      <div class="score-box">
+        <div class="score-head"><span>La tua coppia</span><span>Avversari</span></div>
+        <div class="score-row">
+          <span class="score-setlbl">Set 1</span>
+          <input id="in-s1a" type="number" inputmode="numeric" class="score-in" min="0" max="7" value="${pl.s1a??''}" oninput="pl.s1a=this.value;validateScore()">
+          <span class="score-sep">–</span>
+          <input id="in-s1b" type="number" inputmode="numeric" class="score-in" min="0" max="7" value="${pl.s1b??''}" oninput="pl.s1b=this.value;validateScore()">
+        </div>
+        <div class="score-row">
+          <span class="score-setlbl">Set 2</span>
+          <input id="in-s2a" type="number" inputmode="numeric" class="score-in" min="0" max="7" value="${pl.s2a??''}" oninput="pl.s2a=this.value;validateScore()">
+          <span class="score-sep">–</span>
+          <input id="in-s2b" type="number" inputmode="numeric" class="score-in" min="0" max="7" value="${pl.s2b??''}" oninput="pl.s2b=this.value;validateScore()">
+        </div>
+        <div class="score-row">
+          <span class="score-setlbl">Set 3</span>
+          <input id="in-s3a" type="number" inputmode="numeric" class="score-in" min="0" max="7" value="${pl.s3a??''}" oninput="pl.s3a=this.value;validateScore()">
+          <span class="score-sep">–</span>
+          <input id="in-s3b" type="number" inputmode="numeric" class="score-in" min="0" max="7" value="${pl.s3b??''}" oninput="pl.s3b=this.value;validateScore()">
+        </div>
+      </div>
+      <div id="score-msg" style="display:none;margin-top:8px;font-size:12px;color:var(--danger)"></div>
+      <input id="play-score" type="hidden" value="${pl.score||''}">
     </div>
-    <button class="cta" ${valid?'':'disabled'} onclick="confirmMatch()"><span>Conferma e invia ↗</span></button>
+    <button id="play-cta" class="cta" ${valid?'':'disabled'} onclick="confirmMatch()"><span>Conferma e invia ↗</span></button>
   </div>`;
 }
 function setPlay(k,v){pl[k]=v||null;render()}
+// Compone la stringa punteggio dai set (es. "6-3 / 4-6 / 7-5") in un campo nascosto.
+function composeScore(){
+  const sets=[[pl.s1a,pl.s1b],[pl.s2a,pl.s2b],[pl.s3a,pl.s3b]];
+  const str=sets.filter(([a,b])=>a!=null&&a!==''&&b!=null&&b!=='').map(([a,b])=>`${a}-${b}`).join(' / ');
+  pl.score=str;
+  const el=$('#play-score'); if(el) el.value=str;
+}
+// Regole padel: un set è valido solo 6-0..6-4, 7-5, 7-6 (e simmetrici).
+function validSetScore(a,b){
+  if(a===b) return false;
+  const hi=Math.max(a,b), lo=Math.min(a,b);
+  if(hi===6) return lo>=0 && lo<=4;
+  if(hi===7) return lo===5 || lo===6;
+  return false;
+}
+function setStatus(a,b){
+  const ea=(a==null||a===''), eb=(b==null||b==='');
+  if(ea&&eb) return 'empty';
+  if(ea||eb) return 'incomplete';
+  const na=Number(a), nb=Number(b);
+  if(!Number.isInteger(na)||!Number.isInteger(nb)) return 'invalid';
+  return validSetScore(na,nb)?'ok':'invalid';
+}
+// Validazione live della box punteggio: bordi rossi sui set non validi,
+// messaggio esplicativo e attiva/disattiva il pulsante Conferma.
+function validateScore(){
+  const cta=$('#play-cta'); if(!cta) return; // non siamo in Registra
+  const sets=[['1',pl.s1a,pl.s1b],['2',pl.s2a,pl.s2b],['3',pl.s3a,pl.s3b]];
+  let okCount=0, problem='';
+  sets.forEach(([n,a,b])=>{
+    const st=setStatus(a,b);
+    const bad=(st==='invalid'||st==='incomplete');
+    const ia=$('#in-s'+n+'a'), ib=$('#in-s'+n+'b');
+    if(ia) ia.classList.toggle('score-in-bad',bad);
+    if(ib) ib.classList.toggle('score-in-bad',bad);
+    if(st==='ok') okCount++;
+    if(bad && !problem) problem = st==='incomplete'
+      ? `Completa i games del Set ${n}.`
+      : `Set ${n}: punteggio non valido. Ammessi 6-0…6-4, 7-5, 7-6.`;
+  });
+  if(!problem && okCount<2) problem='Inserisci almeno 2 set completi.';
+  const msg=$('#score-msg');
+  if(msg){ msg.textContent=problem; msg.style.display=problem?'block':'none'; }
+  composeScore();
+  const playersOk=[ME,pl.partner,pl.opp1,pl.opp2].every(Boolean)&&new Set([ME,pl.partner,pl.opp1,pl.opp2]).size===4;
+  cta.disabled=!(playersOk && !problem);
+}
 function resetPlay(){pl={partner:null,opp1:null,opp2:null,winner:1,done:false};render()}
 // Da una partita organizzata: precompila i 4 giocatori in "Registra".
 // ME viene sempre messo nella SUA coppia reale, così l'ELO è calcolato correttamente.
@@ -1404,6 +1484,7 @@ function render(){
   const v={home:viewHome,rank:viewRank,play:viewPlay,organize:viewOrganize,matches:viewMatches,profile:viewProfile,rules:viewRules,circolo:viewCircolo}[tab];
   $('#view').innerHTML=v();
   renderNav();
+  if(tab==='play') validateScore();
 }
 
 /* ============ SUPABASE + AUTH ============ */
