@@ -1,4 +1,4 @@
-const CACHE = 'padelmeeting-v66';
+const CACHE = 'padelmeeting-v67';
 const PRECACHE = [
   '/',
   '/index.html',
