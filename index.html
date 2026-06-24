@@ -657,6 +657,12 @@ function viewPlay(){
         <div class="selWrap"><span class="selLabel">Avversario 2</span><select class="selBox" onchange="setPlay('opp2',this.value)">${opt(pl.opp2,[pl.partner,pl.opp1])}</select></div>
       </div>
     </div>
+    <div style="margin-top:14px">
+      <label class="auth-label">Circolo (dove avete giocato)</label>
+      <select class="auth-input" onchange="pl.club=this.value">
+        ${[...new Set(players.map(p=>p.club))].filter(Boolean).sort().map(c=>`<option value="${esc(c)}" ${(pl.club||me()?.club)===c?'selected':''}>${esc(c)}</option>`).join('')}
+      </select>
+    </div>
     ${stag('Esito')}
     <div class="seg">
       <button class="segBtn ${pl.winner===1?'active':''}" onclick="setPlay('winner',1)">Vince la tua coppia</button>
@@ -740,7 +746,7 @@ function validateScore(){
   const playersOk=[ME,pl.partner,pl.opp1,pl.opp2].every(Boolean)&&new Set([ME,pl.partner,pl.opp1,pl.opp2]).size===4;
   cta.disabled=!(playersOk && !problem);
 }
-function resetPlay(){pl={partner:null,opp1:null,opp2:null,winner:1,done:false};render()}
+function resetPlay(){pl={partner:null,opp1:null,opp2:null,winner:1,done:false,club:(me()?.club||'')};render()}
 // Da una partita organizzata: precompila i 4 giocatori in "Registra".
 // ME viene sempre messo nella SUA coppia reale, così l'ELO è calcolato correttamente.
 function registerFromInvite(key){
@@ -754,7 +760,9 @@ function registerFromInvite(key){
     else if(ME===inv.opp2){ myPartner=inv.opp1; opps=[inv.organizer,inv.partner]; }
   }
   if(!opps){ go('play'); return; }
-  pl={partner:myPartner, opp1:opps[0], opp2:opps[1], winner:1, done:false};
+  // Circolo dove si è giocata: quello dell'invito se affiliato, altrimenti il mio.
+  const venueOk = inv.venue && players.some(p=>p.club===inv.venue);
+  pl={partner:myPartner, opp1:opps[0], opp2:opps[1], winner:1, done:false, club:(venueOk?inv.venue:(me()?.club||''))};
   tab='play';
   if($('#view')) $('#view').scrollTop=0;
   render();
@@ -765,7 +773,7 @@ async function confirmMatch(){
   const calc=computeMatch(t1,t2,'classic',pl.winner);
   const winnerStr=pl.winner===1?'A':'B';
   const score=$('#play-score')?.value?.trim()||'';
-  const club=me()?.club||auth.user?.club||'';
+  const club=pl.club||me()?.club||auth.user?.club||'';
   const {error}=await sb.from('pm_matches').insert({
     club, winner:winnerStr, score,
     team_a1:t1[0], team_a2:t1[1],
@@ -1474,7 +1482,7 @@ function go(t){
   const prev=tab;
   tab=t;
   if(t==='organize'&&prev!=='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};
-  if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false};
+  if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false,club:(me()?.club||'')};
   else if(t!=='play') pl.done=false;
   if(t==='matches'&&prev!=='matches') loadMyInvites().then(()=>render());
   window.scrollTo&&($('#view').scrollTop=0);
