@@ -1684,11 +1684,20 @@ async function respondNotification(id, response){
 
 async function checkAllAccepted(inviteData){
   if(!inviteData?.organizer) return;
-  let notifsQ=sb.from('pm_notifications').select('data').eq('type','match_invite')
-    .filter('data->>organizer','eq',inviteData.organizer);
-  if(inviteData.invite_id) notifsQ=notifsQ.filter('data->>invite_id','eq',inviteData.invite_id);
-  else notifsQ=notifsQ.filter('data->>date','eq',inviteData.date||'').filter('data->>time','eq',inviteData.time||'');
-  const {data:allNotifs}=await notifsQ;
+  // Leggo gli stati di TUTTI gli invitati. La query diretta è limitata dalla RLS
+  // (chi accetta vede solo la propria riga), quindi uso la RPC pm_get_invites che
+  // restituisce tutte le righe dell'invito se sei partecipante — altrimenti il
+  // controllo "tutti accettato" fallirebbe e la notifica al responsabile non partirebbe.
+  let allNotifs=null;
+  if(inviteData.invite_id){
+    const {data}=await sb.rpc('pm_get_invites',{p_invite_ids:[inviteData.invite_id]});
+    allNotifs=data;
+  } else {
+    const {data}=await sb.from('pm_notifications').select('data').eq('type','match_invite')
+      .filter('data->>organizer','eq',inviteData.organizer)
+      .filter('data->>date','eq',inviteData.date||'').filter('data->>time','eq',inviteData.time||'');
+    allNotifs=data;
+  }
   if(!allNotifs||allNotifs.length<3) return;
   if(!allNotifs.every(n=>n.data?.response==='accepted')) return;
 
@@ -1709,7 +1718,7 @@ async function checkAllAccepted(inviteData){
     .filter(dupField,'eq',dupKey).limit(1);
   if(existing?.length) return;
 
-  const getName=id=>players.find(p=>p.id===id)?.full_name||'?';
+  const getName=id=>players.find(p=>p.id===id)?.name||'?';
   const nomi=[inviteData.organizer,inviteData.partner,inviteData.opp1,inviteData.opp2].map(getName).join(' · ');
   const luogo=inviteData.venue?` a ${inviteData.venue}`:'';
   const confirmBody=`${inviteData.date||'?'} alle ${inviteData.time||'?'}${luogo} — ${nomi}`;
