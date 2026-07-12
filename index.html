@@ -790,7 +790,8 @@ async function confirmMatch(){
 }
 
 function viewMatches(){
-  const cards=matches.map(m=>{
+  const hiddenM=getHiddenMatches();
+  const cards=matches.filter(m=>!hiddenM.includes(m.id)).map(m=>{
     const involvesMe=[...m.t1,...m.t2].includes(ME);
     const side=(ids,win,align)=>`<div class="mside" style="text-align:${align}">
       ${ids.map(id=>`<div class="pl" style="color:${win?C.neon:C.ivory};font-weight:${win?700:500}">${esc(pName(id).replace(' (Demo)',''))}</div>`).join('')}
@@ -828,7 +829,8 @@ function viewMatches(){
     return `<div class="card" style="margin-bottom:12px">
       <div class="mhead">${pill(m.format,m.format==='Classica'?'neon':'ghost')}<span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${m.when}</span></div>
       <div class="mgrid">${side(m.t1,m.winner===1,'left')}<div class="mscore">${m.score}</div>${side(m.t2,m.winner===2,'right')}</div>
-      <div class="mfoot">${foot}</div></div>`;
+      <div class="mfoot">${foot}</div>
+      <div style="margin-top:10px;text-align:right"><button class="btnGhostSm" onclick="hideMatch('${m.id}')">Rimuovi dalla lista</button></div></div>`;
   }).join('');
   const inviteCards=myInvites.map(inv=>{
     const amOrganizer=inv.organizer===ME;
@@ -1615,6 +1617,16 @@ function hideInvite(key){
   const h=getHiddenInvites();
   if(!h.includes(key)){ h.push(key); localStorage.setItem('pm_hidden_invites',JSON.stringify(h)); }
   myInvites=myInvites.filter(inv=>inv.key!==key);
+  render();
+}
+// Partite "nascoste dalla propria vista" in "Le mie partite": effetto solo locale
+// (questo dispositivo), non tocca il database né la vista/validazione degli altri.
+function getHiddenMatches(){
+  try{ return JSON.parse(localStorage.getItem('pm_hidden_matches')||'[]'); }catch(_){ return []; }
+}
+function hideMatch(id){
+  const h=getHiddenMatches();
+  if(!h.includes(id)){ h.push(id); localStorage.setItem('pm_hidden_matches',JSON.stringify(h)); }
   render();
 }
 
