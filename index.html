@@ -1694,7 +1694,11 @@ async function checkAllAccepted(inviteData){
 
   const organizer=players.find(p=>p.id===inviteData.organizer);
   if(!organizer) return;
-  const manager=players.find(p=>p.role==='manager'&&p.club===organizer.club&&p.id!==organizer.id);
+  // Avvisa il responsabile del circolo DOVE si gioca (venue dell'invito);
+  // se il luogo non ha un responsabile, fallback a quello dell'organizzatore.
+  const venueClub=inviteData.venue;
+  const manager=players.find(p=>p.role==='manager'&&p.club===venueClub&&p.id!==organizer.id)
+              ||players.find(p=>p.role==='manager'&&p.club===organizer.club&&p.id!==organizer.id);
   if(!manager) return;
 
   // evita duplicati
