@@ -1221,7 +1221,9 @@ ${auth.user&&auth.user.role==='admin'?`
           ${adminAllPlayers.map(p=>`<option value="${p.id}">${esc(p.full_name)}${p.status!=='active'?' ⏳':''}</option>`).join('')}
         </select>
         <div id="admin-player-detail" style="margin-top:12px"></div>`}
-    </div>`:''}
+    </div>
+    ${stag('Monitoraggio')}
+    <button class="btnSolid" style="width:100%" onclick="go('adminmatches')">📋 Tutte le partite (organizzate e registrate)</button>`:''}
     ${changePasswordSection()}
     <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
       Esci dall'account
@@ -1490,11 +1492,12 @@ function go(t){
   if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false,club:(me()?.club||'')};
   else if(t!=='play') pl.done=false;
   if(t==='matches'&&prev!=='matches') loadMyInvites().then(()=>render());
+  if(t==='adminmatches'&&prev!=='adminmatches'){ adminMatchesLoading=true; adminLoadMatches(); }
   window.scrollTo&&($('#view').scrollTop=0);
   render();
 }
 function render(){
-  const v={home:viewHome,rank:viewRank,play:viewPlay,organize:viewOrganize,matches:viewMatches,profile:viewProfile,rules:viewRules,circolo:viewCircolo}[tab];
+  const v={home:viewHome,rank:viewRank,play:viewPlay,organize:viewOrganize,matches:viewMatches,profile:viewProfile,rules:viewRules,circolo:viewCircolo,adminmatches:viewAdminMatches}[tab];
   $('#view').innerHTML=v();
   renderNav();
   if(tab==='play') validateScore();
@@ -1510,6 +1513,10 @@ let auth = { tab:'login', role:'player', err:'', loading:false, user:null, logge
 let adminPending = [];
 let adminClubs = [];
 let adminAllPlayers = [];
+let adminAllInvites = [];
+let adminAllMatches = [];
+let adminNames = {};
+let adminMatchesLoading = false;
 
 function showGate(){ $('#auth-gate').style.display='flex'; $('#app-shell').style.display='none'; renderAuth(); }
 function hideGate(){ $('#auth-gate').style.display='none'; $('#app-shell').style.display=''; render(); }
@@ -1930,6 +1937,65 @@ async function adminLoadAll(){
   render();
 }
 async function adminLoadPending(){ adminLoadAll(); }
+// Plancia admin: carica TUTTE le partite organizzate (inviti) e registrate.
+async function adminLoadMatches(){
+  if(auth.user?.role!=='admin') return;
+  const [mRes,invRes,pRes]=await Promise.all([
+    sb.from('pm_matches').select('id,played_at,club,winner,score,status,submitted_by,team_a1,team_a2,team_b1,team_b2,created_at').order('created_at',{ascending:false}).limit(300),
+    sb.from('pm_notifications').select('user_id,data,created_at').eq('type','match_invite').order('created_at',{ascending:false}).limit(1000),
+    sb.from('pm_profiles').select('id,full_name')
+  ]);
+  adminNames={}; (pRes.data||[]).forEach(p=>{ adminNames[p.id]=p.full_name; });
+  adminAllMatches=mRes.data||[];
+  const g={};
+  (invRes.data||[]).forEach(n=>{
+    const k=n.data?.invite_id||((n.data?.date||'')+'|'+(n.data?.time||''));
+    if(!g[k]) g[k]={key:k,invite_id:n.data?.invite_id||null,organizer:n.data?.organizer,date:n.data?.date,time:n.data?.time,venue:n.data?.venue,created:n.created_at,players:[]};
+    if(!g[k].players.some(x=>x.id===n.user_id)) g[k].players.push({id:n.user_id,response:n.data?.response||null});
+  });
+  adminAllInvites=Object.values(g).sort((a,b)=>new Date(b.created)-new Date(a.created));
+  adminMatchesLoading=false;
+  render();
+}
+function viewAdminMatches(){
+  const aName=id=>adminNames[id]||pName(id)||'—';
+  const ic=r=>r==='accepted'?'✅':r==='declined'?'❌':'⏳';
+  const lb=r=>r==='accepted'?'Accettato':r==='declined'?'Declinato':'In attesa';
+  const cl=r=>r==='accepted'?'var(--neon)':r==='declined'?'var(--danger)':'var(--ivoryFaint)';
+  const back=`<div style="display:flex;align-items:center;gap:8px;margin:8px 0 4px">
+      <button class="btnGhostSm" onclick="go('profile')">← Indietro</button>
+      <button class="btnGhostSm" onclick="adminLoadMatches()">Aggiorna</button></div>`;
+  if(adminMatchesLoading) return `<div class="page">${back}<div style="text-align:center;color:var(--ivoryFaint);padding:40px 0">Caricamento…</div></div>`;
+  const invCards = adminAllInvites.length ? adminAllInvites.map(inv=>{
+    const allAcc=inv.players.length>=3&&inv.players.every(p=>p.response==='accepted');
+    const anyDec=inv.players.some(p=>p.response==='declined');
+    const esito=allAcc?'🎾 Organizzata':anyDec?'Non organizzata':'In attesa di risposta';
+    const eCol=allAcc?'var(--neon)':anyDec?'var(--danger)':'var(--ivoryFaint)';
+    const rows=inv.players.map(p=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span>${esc(aName(p.id))}</span><span style="color:${cl(p.response)};font-family:var(--mono)">${ic(p.response)} ${lb(p.response)}</span></div>`).join('');
+    return `<div class="card" style="margin-bottom:10px">
+      <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:6px">${inv.date||'—'} · ${inv.time||'—'}${inv.venue?' · '+esc(inv.venue):''}</div>
+      <div style="font-size:12.5px;color:var(--neon);margin-bottom:6px">Organizzatore: ${esc(aName(inv.organizer))}</div>
+      ${rows}
+      <div style="margin-top:8px;font-size:12.5px;font-weight:700;color:${eCol}">${esito}</div>
+    </div>`;
+  }).join('') : `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita organizzata</div>`;
+  const sm={pending:['In attesa responsabile','gold'],manager_approved:['Approvata dal responsabile','gold'],approved:['Validata ✓','neon'],disputed:['Contestata','danger'],rejected:['Rifiutata','danger']};
+  const mCards = adminAllMatches.length ? adminAllMatches.map(m=>{
+    const [lbl,tone]=sm[m.status]||[m.status||'—','ghost'];
+    const A=[m.team_a1,m.team_a2].map(id=>esc(aName(id))).join(' + ');
+    const B=[m.team_b1,m.team_b2].map(id=>esc(aName(id))).join(' + ');
+    return `<div class="card" style="margin-bottom:10px">
+      <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:6px">${m.played_at||'—'}${m.club?' · '+esc(m.club):''}</div>
+      <div style="font-size:12.5px;margin-bottom:4px"><span style="color:${m.winner==='A'?'var(--neon)':'var(--ivory)'};font-weight:${m.winner==='A'?700:500}">${A}</span> <span style="color:var(--rust);font-style:italic"> vs </span> <span style="color:${m.winner==='B'?'var(--neon)':'var(--ivory)'};font-weight:${m.winner==='B'?700:500}">${B}</span></div>
+      <div style="font-size:12px;color:var(--ivoryDim);font-family:var(--mono);margin-bottom:8px">${esc(m.score||'—')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">${pill(lbl,tone)}<span style="font-size:11px;color:var(--ivoryFaint)">reg. ${esc(aName(m.submitted_by))}</span></div>
+    </div>`;
+  }).join('') : `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita registrata</div>`;
+  return `<div class="page">${back}
+    ${stag('Organizzate ('+adminAllInvites.length+')')}${invCards}
+    ${stag('Registrate ('+adminAllMatches.length+')')}${mCards}
+  </div>`;
+}
 async function adminSetStatus(id,status){
   await sb.rpc('pm_set_profile_status',{profile_id:id,new_status:status});
   if(status==='active'){
