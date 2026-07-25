@@ -117,7 +117,13 @@ computeMatch(team1ids, team2ids, format, winnerTeam)
 ```
 
 #### Registra partita — score entry (`viewPlay()`)
-- Score is entered **set by set** (3 rows of games: your pair vs opponents), not free text. `validateScore()` / `validSetScore()` enforce padel rules live: a set is valid only **6-0…6-4, 7-5, 7-6** (so 7-3, 6-5, an unfinished set, etc. are blocked); invalid/incomplete sets turn red and "Conferma" stays disabled until ≥2 valid sets. `composeScore()` builds the string ("6-3 / 4-6 / 7-5") into a hidden `#play-score` → stored in `pm_matches.score` (DB format unchanged). Winner is still chosen manually (the segmented buttons).
+- Score is entered **set by set** (3 rows of games: your pair vs opponents), not free text. `validSetScore()` enforces padel rules: a set is valid only **6-0…6-4, 7-5, 7-6** (so 7-3, 6-5 etc. are invalid). `composeScore()` builds the string ("6-3 / 4-6 / 7-5") into a hidden `#play-score` → stored in `pm_matches.score` (DB format unchanged).
+- **Outcome is derived automatically from the entered sets** (no manual winner buttons) via `matchOutcome()`, called live by `validateScore()` on every keystroke and rendered into `#play-outcome` (esito) + `#play-preview` (ELO delta preview) without a full `render()` (keeps input focus):
+  - **Decisive** — same pair wins set1+set2 (`2-0`, set3 ignored) or 1-1 then set3 is a valid completed set (`2-1`) → full nominal ELO points (`mult:1`), same as before.
+  - **Partial ("abbreviata")** — set1+set2 both valid and split 1-1, **set3 not completed** (empty/incomplete/partial score — e.g. time ran out mid-set, like a real `3-5`) → winner = pair with more **total games across set1+set2 only** (set3's partial numbers, if any, are ignored for the count but still shown in the stored score string); awarded **50%** of nominal ELO points (`mult:0.5`).
+  - **Tie** — same abbreviated scenario but total games equal (e.g. `6-4`/`4-6` = 10-10) → match is still submitted/registered (counts toward future "games played" stats and the `games` counter via `pm_update_ratings` once approved) but **0 delta**, ranking unchanged. Stored as `pm_matches.winner = 'T'` (third value beyond `'A'`/`'B'`; the CHECK constraint was widened via `supabase/allow_tie_winner.sql`).
+  - `validateScore()` only requires **set1 AND set2** to both be valid (`ok`); set3 is never blocking once those two are valid — it's either ignored (2-0) or optional/interpreted as "not finished" (1-1 split). Requiring the user to fully complete or fully clear set3 is deliberately NOT enforced, to match the real-world "ran out of court time" case.
+  - Display: `winner` is mapped to `0` (tie) / `1` / `2` in `loadMatches()`/`loadClubMatches()`; `viewMatches()` shows a "⚖ PAREGGIO" tag in `mscore` when `winner===0`; `viewAdminMatches()` shows "⚖ Pareggio" when `m.winner==='T'`.
 - A **"Circolo (dove avete giocato)"** selector (affiliated clubs only) sets `pl.club` → `pm_matches.club` = the **venue** club. That club's manager is the one who approves (see venue-based `checkAllAccepted` + the `pm_matches` per-club RLS). `registerFromInvite()` prefills it from the invite's venue.
 
 **Match approval workflow (3 step):**
@@ -221,7 +227,7 @@ The manager can suspend the inactivity counter (e.g. for injury); it restarts fr
 - `overview.html` — A4 print-friendly feature guide; standalone
 - `regolamento.html` — Full official ruleset; standalone
 - `termini.pdf` — Terms of use; includes 60-day free trial clause and €49.97/month subscription after trial
-- `sw.js` — Service worker, current version `padelmeeting-v72`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
+- `sw.js` — Service worker, current version `padelmeeting-v73`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
   - **Supabase requests (`hostname.includes('supabase')`): network-only, never cached.** Critical — caching them serves stale invites/notifications/matches. This was the root cause of "stale data on reopen" bugs.
   - **Navigation (`request.mode === 'navigate'`, i.e. `index.html`): network-first**, falls back to cache offline — keeps app code fresh when online.
   - **Google Fonts: network-first**, cache fallback.
