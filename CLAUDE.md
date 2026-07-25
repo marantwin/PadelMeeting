@@ -190,6 +190,13 @@ Bands update automatically as soon as PR crosses a threshold — no manual promo
 - **K=3.6 fixed for all players, always** — no calibration phase, no visible inconsistency
 - In a perfectly even match (50/50): exactly ±1.8 pts
 
+### Abbreviated Matches (time-limited courts)
+If the two teams split the first two sets (1-1) and can't finish the deciding third set within the court's booked time:
+- The pair with **more total games across the two completed sets** wins the match, but receives only **50% of the nominal ELO points** (`mult:0.5` in `matchOutcome()`).
+- If total games are also **equal**, the match is still submitted/validated (counts as a match played, useful for future activity-based recognitions) but **awards 0 points** — ranking unchanged.
+- This does not require the third set to be abandoned/empty — a genuinely started-but-unfinished third set (e.g. stopped at 3-5) is treated the same way; its partial score is not used in the games count.
+- See implementation in `matchOutcome()` / `outcomePreview()` (`viewPlay()` section above).
+
 ### Classified Match Conditions
 A match only affects PR if **all four conditions** are met:
 1. All 4 players are registered with an assigned PR
