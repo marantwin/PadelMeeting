@@ -415,7 +415,7 @@ let pendingPlayers = [];
 let myInvites = [];
 let pushEnabled = (typeof Notification!=='undefined' && Notification.permission==='granted');
 let pushBannerDismissed = false;
-let pl = { partner:null, opp1:null, opp2:null, winner:1, done:false };
+let pl = { partner:null, opp1:null, opp2:null, done:false };
 
 /* ============ HELPERS ============ */
 const $ = (s,el=document)=>el.querySelector(s);
@@ -618,28 +618,9 @@ function viewPlay(){
     return a.name.split(' ').pop().localeCompare(b.name.split(' ').pop());
   });
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
-  const valid=[...t1,...t2].every(Boolean)&&new Set([...t1,...t2]).size===4;
-  const calc=valid?computeMatch(t1,t2,'classic',pl.winner):null;
   const opt=(sel,exclude)=>'<option value="">— seleziona —</option>'+sortedOthers.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''} ${exclude.includes(p.id)?'disabled':''}>(${p.provincia}) ${esc(p.name)} · ${p.rating.toFixed(1)} · ${bandName(p.rating)}</option>`).join('');
 
-  let preview='';
-  if(calc){
-    // ME è sempre in t1 — calcolo diretto senza dipendere da pl.winner
-    const K=calc.res[ME].K;
-    const ptSeVinci=+(K*(1-calc.E1)).toFixed(1);
-    const ptSePerdi=+(K*(0-calc.E1)).toFixed(1);
-
-    const rows=[ME,pl.partner,pl.opp1,pl.opp2].map(id=>{
-      const r=calc.res[id], up=r.delta>0;
-      const col=up?C.neon:C.danger;
-      return `<div class="prow"><span class="pn" style="color:${id===ME?C.neon:C.ivory};font-weight:${id===ME?700:500}">${esc(pName(id))} <span style="font-size:9px;color:var(--ivoryFaint)">K=${r.K}</span></span>
-        <span class="pd" style="color:${col}">${up?'+':''}${r.delta.toFixed(1)}</span></div>`;
-    }).join('');
-
-    preview=`<div class="card rise" style="margin-top:14px">
-      ${rows}
-    </div>`;
-  }
+  const {outcomeHtml,previewHtml,ready}=outcomePreview(t1,t2);
 
   return `<div class="page">
     ${stag('Registra partita')}
@@ -663,12 +644,6 @@ function viewPlay(){
         ${[...new Set(players.map(p=>p.club))].filter(Boolean).sort().map(c=>`<option value="${esc(c)}" ${(pl.club||me()?.club)===c?'selected':''}>${esc(c)}</option>`).join('')}
       </select>
     </div>
-    ${stag('Esito')}
-    <div class="seg">
-      <button class="segBtn ${pl.winner===1?'active':''}" onclick="setPlay('winner',1)">Vince la tua coppia</button>
-      <button class="segBtn ${pl.winner===2?'active':''}" onclick="setPlay('winner',2)">Vincono gli avversari</button>
-    </div>
-    ${preview}
     <div style="margin-top:14px">
       <label class="auth-label">Punteggio — 2 set su 3</label>
       <div class="score-box">
@@ -693,9 +668,12 @@ function viewPlay(){
         </div>
       </div>
       <div id="score-msg" style="display:none;margin-top:8px;font-size:12px;color:var(--danger)"></div>
+      <div style="font-size:11px;color:var(--ivoryFaint);margin-top:8px;line-height:1.5">Se non riuscite a concludere il terzo set per il tempo, lasciatelo vuoto (o incompleto): la partita verrà comunque registrata come "abbreviata".</div>
       <input id="play-score" type="hidden" value="${pl.score||''}">
     </div>
-    <button id="play-cta" class="cta" ${valid?'':'disabled'} onclick="confirmMatch()"><span>Conferma e invia ↗</span></button>
+    <div id="play-outcome">${outcomeHtml}</div>
+    <div id="play-preview">${previewHtml}</div>
+    <button id="play-cta" class="cta" ${ready?'':'disabled'} onclick="confirmMatch()"><span>Conferma e invia ↗</span></button>
   </div>`;
 }
 function setPlay(k,v){pl[k]=v||null;render()}
@@ -722,31 +700,85 @@ function setStatus(a,b){
   if(!Number.isInteger(na)||!Number.isInteger(nb)) return 'invalid';
   return validSetScore(na,nb)?'ok':'invalid';
 }
+// Determina l'esito della partita dai set inseriti.
+// - 2 set decisivi (stessa coppia vince set1 e set2, terzo set ignorato) -> punteggio pieno.
+// - 1-1 dopo 2 set e terzo set concluso -> decisivo 2-1, punteggio pieno.
+// - 1-1 dopo 2 set e terzo set NON concluso (vuoto/incompleto/parziale, es. tempo scaduto)
+//   -> partita "abbreviata": vince chi ha fatto più game nei 2 set giocati, al 50% dei punti;
+//      a parità di game, partita registrata ma classifica invariata (0 punti).
+function matchOutcome(){
+  const s1ok=setStatus(pl.s1a,pl.s1b)==='ok', s2ok=setStatus(pl.s2a,pl.s2b)==='ok';
+  if(!s1ok||!s2ok) return {state:'incomplete'};
+  const w1=Number(pl.s1a)>Number(pl.s1b)?'A':'B';
+  const w2=Number(pl.s2a)>Number(pl.s2b)?'A':'B';
+  if(w1===w2) return {state:'decisive',winner:w1,sets:'2-0',mult:1};
+  if(setStatus(pl.s3a,pl.s3b)==='ok'){
+    const w3=Number(pl.s3a)>Number(pl.s3b)?'A':'B';
+    return {state:'decisive',winner:w3,sets:'2-1',mult:1};
+  }
+  const gA=Number(pl.s1a)+Number(pl.s2a), gB=Number(pl.s1b)+Number(pl.s2b);
+  if(gA===gB) return {state:'tie',gA,gB};
+  return {state:'partial',winner:gA>gB?'A':'B',mult:0.5,gA,gB};
+}
+// Costruisce il box "Esito" e l'anteprima ELO in base a matchOutcome().
+function outcomePreview(t1,t2){
+  const playersOk=[ME,pl.partner,pl.opp1,pl.opp2].every(Boolean)&&new Set([ME,pl.partner,pl.opp1,pl.opp2]).size===4;
+  const outcome=matchOutcome();
+  if(!playersOk||outcome.state==='incomplete') return {outcomeHtml:'',previewHtml:'',ready:false};
+  const box=(border,bg,col,txt)=>`<div style="margin-top:14px;padding:11px 13px;border:1px solid ${border};background:${bg};border-radius:10px;font-size:12.5px;line-height:1.5;color:${col}">${txt}</div>`;
+  let outcomeHtml='';
+  if(outcome.state==='decisive'){
+    outcomeHtml=box('var(--neon)','rgba(91,240,203,.07)','var(--neon)',`🏆 Vince ${outcome.winner==='A'?'la tua coppia':'la coppia avversaria'} (${outcome.sets}) — punteggio pieno.`);
+  } else if(outcome.state==='partial'){
+    outcomeHtml=box('var(--gold)','rgba(239,208,106,.08)','var(--gold)',`⏱ Terzo set non concluso — partita abbreviata. Vince ${outcome.winner==='A'?'la tua coppia':'la coppia avversaria'} ai game (${outcome.gA}-${outcome.gB}): 50% dei punti.`);
+  } else {
+    outcomeHtml=box('var(--line)','rgba(255,255,255,.03)','var(--ivoryFaint)',`⚖ Terzo set non concluso e game in parità (${outcome.gA}-${outcome.gA}) — partita registrata, classifica invariata.`);
+  }
+  const winnerTeam=outcome.state==='tie'?null:(outcome.winner==='A'?1:2);
+  const calc=winnerTeam?computeMatch(t1,t2,'classic',winnerTeam):null;
+  const mult=outcome.state==='tie'?0:outcome.mult;
+  const rows=[ME,pl.partner,pl.opp1,pl.opp2].map(id=>{
+    const raw=calc?calc.res[id].delta:0;
+    const delta=+(raw*mult).toFixed(1);
+    const K=calc?calc.res[id].K:dynK();
+    const col=delta===0?'var(--ivoryFaint)':(delta>0?C.neon:C.danger);
+    return `<div class="prow"><span class="pn" style="color:${id===ME?C.neon:C.ivory};font-weight:${id===ME?700:500}">${esc(pName(id))} <span style="font-size:9px;color:var(--ivoryFaint)">K=${K}</span></span>
+      <span class="pd" style="color:${col}">${delta>0?'+':''}${delta.toFixed(1)}</span></div>`;
+  }).join('');
+  const previewHtml=`<div class="card rise" style="margin-top:14px">${rows}</div>`;
+  return {outcomeHtml,previewHtml,ready:true};
+}
 // Validazione live della box punteggio: bordi rossi sui set non validi,
-// messaggio esplicativo e attiva/disattiva il pulsante Conferma.
+// messaggio esplicativo, esito+anteprima aggiornati e attiva/disattiva "Conferma".
 function validateScore(){
   const cta=$('#play-cta'); if(!cta) return; // non siamo in Registra
+  const s1ok=setStatus(pl.s1a,pl.s1b)==='ok', s2ok=setStatus(pl.s2a,pl.s2b)==='ok';
   const sets=[['1',pl.s1a,pl.s1b],['2',pl.s2a,pl.s2b],['3',pl.s3a,pl.s3b]];
-  let okCount=0, problem='';
+  let problem='';
   sets.forEach(([n,a,b])=>{
     const st=setStatus(a,b);
-    const bad=(st==='invalid'||st==='incomplete');
+    // Il terzo set è libero (non blocca) quando i primi due sono già validi:
+    // può essere ignorato (2-0) o parziale/vuoto per tempo scaduto (partita abbreviata).
+    const optional=(n==='3')&&s1ok&&s2ok;
+    const bad=!optional&&(st==='invalid'||st==='incomplete');
     const ia=$('#in-s'+n+'a'), ib=$('#in-s'+n+'b');
     if(ia) ia.classList.toggle('score-in-bad',bad);
     if(ib) ib.classList.toggle('score-in-bad',bad);
-    if(st==='ok') okCount++;
     if(bad && !problem) problem = st==='incomplete'
       ? `Completa i games del Set ${n}.`
       : `Set ${n}: punteggio non valido. Ammessi 6-0…6-4, 7-5, 7-6.`;
   });
-  if(!problem && okCount<2) problem='Inserisci almeno 2 set completi.';
+  if(!problem && !(s1ok&&s2ok)) problem='Inserisci almeno il Set 1 e il Set 2 completi.';
   const msg=$('#score-msg');
   if(msg){ msg.textContent=problem; msg.style.display=problem?'block':'none'; }
   composeScore();
-  const playersOk=[ME,pl.partner,pl.opp1,pl.opp2].every(Boolean)&&new Set([ME,pl.partner,pl.opp1,pl.opp2]).size===4;
-  cta.disabled=!(playersOk && !problem);
+  const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
+  const {outcomeHtml,previewHtml,ready}=outcomePreview(t1,t2);
+  const oc=$('#play-outcome'); if(oc) oc.innerHTML=outcomeHtml;
+  const pv=$('#play-preview'); if(pv) pv.innerHTML=previewHtml;
+  cta.disabled=!(ready && !problem);
 }
-function resetPlay(){pl={partner:null,opp1:null,opp2:null,winner:1,done:false,club:(me()?.club||'')};render()}
+function resetPlay(){pl={partner:null,opp1:null,opp2:null,done:false,club:(me()?.club||'')};render()}
 // Da una partita organizzata: precompila i 4 giocatori in "Registra".
 // ME viene sempre messo nella SUA coppia reale, così l'ELO è calcolato correttamente.
 function registerFromInvite(key){
@@ -762,7 +794,7 @@ function registerFromInvite(key){
   if(!opps){ go('play'); return; }
   // Circolo dove si è giocata: quello dell'invito se affiliato, altrimenti il mio.
   const venueOk = inv.venue && players.some(p=>p.club===inv.venue);
-  pl={partner:myPartner, opp1:opps[0], opp2:opps[1], winner:1, done:false, club:(venueOk?inv.venue:(me()?.club||''))};
+  pl={partner:myPartner, opp1:opps[0], opp2:opps[1], done:false, club:(venueOk?inv.venue:(me()?.club||''))};
   tab='play';
   if($('#view')) $('#view').scrollTop=0;
   render();
@@ -770,18 +802,29 @@ function registerFromInvite(key){
 async function confirmMatch(){
   const t1=[ME,pl.partner], t2=[pl.opp1,pl.opp2];
   if(![...t1,...t2].every(Boolean)||new Set([...t1,...t2]).size!==4) return;
-  const calc=computeMatch(t1,t2,'classic',pl.winner);
-  const winnerStr=pl.winner===1?'A':'B';
+  const outcome=matchOutcome();
+  if(outcome.state==='incomplete') return;
   const score=$('#play-score')?.value?.trim()||'';
   const club=pl.club||me()?.club||auth.user?.club||'';
+  let winnerStr, deltas;
+  if(outcome.state==='tie'){
+    winnerStr='T';
+    deltas={[t1[0]]:0,[t1[1]]:0,[t2[0]]:0,[t2[1]]:0};
+  } else {
+    const winnerTeam=outcome.winner==='A'?1:2;
+    const calc=computeMatch(t1,t2,'classic',winnerTeam);
+    winnerStr=outcome.winner;
+    deltas={};
+    [...t1,...t2].forEach(id=>{ deltas[id]=+(calc.res[id].delta*outcome.mult).toFixed(1); });
+  }
   const {error}=await sb.from('pm_matches').insert({
     club, winner:winnerStr, score,
     team_a1:t1[0], team_a2:t1[1],
     team_b1:t2[0], team_b2:t2[1],
     submitted_by:ME,
     played_at:new Date().toISOString().split('T')[0],
-    delta_a1:calc.res[t1[0]].delta, delta_a2:calc.res[t1[1]].delta,
-    delta_b1:calc.res[t2[0]].delta, delta_b2:calc.res[t2[1]].delta,
+    delta_a1:deltas[t1[0]], delta_a2:deltas[t1[1]],
+    delta_b1:deltas[t2[0]], delta_b2:deltas[t2[1]],
     status:'pending'
   });
   if(error){ alert('Errore invio: '+error.message); return; }
@@ -828,7 +871,7 @@ function viewMatches(){
     }
     return `<div class="card" style="margin-bottom:12px">
       <div class="mhead">${pill(m.format,m.format==='Classica'?'neon':'ghost')}<span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${m.when}</span></div>
-      <div class="mgrid">${side(m.t1,m.winner===1,'left')}<div class="mscore">${m.score}</div>${side(m.t2,m.winner===2,'right')}</div>
+      <div class="mgrid">${side(m.t1,m.winner===1,'left')}<div class="mscore">${m.score}${m.winner===0?`<div style="font-size:9px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.1em;margin-top:2px">⚖ PAREGGIO</div>`:''}</div>${side(m.t2,m.winner===2,'right')}</div>
       <div class="mfoot">${foot}</div>
       <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
         ${(m.mover===ME && m.status!=='approved' && m.status!=='rejected')?`<button class="btnGhostSm" style="color:var(--danger)" onclick="cancelMatch('${m.id}')">Annulla partita</button>`:''}
@@ -1489,7 +1532,7 @@ function go(t){
   const prev=tab;
   tab=t;
   if(t==='organize'&&prev!=='organize') org={date:'',time:'18:00',venue:'',venueCustom:'',partner:null,opp1:null,opp2:null,sent:false,inviteStatus:[]};
-  if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,winner:1,done:false,club:(me()?.club||'')};
+  if(t==='play'&&prev!=='play') pl={partner:null,opp1:null,opp2:null,done:false,club:(me()?.club||'')};
   else if(t!=='play') pl.done=false;
   if(t==='matches'&&prev!=='matches') loadMyInvites().then(()=>render());
   if(t==='adminmatches'&&prev!=='adminmatches'){ adminMatchesLoading=true; adminLoadMatches(); }
@@ -1574,7 +1617,7 @@ async function loadMatches(){
       format:'Classica', venue:m.club,
       t1:[m.team_a1,m.team_a2], t2:[m.team_b1,m.team_b2],
       score:m.score||'—', status:m.status,
-      winner:m.winner==='A'?1:2, mover:m.submitted_by,
+      winner:m.winner==='A'?1:(m.winner==='B'?2:0), mover:m.submitted_by,
       deltas:{[m.team_a1]:m.delta_a1,[m.team_a2]:m.delta_a2,[m.team_b1]:m.delta_b1,[m.team_b2]:m.delta_b2}
     }));
   }
@@ -1601,7 +1644,7 @@ async function loadClubMatches(){
     when:new Date(m.played_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}),
     t1:[m.team_a1,m.team_a2], t2:[m.team_b1,m.team_b2],
     score:m.score||'—', status:m.status,
-    winner:m.winner==='A'?1:2, mover:m.submitted_by,
+    winner:m.winner==='A'?1:(m.winner==='B'?2:0), mover:m.submitted_by,
     deltas:{[m.team_a1]:m.delta_a1,[m.team_a2]:m.delta_a2,[m.team_b1]:m.delta_b1,[m.team_b2]:m.delta_b2}
   }));
 }
@@ -1987,7 +2030,7 @@ function viewAdminMatches(){
     return `<div class="card" style="margin-bottom:10px">
       <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:6px">${m.played_at||'—'}${m.club?' · '+esc(m.club):''}</div>
       <div style="font-size:12.5px;margin-bottom:4px"><span style="color:${m.winner==='A'?'var(--neon)':'var(--ivory)'};font-weight:${m.winner==='A'?700:500}">${A}</span> <span style="color:var(--rust);font-style:italic"> vs </span> <span style="color:${m.winner==='B'?'var(--neon)':'var(--ivory)'};font-weight:${m.winner==='B'?700:500}">${B}</span></div>
-      <div style="font-size:12px;color:var(--ivoryDim);font-family:var(--mono);margin-bottom:8px">${esc(m.score||'—')}</div>
+      <div style="font-size:12px;color:var(--ivoryDim);font-family:var(--mono);margin-bottom:8px">${esc(m.score||'—')}${m.winner==='T'?' <span style="color:var(--ivoryFaint)">⚖ Pareggio</span>':''}</div>
       <div style="display:flex;justify-content:space-between;align-items:center">${pill(lbl,tone)}<span style="font-size:11px;color:var(--ivoryFaint)">reg. ${esc(aName(m.submitted_by))}</span></div>
     </div>`;
   }).join('') : `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita registrata</div>`;
