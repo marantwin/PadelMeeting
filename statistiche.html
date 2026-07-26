@@ -518,7 +518,7 @@ function render(profile,matches,players,clubPlayers,clubMatches){
           x:{grid:{color:'rgba(91,240,203,.06)'},border:{display:false},
              ticks:{color:'rgba(247,240,220,.4)',font:{family:"'JetBrains Mono',monospace",size:9.5},maxRotation:0,autoSkip:true,maxTicksLimit:6}},
           y:{grid:{color:'rgba(91,240,203,.06)'},border:{display:false},
-             ticks:{color:'rgba(247,240,220,.4)',font:{family:"'JetBrains Mono',monospace",size:9.5},callback:v=>v.toFixed(0)}}
+             ticks:{color:'rgba(247,240,220,.4)',font:{family:"'JetBrains Mono',monospace",size:9.5},maxTicksLimit:5,callback:v=>v.toFixed(1)}}
         }
       }
     });
