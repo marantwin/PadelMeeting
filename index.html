@@ -922,9 +922,10 @@ function viewMatches(){
 async function actMatch(id,status){
   const upd={status};
   let ratingUpdates=null;
+  let m=null;
   if(status==='approved'){
     upd.approved_by=ME;
-    const m=matches.find(x=>x.id===id)||clubPendingMatches.find(x=>x.id===id);
+    m=matches.find(x=>x.id===id)||clubPendingMatches.find(x=>x.id===id);
     if(m){
       const r=pid=>players.find(p=>p.id===pid)?.rating??0;
       const clamp=v=>+Math.max(0,Math.min(100,v)).toFixed(1);
@@ -943,9 +944,18 @@ async function actMatch(id,status){
   const {error}=await sb.from('pm_matches').update(upd).eq('id',id);
   if(error){ alert('Errore: '+error.message); return; }
   if(ratingUpdates){
+    // Striscia (vittorie/sconfitte consecutive): una vittoria la incrementa (o riparte
+    // da +1 se veniva da una serie di sconfitte); una sconfitta simmetrico; un pareggio
+    // (winner=0, partita abbreviata in parità) la azzera, perché non è né l'una né l'altra.
+    const nextStreak=(pid,onTeam1)=>{
+      const cur=players.find(x=>x.id===pid)?.streak||0;
+      if(m.winner===0) return 0;
+      const won=(onTeam1&&m.winner===1)||(!onTeam1&&m.winner===2);
+      return won?(cur>=0?cur+1:1):(cur<=0?cur-1:-1);
+    };
     const ratingsArr=Object.entries(ratingUpdates).map(([pid,newRating])=>{
       const p=players.find(x=>x.id===pid);
-      return {id:pid,rating:newRating,games:(p?.games||0)+1};
+      return {id:pid,rating:newRating,games:(p?.games||0)+1,streak:nextStreak(pid,m.t1.includes(pid))};
     });
     const {error:rErr}=await sb.rpc('pm_update_ratings',{ratings:ratingsArr});
     if(rErr){ alert('Errore aggiornamento rating: '+rErr.message); return; }
