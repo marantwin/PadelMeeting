@@ -295,7 +295,7 @@ async function init(){
   if(!profile||profile.status!=='active'){window.location.href='/';return}
 
   const {data:raw}=await sb.from('pm_matches')
-    .select('id,played_at,winner,team_a1,team_a2,team_b1,team_b2,delta_a1,delta_a2,delta_b1,delta_b2,rating_after_a1,rating_after_a2,rating_after_b1,rating_after_b2')
+    .select('id,played_at,winner,score,team_a1,team_a2,team_b1,team_b2,delta_a1,delta_a2,delta_b1,delta_b2,rating_after_a1,rating_after_a2,rating_after_b1,rating_after_b2')
     .eq('status','approved')
     .or(`team_a1.eq.${uid},team_a2.eq.${uid},team_b1.eq.${uid},team_b2.eq.${uid}`)
     .order('played_at',{ascending:true});
@@ -322,29 +322,57 @@ async function init(){
   render(profile,matches,players,clubPlayers,clubMatches);
 }
 
+// Regole padel: un set concluso è valido solo 6-0..6-4, 7-5, 7-6.
+// Un set parziale/non concluso (es. "3-5" per tempo scaduto) viene ignorato.
+function validSet(a,b){
+  if(a===b) return false;
+  const hi=Math.max(a,b), lo=Math.min(a,b);
+  if(hi===6) return lo>=0&&lo<=4;
+  if(hi===7) return lo===5||lo===6;
+  return false;
+}
+function countSets(score,onA){
+  let won=0,lost=0;
+  (score||'').split('/').forEach(seg=>{
+    const parts=seg.trim().split('-').map(Number);
+    if(parts.length!==2||parts.some(Number.isNaN)) return;
+    const [a,b]=parts;
+    if(!validSet(a,b)) return;
+    const aWon=a>b;
+    if(onA===aWon) won++; else lost++;
+  });
+  return {won,lost};
+}
 function computeStats(uid,matches){
-  let wins=0,losses=0,totalDelta=0;
+  let wins=0,losses=0,ties=0,totalDelta=0,setsWon=0,setsLost=0;
   const pMap={};
   const prHistory=[];
   for(const m of matches){
     const onA=m.team_a1===uid||m.team_a2===uid;
     const onB=m.team_b1===uid||m.team_b2===uid;
     if(!onA&&!onB)continue;
-    const won=(onA&&m.winner==='A')||(onB&&m.winner==='B');
-    won?wins++:losses++;
+    // Partita abbreviata in parità (winner='T'): non è né vittoria né sconfitta.
+    const isTie=m.winner==='T';
+    const won=!isTie&&((onA&&m.winner==='A')||(onB&&m.winner==='B'));
+    if(isTie) ties++; else won?wins++:losses++;
     const dk=onA?(m.team_a1===uid?'delta_a1':'delta_a2'):(m.team_b1===uid?'delta_b1':'delta_b2');
     totalDelta+=m[dk]??0;
+    const sc=countSets(m.score,onA);
+    setsWon+=sc.won; setsLost+=sc.lost;
     const pid=onA?(m.team_a1===uid?m.team_a2:m.team_a1):(m.team_b1===uid?m.team_b2:m.team_b1);
-    if(pid){if(!pMap[pid])pMap[pid]={w:0,l:0};won?pMap[pid].w++:pMap[pid].l++}
+    if(pid){
+      if(!pMap[pid])pMap[pid]={w:0,l:0,t:0};
+      if(isTie) pMap[pid].t++; else won?pMap[pid].w++:pMap[pid].l++;
+    }
     const rk=onA?(m.team_a1===uid?'rating_after_a1':'rating_after_a2'):(m.team_b1===uid?'rating_after_b1':'rating_after_b2');
     if(m[rk]!=null)prHistory.push({date:m.played_at,rating:m[rk]});
   }
-  const total=wins+losses;
+  const total=wins+losses+ties;
   const topPartners=Object.entries(pMap)
-    .map(([id,s])=>({id,...s,pct:s.w+s.l>0?Math.round(s.w/(s.w+s.l)*100):0}))
-    .sort((a,b)=>(b.w+b.l)-(a.w+a.l)).slice(0,3);
-  return{wins,losses,total,winPct:total>0?Math.round(wins/total*100):0,
-         avgDelta:total>0?totalDelta/total:0,topPartners,prHistory};
+    .map(([id,s])=>({id,...s,pct:(s.w+s.l+s.t)>0?Math.round(s.w/(s.w+s.l+s.t)*100):0}))
+    .sort((a,b)=>(b.w+b.l+b.t)-(a.w+a.l+a.t)).slice(0,3);
+  return{wins,losses,ties,total,winPct:total>0?Math.round(wins/total*100):0,
+         avgDelta:total>0?totalDelta/total:0,setsWon,setsLost,topPartners,prHistory};
 }
 
 function render(profile,matches,players,clubPlayers,clubMatches){
@@ -367,11 +395,11 @@ function render(profile,matches,players,clubPlayers,clubMatches){
         <div class="prow-av" style="border-color:${pl?bandColor(pl.rating)+'55':'var(--line)'}">${pl?esc(pl.full_name[0]):'?'}</div>
         <div class="prow-info">
           <div class="prow-name">${pl?esc(pl.full_name):'Sconosciuto'}</div>
-          <div class="prow-sub">${pl?bandName(pl.rating):'—'} · ${p.w+p.l} partite</div>
+          <div class="prow-sub">${pl?bandName(pl.rating):'—'} · ${p.w+p.l+p.t} partite</div>
         </div>
         <div class="prow-stat">
           <div class="prow-pct" style="color:${pc}">${p.pct}%</div>
-          <div class="prow-wl">${p.w}V ${p.l}S</div>
+          <div class="prow-wl">${p.w}V ${p.l}S${p.t?` ${p.t}P`:''}</div>
         </div>
       </div>`;
     }).join('');
@@ -404,6 +432,17 @@ function render(profile,matches,players,clubPlayers,clubMatches){
       </div>
     </div>
 
+    <div class="metrics" style="grid-template-columns:repeat(2,1fr)">
+      <div class="metric m-win r1">
+        <div class="metric-val" id="v-setw" style="color:#5BF0CB">—</div>
+        <div class="metric-lbl">Set vinti</div>
+      </div>
+      <div class="metric m-dlt r1">
+        <div class="metric-val" id="v-setl" style="color:#E07B4A">—</div>
+        <div class="metric-lbl">Set persi</div>
+      </div>
+    </div>
+
     <div class="stag r2">Andamento PR</div>
     <div class="card r2" style="padding:18px 16px 14px">
       ${stats.prHistory.length>=2
@@ -426,12 +465,16 @@ function render(profile,matches,players,clubPlayers,clubMatches){
   const wlEl=document.getElementById('v-wl');
   const strEl=document.getElementById('v-str');
   const dltEl=document.getElementById('v-dlt');
+  const setwEl=document.getElementById('v-setw');
+  const setlEl=document.getElementById('v-setl');
 
   animCount(prEl,profile.rating,1,1000);
   animPct(winEl,stats.winPct,820);
-  if(wlEl) wlEl.textContent=`${stats.wins}V · ${stats.losses}S`;
+  if(wlEl) wlEl.textContent=`${stats.wins} ${stats.wins===1?'vittoria':'vittorie'} · ${stats.losses} ${stats.losses===1?'sconfitta':'sconfitte'}${stats.ties?` · ${stats.ties} ${stats.ties===1?'pareggio':'pareggi'}`:''}`;
   animStreak(strEl,streak,750);
   animDelta(dltEl,stats.avgDelta,800);
+  animCount(setwEl,stats.setsWon,0,800);
+  animCount(setlEl,stats.setsLost,0,800);
 
   // PR chart
   if(stats.prHistory.length>=2){
