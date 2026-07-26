@@ -498,7 +498,7 @@ function render(profile,matches,players,clubPlayers,clubMatches){
           const g=c.chart.ctx.createLinearGradient(0,0,0,180);
           g.addColorStop(0,'rgba(91,240,203,.20)');g.addColorStop(1,'rgba(91,240,203,.00)');return g;
         },
-        fill:true,tension:.4,
+        fill:true,tension:0,
         pointRadius:data.length<=12?4:2,
         pointBackgroundColor:'#5BF0CB',pointBorderColor:'#0E2723',pointBorderWidth:2,pointHoverRadius:7,
       }]},
