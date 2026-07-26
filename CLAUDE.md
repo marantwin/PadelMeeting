@@ -64,7 +64,7 @@ let adminAllMatches = []; // All registered matches — admin dashboard
 - `pm_get_invites(p_invite_ids text[])` — returns the `match_invite` rows (user_id, data, created_at) for the given invites, but ONLY if the caller is a participant of that invite. Needed because RLS on `pm_notifications` lets a user read only their own rows or invites they organized — so an invitee could not otherwise see the other invitees' accept/decline status. Defined in `supabase/invite_rls_fix.sql`. Called in `loadMyInvites()` and `checkAllAccepted()`.
 
 **RLS policies / SQL files** (`supabase/*.sql`, run in the Supabase SQL editor):
-- `pm_matches` — managers/admin can read all matches, but a manager's read/update is restricted to matches of **their own club** (`pm_matches.club`); see `restrict_manager_matches.sql`.
+- `pm_matches` — managers/admin can read all matches, but a manager's read/update is restricted to matches of **their own club** (`pm_matches.club`); see `restrict_manager_matches.sql`. Players can SELECT/INSERT/UPDATE their own matches, but **there is no DELETE policy for players** — `.delete()` on `pm_matches` fails silently for a non-admin (no thrown error client-side unless you check the response). To retire a bogus/test match, **update `status` to `'rejected'`** instead (it's then excluded from every `status='approved'`-filtered query, e.g. `statistiche.html`); never assume a `.delete()` call succeeded without checking the row is actually gone.
 - `pm_notifications` — a user reads only their own rows or invites they organized; **admin** can read all notifications (needed for the admin dashboard) via `admin_read_notifications.sql`.
 
 Supabase client is initialized at the top of the script:
@@ -233,8 +233,11 @@ The manager can suspend the inactivity counter (e.g. for injury); it restarts fr
 - `landing.html` — Marketing page with animated canvas padel court; standalone, no shared code with `index.html`. Includes PWA install instructions for Android/iPhone.
 - `overview.html` — A4 print-friendly feature guide; standalone
 - `regolamento.html` — Full official ruleset; standalone
+- `statistiche.html` — Personal stats page (standalone, Chart.js via CDN); linked from `viewProfile()`'s "📊 Le mie statistiche" button. Requires a live session (redirects to `/` if none) or `?demo=1` for `initDemo()` synthetic data. `init()` loads the profile + all `status='approved'` matches for the user (plus club-wide data if `role==='manager'`), then `render()` builds the page:
+  - `computeStats(uid, matches)` — wins/losses/**ties** (`m.winner==='T'`, an "abbreviated" tied match — must NOT be counted as a loss), win %, avg ELO delta, **sets won/lost** (`countSets()`/`validSet()` parse `m.score` and only count fully-completed padel-valid sets, ignoring partial/unfinished ones — same rule as `matchOutcome()` in `index.html`), and top-3 partners (teammates, not opponents) with their own W/L/T breakdown.
+  - **PR chart** (`fullHistory`, built in `render()`): starts at **account creation** (`profile.created_at`, PR 35) and always extends to **today** (current `profile.rating`), passing through each approved match's `rating_after_*`. Always rendered — a player with zero matches still gets a flat 2-point line at 35 (no more "chart apparirà dopo le prime partite" placeholder). Y-axis uses `maxTicksLimit:5` + 1-decimal labels to avoid duplicate rounded ticks (e.g. "36, 36, 36, 37") when the rating range is narrow.
 - `termini.pdf` — Terms of use; includes 60-day free trial clause and €49.97/month subscription after trial
-- `sw.js` — Service worker, current version `padelmeeting-v73`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
+- `sw.js` — Service worker, current version `padelmeeting-v75`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
   - **Supabase requests (`hostname.includes('supabase')`): network-only, never cached.** Critical — caching them serves stale invites/notifications/matches. This was the root cause of "stale data on reopen" bugs.
   - **Navigation (`request.mode === 'navigate'`, i.e. `index.html`): network-first**, falls back to cache offline — keeps app code fresh when online.
   - **Google Fonts: network-first**, cache fallback.
