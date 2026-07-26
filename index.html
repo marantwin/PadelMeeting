@@ -191,6 +191,8 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior
 .score-in{width:100%;text-align:center;padding:11px 0;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--ivory);font-size:18px;font-weight:700;font-family:var(--mono);outline:none}
 .score-in:focus{border-color:var(--neon);box-shadow:0 0 0 2px rgba(91,240,203,.18)}
 .score-in-bad{border-color:var(--danger)!important;box-shadow:0 0 0 2px rgba(240,106,128,.22)!important}
+.field-bad{border-color:var(--danger)!important;box-shadow:0 0 0 2px rgba(240,106,128,.22)!important}
+.field-bad-wrap{border:1px solid var(--danger);background:rgba(240,106,128,.06);border-radius:10px;padding:8px 10px;margin-top:10px}
 .score-sep{text-align:center;color:var(--ivoryFaint);font-size:16px}
 .vs{text-align:center;margin:10px 0;font-family:var(--serif);font-style:italic;font-size:18px;color:var(--rust);letter-spacing:.2em}
 
@@ -1554,6 +1556,10 @@ const sb = supabase.createClient(
 );
 
 let auth = { tab:'login', role:'player', err:'', loading:false, user:null, loggedIn:false };
+// Bozza del form di registrazione: conserva i dati digitati quando la validazione
+// fallisce, cosi l'utente non deve reinserire tutto. regErrors segna i campi mancanti/non validi.
+let regDraft = {};
+let regErrors = new Set();
 let adminPending = [];
 let adminClubs = [];
 let adminAllPlayers = [];
@@ -1838,23 +1844,41 @@ async function doRegister(){
   const nome=$('#ar-nome').value.trim(), cognome=$('#ar-cognome').value.trim();
   const email=$('#ar-email').value.trim(), pass=$('#ar-pass').value;
   const pass2=$('#ar-pass2').value;
-  let club=$('#ar-club')?.value.trim()||'';
-  if(auth.role==='player' && club==='__no_club__'){
-    const custom=$('#ar-club-custom')?.value.trim();
-    if(!custom){ auth.err='Inserisci il nome del tuo circolo'; renderAuth(); return; }
-    club=custom;
-  }
+  const clubSel=$('#ar-club')?.value.trim()||'';
+  const clubCustom=$('#ar-club-custom')?.value.trim()||'';
   const city=$('#ar-city').value.trim();
   const provincia=$('#ar-provincia').value.trim().toUpperCase();
   const indirizzo=auth.role==='manager'?$('#ar-indirizzo').value.trim():'';
   const telefono=$('#ar-telefono')?.value.trim()||'';
-  if(!nome||!cognome||!email||!pass||!pass2||!club||!city||!provincia||!telefono||(auth.role==='manager'&&!indirizzo)){
-    auth.err='Compila tutti i campi'; renderAuth(); return; }
-  if(!$('#ar-age')?.checked){ auth.err='Devi dichiarare di avere almeno 18 anni'; renderAuth(); return; }
-  if(!$('#ar-termini')?.checked){ auth.err='Devi accettare i Termini d\'uso'; renderAuth(); return; }
-  if(!$('#ar-privacy')?.checked){ auth.err='Devi accettare la Privacy Policy'; renderAuth(); return; }
-  if(pass.length<6){ auth.err='Password minimo 6 caratteri'; renderAuth(); return; }
-  if(pass!==pass2){ auth.err='Le password non coincidono'; renderAuth(); return; }
+  const age=!!$('#ar-age')?.checked, termini=!!$('#ar-termini')?.checked, privacy=!!$('#ar-privacy')?.checked;
+
+  // Conserva tutto ciò che l'utente ha digitato: se la validazione fallisce,
+  // il form si ripopola con questi valori invece di svuotarsi.
+  regDraft={nome,cognome,email,pass,pass2,club:clubSel,clubCustom,city,provincia,indirizzo,telefono,age,termini,privacy};
+
+  let club=clubSel;
+  if(auth.role==='player' && club==='__no_club__') club=clubCustom;
+
+  regErrors=new Set();
+  if(!nome) regErrors.add('ar-nome');
+  if(!cognome) regErrors.add('ar-cognome');
+  if(!email) regErrors.add('ar-email');
+  if(!pass) regErrors.add('ar-pass');
+  if(!pass2) regErrors.add('ar-pass2');
+  if(auth.role==='player'&&clubSel==='__no_club__'&&!clubCustom) regErrors.add('ar-club-custom');
+  else if(!club) regErrors.add('ar-club');
+  if(!city) regErrors.add('ar-city');
+  if(!provincia) regErrors.add('ar-provincia');
+  if(!telefono) regErrors.add('ar-telefono');
+  if(auth.role==='manager'&&!indirizzo) regErrors.add('ar-indirizzo');
+  if(!age) regErrors.add('ar-age');
+  if(!termini) regErrors.add('ar-termini');
+  if(!privacy) regErrors.add('ar-privacy');
+
+  if(regErrors.size){ auth.err='Compila i campi evidenziati in rosso.'; renderAuth(); return; }
+  if(pass.length<6){ regErrors.add('ar-pass'); regErrors.add('ar-pass2'); auth.err='Password minimo 6 caratteri'; renderAuth(); return; }
+  if(pass!==pass2){ regErrors.add('ar-pass'); regErrors.add('ar-pass2'); auth.err='Le password non coincidono'; renderAuth(); return; }
+
   auth.loading=true; renderAuth();
   const meta={full_name:nome+' '+cognome, role:auth.role, club, city, provincia};
   if(indirizzo) meta.indirizzo=indirizzo;
@@ -1862,6 +1886,7 @@ async function doRegister(){
   const {error}=await sb.auth.signUp({email,password:pass,options:{data:meta,emailRedirectTo:window.location.origin}});
   auth.loading=false;
   if(error){ auth.err=error.message; renderAuth(); return; }
+  regDraft={}; regErrors=new Set();
   auth.registered=auth.role==='manager'?'pending':'verify'; renderAuth();
 }
 
@@ -2067,7 +2092,7 @@ async function adminSetStatus(id,status){
 
 function viewAuth(){
   const isLogin=auth.tab==='login';
-  const clubOpts=clubs_list.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.city?` — ${esc(c.city)}`:''}</option>`).join('');
+  const clubOpts=clubs_list.map(c=>`<option value="${esc(c.name)}" ${regDraft.club===c.name?'selected':''}>${esc(c.name)}${c.city?` — ${esc(c.city)}`:''}</option>`).join('');
   const logo=`<div style="text-align:center;margin-bottom:26px">
     <img src="/Logo_PadelMeeting.png" alt="PadelMeeting" style="width:190px;height:auto;filter:drop-shadow(0 0 30px rgba(91,240,203,.58))">
   </div>`;
@@ -2156,48 +2181,52 @@ function viewAuth(){
     <div class="auth-err">${auth.err}</div>
     <button class="linkBtn" style="font-size:12px;opacity:.7" onclick="setAuthTab('reset-request')">Password dimenticata?</button>`;
 
+  const bad=id=>regErrors.has(id)?' field-bad':'';
+  const cbBad=id=>regErrors.has(id)?' class="field-bad-wrap"':'';
+  const d=regDraft;
+  const showCustomClub=auth.role==='player'&&d.club==='__no_club__';
   const regForm=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px">
-      <div><label class="auth-label">Nome</label><input id="ar-nome" type="text" class="auth-input" placeholder="Mario"></div>
-      <div><label class="auth-label">Cognome</label><input id="ar-cognome" type="text" class="auth-input" placeholder="Rossi"></div>
+      <div><label class="auth-label">Nome</label><input id="ar-nome" type="text" class="auth-input${bad('ar-nome')}" placeholder="Mario" value="${esc(d.nome||'')}"></div>
+      <div><label class="auth-label">Cognome</label><input id="ar-cognome" type="text" class="auth-input${bad('ar-cognome')}" placeholder="Rossi" value="${esc(d.cognome||'')}"></div>
     </div>
     <div class="auth-field"><label class="auth-label">Email</label>
-      <input id="ar-email" type="email" class="auth-input" placeholder="mario@email.it"></div>
+      <input id="ar-email" type="email" class="auth-input${bad('ar-email')}" placeholder="mario@email.it" value="${esc(d.email||'')}"></div>
     <div class="auth-field"><label class="auth-label">Password</label>
       <div class="auth-input-wrap">
-        <input id="ar-pass" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+        <input id="ar-pass" type="password" class="auth-input${bad('ar-pass')}" placeholder="••••••••" autocomplete="new-password" value="${esc(d.pass||'')}">
         <button type="button" class="auth-eye" onclick="toggleEye('ar-pass',this)" tabindex="-1">${eyeOpen}</button>
       </div></div>
     <div class="auth-field"><label class="auth-label">Conferma password</label>
       <div class="auth-input-wrap">
-        <input id="ar-pass2" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+        <input id="ar-pass2" type="password" class="auth-input${bad('ar-pass2')}" placeholder="••••••••" autocomplete="new-password" value="${esc(d.pass2||'')}">
         <button type="button" class="auth-eye" onclick="toggleEye('ar-pass2',this)" tabindex="-1">${eyeOpen}</button>
       </div></div>
     <div class="auth-field"><label class="auth-label">${auth.role==='manager'?'Nome del nuovo circolo':'Circolo'}</label>
-      ${auth.role==='player'?`<select id="ar-club" class="auth-input" autocomplete="off" onchange="onClubSelectChange(this)">
+      ${auth.role==='player'?`<select id="ar-club" class="auth-input${bad('ar-club')}" autocomplete="off" onchange="onClubSelectChange(this)">
         <option value="">— Seleziona il tuo circolo —</option>
         ${clubOpts}
-        <option value="__no_club__">Il mio circolo non è ancora registrato</option>
+        <option value="__no_club__" ${d.club==='__no_club__'?'selected':''}>Il mio circolo non è ancora registrato</option>
       </select>
-      <div id="ar-club-custom-wrap" style="display:none;margin-top:10px">
+      <div id="ar-club-custom-wrap" style="display:${showCustomClub?'block':'none'};margin-top:10px">
         <label class="auth-label" style="margin-top:0">Nome del circolo desiderato</label>
-        <input id="ar-club-custom" type="text" class="auth-input" placeholder="Es. Padel Club Eboli" autocomplete="off">
+        <input id="ar-club-custom" type="text" class="auth-input${bad('ar-club-custom')}" placeholder="Es. Padel Club Eboli" autocomplete="off" value="${esc(d.clubCustom||'')}">
         <div style="font-size:12px;color:var(--ivoryDim);margin-top:6px;line-height:1.5">Inserisci il nome così possiamo contattarlo per affiliarlo.</div>
-      </div>`:`<input id="ar-club" type="text" class="auth-input" placeholder="Nome del circolo" autocomplete="off">`}</div>
+      </div>`:`<input id="ar-club" type="text" class="auth-input${bad('ar-club')}" placeholder="Nome del circolo" autocomplete="off" value="${esc(d.club||'')}">`}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div><label class="auth-label">Città</label>
-        <input id="ar-city" type="text" class="auth-input" placeholder="Napoli" autocomplete="address-level2"></div>
+        <input id="ar-city" type="text" class="auth-input${bad('ar-city')}" placeholder="Napoli" autocomplete="address-level2" value="${esc(d.city||'')}"></div>
       <div><label class="auth-label">Provincia</label>
-        <input id="ar-provincia" type="text" class="auth-input" placeholder="NA" maxlength="3"></div>
+        <input id="ar-provincia" type="text" class="auth-input${bad('ar-provincia')}" placeholder="NA" maxlength="3" value="${esc(d.provincia||'')}"></div>
     </div>
     ${auth.role==='player'?`
     <div class="auth-field" style="margin-top:15px"><label class="auth-label">Telefono</label>
-      <input id="ar-telefono" type="tel" class="auth-input" placeholder="+39 333 1234567" autocomplete="tel"></div>`:''}
+      <input id="ar-telefono" type="tel" class="auth-input${bad('ar-telefono')}" placeholder="+39 333 1234567" autocomplete="tel" value="${esc(d.telefono||'')}"></div>`:''}
     ${auth.role==='manager'?`
     <div class="auth-field"><label class="auth-label">Indirizzo circolo</label>
-      <input id="ar-indirizzo" type="text" class="auth-input" placeholder="Via Roma 1, Napoli" autocomplete="street-address"></div>
+      <input id="ar-indirizzo" type="text" class="auth-input${bad('ar-indirizzo')}" placeholder="Via Roma 1, Napoli" autocomplete="street-address" value="${esc(d.indirizzo||'')}"></div>
     <div class="auth-field"><label class="auth-label">Telefono</label>
-      <input id="ar-telefono" type="tel" class="auth-input" placeholder="+39 081 123456" autocomplete="tel"></div>`:''}
+      <input id="ar-telefono" type="tel" class="auth-input${bad('ar-telefono')}" placeholder="+39 081 123456" autocomplete="tel" value="${esc(d.telefono||'')}"></div>`:''}
     <div class="auth-divider"><span>Tipo di account</span></div>
     <div class="auth-role-grid">
       <button class="auth-role-btn ${auth.role==='player'?'sel':''}" onclick="setAuthRole('player')">
@@ -2205,16 +2234,16 @@ function viewAuth(){
       <button class="auth-role-btn ${auth.role==='manager'?'sel':''}" onclick="setAuthRole('manager')">
         <span class="auth-role-icon">🏟️</span>Responsabile<br>Circolo</button>
     </div>
-    <label style="display:flex;align-items:flex-start;gap:10px;margin-top:16px;cursor:pointer">
-      <input id="ar-age" type="checkbox" style="margin-top:2px;width:16px;height:16px;accent-color:var(--neon);flex-shrink:0">
+    <label style="display:flex;align-items:flex-start;gap:10px;margin-top:16px;cursor:pointer"${cbBad('ar-age')}>
+      <input id="ar-age" type="checkbox" style="margin-top:2px;width:16px;height:16px;accent-color:var(--neon);flex-shrink:0" ${d.age?'checked':''}>
       <span style="font-size:13px;color:var(--ivoryDim);line-height:1.5">Dichiaro di avere almeno 18 anni</span>
     </label>
-    <label style="display:flex;align-items:flex-start;gap:10px;margin-top:10px;cursor:pointer">
-      <input id="ar-termini" type="checkbox" style="margin-top:2px;width:16px;height:16px;accent-color:var(--neon);flex-shrink:0">
+    <label style="display:flex;align-items:flex-start;gap:10px;margin-top:10px;cursor:pointer"${cbBad('ar-termini')}>
+      <input id="ar-termini" type="checkbox" style="margin-top:2px;width:16px;height:16px;accent-color:var(--neon);flex-shrink:0" ${d.termini?'checked':''}>
       <span style="font-size:13px;color:var(--ivoryDim);line-height:1.5">Ho letto e accetto i <a href="/termini.pdf" target="_blank" style="color:var(--neon);text-decoration:underline">Termini d'uso</a></span>
     </label>
-    <label style="display:flex;align-items:flex-start;gap:10px;margin-top:10px;cursor:pointer">
-      <input id="ar-privacy" type="checkbox" style="margin-top:2px;width:16px;height:16px;accent-color:var(--neon);flex-shrink:0">
+    <label style="display:flex;align-items:flex-start;gap:10px;margin-top:10px;cursor:pointer"${cbBad('ar-privacy')}>
+      <input id="ar-privacy" type="checkbox" style="margin-top:2px;width:16px;height:16px;accent-color:var(--neon);flex-shrink:0" ${d.privacy?'checked':''}>
       <span style="font-size:13px;color:var(--ivoryDim);line-height:1.5">Ho letto e accetto la <a href="/privacy.pdf" target="_blank" style="color:var(--neon);text-decoration:underline">Privacy Policy</a></span>
     </label>
     ${auth.loading?spinner:`<button class="auth-btn" style="margin-top:14px" onclick="doRegister()">Crea account</button>`}
