@@ -116,12 +116,6 @@ body{background:var(--void);font-family:var(--sans);color:var(--ivory);display:f
 
 /* Chart */
 .chart-wrap{position:relative;height:180px;margin-top:6px}
-.chart-empty{
-  height:160px;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:8px;color:var(--ivoryFaint);font-size:13px;
-  text-align:center;line-height:1.6;
-}
-.chart-empty-icon{font-size:34px;opacity:.45;margin-bottom:2px}
 
 /* Partner rows */
 .prow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--lineSoft)}
@@ -377,6 +371,22 @@ function computeStats(uid,matches){
 
 function render(profile,matches,players,clubPlayers,clubMatches){
   const stats=computeStats(profile.id,matches);
+  // Andamento PR: dal giorno di creazione dell'account (PR 35 iniziale) fino a oggi,
+  // passando per ogni partita approvata. Senza partite è una linea retta a 35.
+  const fullHistory=(()=>{
+    const h=[...stats.prHistory].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const out=[];
+    const created=profile.created_at||new Date(Date.now()-86400000).toISOString();
+    if(!h.length || new Date(created)<new Date(h[0].date))
+      out.push({date:created,rating:h.length?35:profile.rating});
+    out.push(...h);
+    const today=new Date(), last=new Date(h.length?h[h.length-1].date:created);
+    // Senza partite serve comunque una linea (2 punti): aggiungo "oggi" a meno che
+    // non coincida col giorno dell'ultima partita reale (per non duplicare il punto).
+    if(!h.length || today.toDateString()!==last.toDateString())
+      out.push({date:today.toISOString(),rating:profile.rating});
+    return out;
+  })();
   const bc=bandColor(profile.rating);
   const bn=bandName(profile.rating);
   const streak=profile.streak??0;
@@ -445,12 +455,7 @@ function render(profile,matches,players,clubPlayers,clubMatches){
 
     <div class="stag r2">Andamento PR</div>
     <div class="card r2" style="padding:18px 16px 14px">
-      ${stats.prHistory.length>=2
-        ?'<div class="chart-wrap"><canvas id="pr-chart"></canvas></div>'
-        :`<div class="chart-empty">
-            <div class="chart-empty-icon">📈</div>
-            <div>Il grafico apparirà<br>dopo le prime partite approvate</div>
-          </div>`}
+      <div class="chart-wrap"><canvas id="pr-chart"></canvas></div>
     </div>
 
     <div class="stag r3">Partner</div>
@@ -477,13 +482,13 @@ function render(profile,matches,players,clubPlayers,clubMatches){
   animCount(setlEl,stats.setsLost,0,800);
 
   // PR chart
-  if(stats.prHistory.length>=2){
+  if(fullHistory.length>=2){
     const ctx=document.getElementById('pr-chart').getContext('2d');
-    const labels=stats.prHistory.map(p=>{
+    const labels=fullHistory.map(p=>{
       const d=new Date(p.date);
       return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'});
     });
-    const data=stats.prHistory.map(p=>p.rating);
+    const data=fullHistory.map(p=>p.rating);
     new Chart(ctx,{
       type:'line',
       data:{labels,datasets:[{
