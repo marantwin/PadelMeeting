@@ -2056,34 +2056,52 @@ function viewAdminMatches(){
       <button class="btnGhostSm" onclick="go('profile')">← Indietro</button>
       <button class="btnGhostSm" onclick="adminLoadMatches()">Aggiorna</button></div>`;
   if(adminMatchesLoading) return `<div class="page">${back}<div style="text-align:center;color:var(--ivoryFaint);padding:40px 0">Caricamento…</div></div>`;
-  const invCards = adminAllInvites.length ? adminAllInvites.map(inv=>{
-    const allAcc=inv.players.length>=3&&inv.players.every(p=>p.response==='accepted');
-    const anyDec=inv.players.some(p=>p.response==='declined');
-    const esito=allAcc?'🎾 Organizzata':anyDec?'Non organizzata':'In attesa di risposta';
-    const eCol=allAcc?'var(--neon)':anyDec?'var(--danger)':'var(--ivoryFaint)';
-    const rows=inv.players.map(p=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span>${esc(aName(p.id))}</span><span style="color:${cl(p.response)};font-family:var(--mono)">${ic(p.response)} ${lb(p.response)}</span></div>`).join('');
-    return `<div class="card" style="margin-bottom:10px">
-      <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:6px">${inv.date||'—'} · ${inv.time||'—'}${inv.venue?' · '+esc(inv.venue):''}</div>
-      <div style="font-size:12.5px;color:var(--neon);margin-bottom:6px">Organizzatore: ${esc(aName(inv.organizer))}</div>
-      ${rows}
-      <div style="margin-top:8px;font-size:12.5px;font-weight:700;color:${eCol}">${esito}</div>
-    </div>`;
-  }).join('') : `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita organizzata</div>`;
+  const tag=(txt,col)=>`<span style="font-size:9.5px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:${col};border:1px solid ${col}55;background:${col}14;border-radius:20px;padding:2px 8px">${txt}</span>`;
   const sm={pending:['In attesa responsabile','gold'],manager_approved:['Approvata dal responsabile','gold'],approved:['Validata ✓','neon'],disputed:['Contestata','danger'],rejected:['Rifiutata','danger']};
-  const mCards = adminAllMatches.length ? adminAllMatches.map(m=>{
+  // Lista unica in ordine cronologico: le più recenti sempre in cima, che siano
+  // partite organizzate (inviti) o registrate.
+  const items=[
+    ...adminAllInvites.map(inv=>({kind:'inv', ts:new Date(inv.created||inv.date||0).getTime(), d:inv})),
+    ...adminAllMatches.map(m=>({kind:'match', ts:new Date(m.created_at||m.played_at||0).getTime(), d:m})),
+  ].sort((a,b)=>b.ts-a.ts);
+
+  const cards = items.length ? items.map(it=>{
+    if(it.kind==='inv'){
+      const inv=it.d;
+      const allAcc=inv.players.length>=3&&inv.players.every(p=>p.response==='accepted');
+      const anyDec=inv.players.some(p=>p.response==='declined');
+      const esito=allAcc?'🎾 Organizzata':anyDec?'Non organizzata':'In attesa di risposta';
+      const eCol=allAcc?'var(--neon)':anyDec?'var(--danger)':'var(--ivoryFaint)';
+      const rows=inv.players.map(p=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span>${esc(aName(p.id))}</span><span style="color:${cl(p.response)};font-family:var(--mono)">${ic(p.response)} ${lb(p.response)}</span></div>`).join('');
+      return `<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
+          ${tag('Organizzata','var(--gold)')}
+          <span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);text-align:right">${inv.date||'—'} · ${inv.time||'—'}${inv.venue?' · '+esc(inv.venue):''}</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--neon);margin-bottom:6px">Organizzatore: ${esc(aName(inv.organizer))}</div>
+        ${rows}
+        <div style="margin-top:8px;font-size:12.5px;font-weight:700;color:${eCol}">${esito}</div>
+      </div>`;
+    }
+    const m=it.d;
     const [lbl,tone]=sm[m.status]||[m.status||'—','ghost'];
     const A=[m.team_a1,m.team_a2].map(id=>esc(aName(id))).join(' + ');
     const B=[m.team_b1,m.team_b2].map(id=>esc(aName(id))).join(' + ');
     return `<div class="card" style="margin-bottom:10px">
-      <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:6px">${m.played_at||'—'}${m.club?' · '+esc(m.club):''}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
+        ${tag('Registrata','var(--neon)')}
+        <span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);text-align:right">${m.played_at||'—'}${m.club?' · '+esc(m.club):''}</span>
+      </div>
       <div style="font-size:12.5px;margin-bottom:4px"><span style="color:${m.winner==='A'?'var(--neon)':'var(--ivory)'};font-weight:${m.winner==='A'?700:500}">${A}</span> <span style="color:var(--rust);font-style:italic"> vs </span> <span style="color:${m.winner==='B'?'var(--neon)':'var(--ivory)'};font-weight:${m.winner==='B'?700:500}">${B}</span></div>
       <div style="font-size:12px;color:var(--ivoryDim);font-family:var(--mono);margin-bottom:8px">${esc(m.score||'—')}${m.winner==='T'?' <span style="color:var(--ivoryFaint)">⚖ Pareggio</span>':''}</div>
       <div style="display:flex;justify-content:space-between;align-items:center">${pill(lbl,tone)}<span style="font-size:11px;color:var(--ivoryFaint)">reg. ${esc(aName(m.submitted_by))}</span></div>
     </div>`;
-  }).join('') : `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita registrata</div>`;
+  }).join('') : `<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:16px 0">Nessuna partita</div>`;
+
   return `<div class="page">${back}
-    ${stag('Organizzate ('+adminAllInvites.length+')')}${invCards}
-    ${stag('Registrate ('+adminAllMatches.length+')')}${mCards}
+    ${stag('Tutte le partite ('+items.length+')')}
+    <div style="font-size:11px;color:var(--ivoryFaint);margin:-4px 0 10px">Le più recenti in alto · ${adminAllInvites.length} organizzate · ${adminAllMatches.length} registrate</div>
+    ${cards}
   </div>`;
 }
 async function adminSetStatus(id,status){
