@@ -900,6 +900,17 @@ function viewMatches(){
       : anyDeclined
         ? `<div style="margin-top:10px;font-size:13px;color:var(--danger);font-weight:600">Partita non organizzata</div>`
         : `<div style="margin-top:10px;font-size:13px;color:var(--ivoryFaint)">In attesa di risposta</div>`;
+    // Il risultato di questo invito è già stato registrato? Cerco una partita non
+    // annullata con esattamente questi 4 giocatori, creata dopo l'invito. Serve a non
+    // far registrare due volte la stessa partita (l'invito resta comunque in lista).
+    const inviteIds=[inv.organizer,inv.partner,inv.opp1,inv.opp2].filter(Boolean);
+    const regMatch=inviteIds.length===4?matches.find(mm=>{
+      if(mm.status==='rejected') return false;
+      const ids=[...mm.t1,...mm.t2];
+      if(ids.length!==4||!inviteIds.every(id=>ids.includes(id))) return false;
+      return !inv.created_at||!mm.createdAt||new Date(mm.createdAt)>=new Date(inv.created_at);
+    }):null;
+    const regBox=regMatch?`<div style="margin-top:10px;padding:9px 11px;border:1px solid var(--neon);background:rgba(91,240,203,.07);border-radius:9px;font-size:12px;line-height:1.5;color:var(--neon)">✓ <b>Risultato già registrato</b> (${esc(regMatch.score)}) — lo trovi in "Le mie partite" qui sotto.</div>`:'';
     const keyArg=`'${encodeURIComponent(inv.key)}'`;
     const cancelArg=inv.invite_id?`'${inv.invite_id}'`:`null,'${encodeURIComponent(inv.date||'')}','${encodeURIComponent(inv.time||'')}'`;
     const headLabel=amOrganizer?'Hai organizzato':`Invito da ${esc(pName(inv.organizer))}`;
@@ -908,9 +919,9 @@ function viewMatches(){
         <span style="font-size:11px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;text-transform:uppercase">${headLabel}</span>
         <span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${inv.date||'—'} · ${inv.time||'—'}${venue?' · '+esc(venue):''}</span>
       </div>
-      ${rows}${outcome}
+      ${rows}${outcome}${regBox}
       <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
-        ${allAccepted?`<button class="btnSolidSm" onclick="registerFromInvite(${keyArg})">⚡ Registra risultato</button>`:''}
+        ${allAccepted&&!regMatch?`<button class="btnSolidSm" onclick="registerFromInvite(${keyArg})">⚡ Registra risultato</button>`:''}
         <button class="btnGhostSm" onclick="hideInvite(${keyArg})">Rimuovi dalla lista</button>
         ${amOrganizer?`<button class="btnGhostSm" onclick="cancelInvite(${cancelArg})">Cancella partita</button>`:''}
       </div>
@@ -1623,13 +1634,13 @@ async function loadClubs(){
 async function loadMatches(){
   if(!ME) return;
   const {data,error}=await sb.from('pm_matches')
-    .select('id,played_at,club,winner,score,status,submitted_by,team_a1,team_a2,team_b1,team_b2,delta_a1,delta_a2,delta_b1,delta_b2')
+    .select('id,played_at,created_at,club,winner,score,status,submitted_by,team_a1,team_a2,team_b1,team_b2,delta_a1,delta_a2,delta_b1,delta_b2')
     .or(`team_a1.eq.${ME},team_a2.eq.${ME},team_b1.eq.${ME},team_b2.eq.${ME}`)
     .order('created_at',{ascending:false})
     .limit(30);
   if(!error && data){
     matches=data.map(m=>({
-      id:m.id,
+      id:m.id, createdAt:m.created_at,
       when:new Date(m.played_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}),
       format:'Classica', venue:m.club,
       t1:[m.team_a1,m.team_a2], t2:[m.team_b1,m.team_b2],
