@@ -53,14 +53,14 @@ let adminAllMatches = []; // All registered matches — admin dashboard
 | Table | Key Columns |
 |---|---|
 | `pm_profiles` | id, full_name, club, city, provincia, rating (default 35), games, streak, role (player/manager/admin), status (pending/active/rejected) |
-| `pm_matches` | id, played_at, club, winner (A/B), score, status (pending/approved/disputed), submitted_by, team_a1/a2, team_b1/b2, delta_a1/a2/b1/b2 |
+| `pm_matches` | id, played_at, club, winner (A/B/T), score, status (pending/manager_approved/approved/disputed/rejected), submitted_by, team_a1/a2, team_b1/b2, delta_a1/a2/b1/b2 |
 | `pm_clubs` | id, name, city, provincia, status (pending/active), created_at |
 | `pm_notifications` | id, user_id, type (`match_invite`\|`match_confirmed`), title, body, data (jsonb), read (bool), created_at |
 
 **RPC functions** (all `SECURITY DEFINER`, used to bypass RLS for cross-user operations):
 - `pm_get_pending_managers()`
 - `pm_set_profile_status(profile_id, new_status)` — admin can set any profile's status; a **manager** can set the status of profiles in their **own club** only (used to activate new players → PR 35 via `submitValutazione()`). Defined in `supabase/manager_activate_fix.sql`.
-- `pm_update_ratings(ratings jsonb)` — applies new rating+games to multiple profiles at once (a player approving a match must update the other 3 players' profiles, which RLS would otherwise block). Called in `actMatch()` when a match becomes `approved`.
+- `pm_update_ratings(ratings jsonb)` — applies new rating+games+**streak** to multiple profiles at once (a player approving a match must update the other 3 players' profiles, which RLS would otherwise block). Called in `actMatch()` when a match becomes `approved`. The `streak` field was added later (`supabase/update_ratings_streak.sql`) and uses `coalesce(...)` so a caller omitting it leaves the stored value untouched.
 - `pm_get_invites(p_invite_ids text[])` — returns the `match_invite` rows (user_id, data, created_at) for the given invites, but ONLY if the caller is a participant of that invite. Needed because RLS on `pm_notifications` lets a user read only their own rows or invites they organized — so an invitee could not otherwise see the other invitees' accept/decline status. Defined in `supabase/invite_rls_fix.sql`. Called in `loadMyInvites()` and `checkAllAccepted()`.
 
 **RLS policies / SQL files** (`supabase/*.sql`, run in the Supabase SQL editor):
@@ -97,6 +97,7 @@ In-app card + Web Push (see Web Push section). Flow:
 - `loadMyInvites()` loads invites the user **organized** (RLS: `data->>organizer = ME`) AND invites they **received** (`user_id = ME`); for received ones it fills the other invitees' rows via the `pm_get_invites` RPC (RLS would hide them otherwise — see RPC functions).
 - Cards are grouped by `invite_id` and show every invitee's status (✅ accepted / ❌ declined / ⏳ pending) plus an **esito**: 🎾 *Partita organizzata* (all accepted) · *Partita non organizzata* (someone declined) · *In attesa di risposta*. Visible to organizer AND invitees.
 - Buttons: **Cancella partita** (organizer only, deletes the whole invite for everyone, with confirm) · **Rimuovi dalla lista** (anyone; hides only in your own view via `localStorage` key `pm_hidden_invites`, no DB write) · **⚡ Registra risultato** (shown when organizzata; `registerFromInvite()` prefills the 4 players in "Registra" with the current user always placed in their real pair).
+- **Anti double-registration**: the card looks for a non-`rejected` match in `matches[]` whose 4 players are exactly the invite's 4 and whose `createdAt` is ≥ the invite's `created_at`. If found it shows "✓ Risultato già registrato (score)" and **hides the Registra button**. Without this the invite looked unchanged after registering, so users re-registered the same match (a real incident produced 4 duplicates). `loadMatches()` must therefore keep `created_at` (mapped to `createdAt`).
 
 #### Match status boxes + actions (`viewMatches()`)
 Each registered match shows an explanatory status box visible to all players (so they understand the double-validation pipeline and when the ranking moves): `pending` → ⏳ Passo 1/2 (responsabile); `manager_approved` → Passo 2/2 (validate buttons for the opposing team, "in attesa" for the rest); `approved` → classifica aggiornata; `disputed`; `rejected`.
@@ -104,7 +105,9 @@ Each registered match shows an explanatory status box visible to all players (so
 Each match card also carries per-user actions: **Rimuovi dalla lista** (hides the match from your own view only, `localStorage` key `pm_hidden_matches`, no DB write) and **Annulla partita** (only for the submitter `m.mover`, and only while not yet `approved`/`rejected`; `cancelMatch()` → `actMatch(id,'rejected')` with confirm — annuls it for everyone without needing "Contesta"/the manager). Useful for unfinished or mistakenly-registered matches.
 
 #### Admin dashboard — "Tutte le partite" (`viewAdminMatches()`, tab `adminmatches`)
-Admin-only, opened from a button in the admin panel of `viewProfile()`. Read-only. `adminLoadMatches()` loads **all** organized invites (grouped by `invite_id`, each player's accept/decline/pending status + esito) and **all** registered matches (teams, score, status, who submitted), plus a name map. Invites require `admin_read_notifications.sql`; registered matches are readable via the `pm_matches` policy.
+Admin-only, opened from a button in the admin panel of `viewProfile()`. Read-only, **no filters** (deliberate: the admin wants to see everything). `adminLoadMatches()` loads **all** organized invites (grouped by `invite_id`, each player's accept/decline/pending status + esito) and **all** registered matches (teams, score, status, who submitted), plus a name map. Invites require `admin_read_notifications.sql`; registered matches are readable via the `pm_matches` policy.
+
+Invites and matches are merged into a **single chronological list**, newest first, each card tagged "Organizzata" (gold) or "Registrata" (neon). The previous two-section layout (all invites, then all matches) buried recent matches ~1265px down the page.
 
 ### ELO Rating Logic
 
@@ -134,6 +137,9 @@ computeMatch(team1ids, team2ids, format, winnerTeam)
 Manager can also reject at step 2 → `rejected`. The submitter can annul a not-yet-approved match themselves (**Annulla partita**, see above).
 
 `loadClubMatches()` — fetches all `pending` matches involving the manager's club players; stored in `clubPendingMatches[]`; called at login for managers and after every `actMatch()`.
+
+#### Streak (`pm_profiles.streak`)
+Consecutive wins (positive) / losses (negative), shown as "Striscia" in `statistiche.html`. Computed in `actMatch()` when a match becomes `approved` and written for all 4 players via `pm_update_ratings`: a win gives `streak+1` (or restarts at `+1` if it was negative), a loss `streak-1` (or `-1`), and a **tie resets it to 0**. Historically this column existed but was never written by any code, so the UI always showed "0 · neutro"; it started counting from the moment the feature shipped (no retroactive backfill of past matches).
 
 ## Design System
 
@@ -237,7 +243,7 @@ The manager can suspend the inactivity counter (e.g. for injury); it restarts fr
   - `computeStats(uid, matches)` — wins/losses/**ties** (`m.winner==='T'`, an "abbreviated" tied match — must NOT be counted as a loss), win %, avg ELO delta, **sets won/lost** (`countSets()`/`validSet()` parse `m.score` and only count fully-completed padel-valid sets, ignoring partial/unfinished ones — same rule as `matchOutcome()` in `index.html`), and top-3 partners (teammates, not opponents) with their own W/L/T breakdown.
   - **PR chart** (`fullHistory`, built in `render()`): starts at **account creation** (`profile.created_at`, PR 35) and always extends to **today** (current `profile.rating`), passing through each approved match's `rating_after_*`. Always rendered — a player with zero matches still gets a flat 2-point line at 35 (no more "chart apparirà dopo le prime partite" placeholder). Y-axis uses `maxTicksLimit:5` + 1-decimal labels to avoid duplicate rounded ticks (e.g. "36, 36, 36, 37") when the rating range is narrow.
 - `termini.pdf` — Terms of use; includes 60-day free trial clause and €49.97/month subscription after trial
-- `sw.js` — Service worker, current version `padelmeeting-v75`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
+- `sw.js` — Service worker, current version `padelmeeting-v78`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
   - **Supabase requests (`hostname.includes('supabase')`): network-only, never cached.** Critical — caching them serves stale invites/notifications/matches. This was the root cause of "stale data on reopen" bugs.
   - **Navigation (`request.mode === 'navigate'`, i.e. `index.html`): network-first**, falls back to cache offline — keeps app code fresh when online.
   - **Google Fonts: network-first**, cache fallback.
