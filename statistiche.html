@@ -380,12 +380,18 @@ function render(profile,matches,players,clubPlayers,clubMatches){
     const h=[...stats.prHistory].sort((a,b)=>new Date(a.date)-new Date(b.date));
     const out=[];
     const created=profile.created_at||new Date(Date.now()-86400000).toISOString();
-    if(!h.length || new Date(created)<new Date(h[0].date))
-      out.push({date:created,rating:h.length?35:profile.rating});
+    // Il grafico parte SEMPRE da 35 (PR iniziale di ogni giocatore) alla data di
+    // iscrizione. Nota: played_at è una data senza orario (mezzanotte) mentre
+    // created_at ha l'ora, quindi chi si iscrive e gioca lo stesso giorno avrebbe
+    // created_at > prima partita: in quel caso si ancora il punto alla data della
+    // prima partita, così la linea non torna indietro nel tempo.
+    let startTs=new Date(created).getTime();
+    if(h.length) startTs=Math.min(startTs,new Date(h[0].date).getTime());
+    out.push({date:new Date(startTs).toISOString(),rating:35});
     out.push(...h);
-    const today=new Date(), last=new Date(h.length?h[h.length-1].date:created);
-    // Senza partite serve comunque una linea (2 punti): aggiungo "oggi" a meno che
-    // non coincida col giorno dell'ultima partita reale (per non duplicare il punto).
+    // La linea arriva sempre a oggi, tranne quando l'ultima partita è di oggi
+    // (eviterebbe un punto doppio).
+    const today=new Date(), last=new Date(h.length?h[h.length-1].date:startTs);
     if(!h.length || today.toDateString()!==last.toDateString())
       out.push({date:today.toISOString(),rating:profile.rating});
     return out;
