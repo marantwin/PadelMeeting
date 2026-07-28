@@ -415,6 +415,11 @@ let notifications = [];
 let clubPendingMatches = [];
 let pendingPlayers = [];
 let myInvites = [];
+// Feed "Tutte le partite": partite validate di tutti i giocatori (solo utenti loggati)
+let allMatches = [];
+let allMatchesLoading = false;
+let matchesTab = 'mine';   // 'mine' | 'all'
+let feedClub = 'all';      // filtro circolo nel feed
 let pushEnabled = (typeof Notification!=='undefined' && Notification.permission==='granted');
 let pushBannerDismissed = false;
 let pl = { partner:null, opp1:null, opp2:null, done:false };
@@ -928,7 +933,87 @@ function viewMatches(){
     </div>`;
   }).join('');
   const orgSection=myInvites.length?`${stag('Inviti partita')}${inviteCards}`:'';
-  return `<div class="page">${orgSection}${stag('Le mie partite')}${cards||`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:24px 0">Nessuna partita ancora.</div>`}</div>`;
+  const tabs=`<div class="chips">
+    <button class="chip ${matchesTab==='mine'?'active':''}" onclick="setMatchesTab('mine')">Le mie partite</button>
+    <button class="chip ${matchesTab==='all'?'active':''}" onclick="setMatchesTab('all')">🌍 Tutte le partite</button>
+  </div>`;
+  if(matchesTab==='all') return `<div class="page">${tabs}${viewFeed()}</div>`;
+  return `<div class="page">${tabs}${orgSection}${stag('Le mie partite')}${cards||`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:24px 0">Nessuna partita ancora.</div>`}</div>`;
+}
+
+/* ===== FEED "Tutte le partite" (solo partite validate, tutti i giocatori) ===== */
+function setMatchesTab(t){
+  matchesTab=t;
+  if(t==='all'&&!allMatches.length&&!allMatchesLoading){ allMatchesLoading=true; loadAllMatches(); }
+  render();
+}
+function setFeedClub(c){ feedClub=c; render(); }
+async function loadAllMatches(){
+  if(!ME) return;
+  const {data}=await sb.from('pm_matches')
+    .select('id,played_at,created_at,club,winner,score,team_a1,team_a2,team_b1,team_b2,delta_a1,delta_b1,rating_after_a1,rating_after_a2,rating_after_b1,rating_after_b2')
+    .eq('status','approved').order('created_at',{ascending:false}).limit(60);
+  allMatches=data||[];
+  allMatchesLoading=false;
+  render();
+}
+// Set conclusi del punteggio, dal punto di vista della coppia A: [{a,b,aWon}]
+function parseSets(score){
+  return (score||'').split('/').map(s=>{
+    const p=s.trim().split('-').map(Number);
+    if(p.length!==2||p.some(Number.isNaN)||!validSetScore(p[0],p[1])) return null;
+    return {a:p[0],b:p[1],aWon:p[0]>p[1]};
+  }).filter(Boolean);
+}
+// Badge "wow" calcolati dal risultato: colpo grosso, rimonta, netta, pareggio.
+function matchBadges(m){
+  const out=[];
+  if(m.winner==='T'){ out.push(['⚖️ Pareggio','var(--ivoryFaint)']); return out; }
+  const sets=parseSets(m.score);
+  const aWon=m.winner==='A';
+  // Rating medio PRIMA della partita = rating_after − delta
+  const pre=(r1,r2,d)=>{
+    const a=Number(r1), b=Number(r2), dd=Number(d)||0;
+    return (Number.isFinite(a)&&Number.isFinite(b))?((a-dd)+(b-dd))/2:null;
+  };
+  const preA=pre(m.rating_after_a1,m.rating_after_a2,m.delta_a1);
+  const preB=pre(m.rating_after_b1,m.rating_after_b2,m.delta_b1);
+  if(preA!=null&&preB!=null){
+    const winPre=aWon?preA:preB, losePre=aWon?preB:preA;
+    if(losePre-winPre>=5) out.push(['🔥 Colpo grosso','var(--rust)']);
+  }
+  if(sets.length>=2 && sets[0].aWon!==aWon) out.push(['⚡ Rimonta','var(--gold)']);
+  if(sets.length===2 && sets.every(s=>s.aWon===aWon)) out.push(['🎯 Netta','var(--neon)']);
+  return out;
+}
+function viewFeed(){
+  if(allMatchesLoading) return `<div style="text-align:center;color:var(--ivoryFaint);padding:40px 0">Caricamento…</div>`;
+  const clubs=['all',...new Set(allMatches.map(m=>m.club).filter(Boolean))];
+  const list=(feedClub==='all'?allMatches:allMatches.filter(m=>m.club===feedClub));
+  const filter=clubs.length>2?`<div class="chips" style="margin-bottom:10px">${clubs.map(c=>
+    `<button class="chip ${feedClub===c?'active':''}" onclick="setFeedClub('${String(c).replace(/'/g,"")}')">${c==='all'?'Tutti i circoli':esc(c)}</button>`).join('')}</div>`:'';
+  if(!list.length) return `${filter}<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:30px 0">Nessuna partita validata ancora.</div>`;
+  const cards=list.map((m,i)=>{
+    const aWon=m.winner==='A', bWon=m.winner==='B', tie=m.winner==='T';
+    const dA=Number(m.delta_a1)||0, dB=Number(m.delta_b1)||0;
+    const nm=id=>esc(pName(id));
+    const side=(n1,n2,won,d)=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 0">
+      <div style="font-size:13.5px;font-weight:${won?700:500};color:${won?C.neon:C.ivory};line-height:1.35">${nm(n1)} + ${nm(n2)}${won?' <span style="font-size:10px;color:var(--gold)">★</span>':''}</div>
+      <div style="font-size:12.5px;font-family:var(--mono);font-weight:700;flex-shrink:0;color:${d>0?C.neon:d<0?C.danger:'var(--ivoryFaint)'}">${d>0?'+':''}${d.toFixed(1)}</div>
+    </div>`;
+    const badges=matchBadges(m).map(([t,c])=>`<span style="font-size:9.5px;font-family:var(--mono);letter-spacing:.06em;color:${c};border:1px solid ${c}55;background:${c}14;border-radius:20px;padding:2px 8px;white-space:nowrap">${t}</span>`).join(' ');
+    const when=new Date(m.played_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'});
+    return `<div class="card rise" style="margin-bottom:10px;animation-delay:${Math.min(i*0.045,0.5)}s">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:5px;flex-wrap:wrap">${badges}</div>
+        <span style="font-size:10.5px;color:var(--ivoryFaint);font-family:var(--mono);margin-left:auto">${when}${m.club?' · '+esc(m.club):''}</span>
+      </div>
+      ${side(m.team_a1,m.team_a2,aWon,dA)}
+      <div style="text-align:center;font-family:var(--mono);font-size:13px;color:var(--ivoryDim);padding:5px 0;letter-spacing:.04em">${esc(m.score||'—')}${tie?' <span style="color:var(--ivoryFaint)">⚖</span>':''}</div>
+      ${side(m.team_b1,m.team_b2,bWon,dB)}
+    </div>`;
+  }).join('');
+  return `${filter}<div style="font-size:11px;color:var(--ivoryFaint);margin:0 0 10px">${list.length} partite validate · le più recenti in alto</div>${cards}`;
 }
 async function actMatch(id,status){
   const upd={status};
@@ -1973,6 +2058,7 @@ function changePasswordSection(){
 async function doLogout(){
   await sb.auth.signOut();
   players=[];matches=[];notifications=[];clubPendingMatches=[];pendingPlayers=[];myInvites=[];ME=null;
+  allMatches=[];allMatchesLoading=false;matchesTab='mine';feedClub='all';
   auth={tab:'login',role:'player',err:'',loading:false,user:null,loggedIn:false};
   showGate();
 }
