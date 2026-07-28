@@ -430,6 +430,10 @@ const me = ()=>players.find(p=>p.id===ME);
 const pName = id => (players.find(p=>p.id===id)||{}).name || '—';
 const ranked = ()=>[...players].sort((a,b)=>b.rating-a.rating);
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// Iniziale maiuscola per ogni parola del nome. Tocca SOLO la prima lettera:
+// il resto resta com'è, così cognomi come D'Ambrosio o De Martino non vengono rovinati.
+const capName = s => String(s||'').split(/\s+/).filter(Boolean)
+  .map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
 // Data odierna in formato YYYY-MM-DD secondo il fuso locale (per il min dei campi date)
 const todayLocal = ()=>{ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().split('T')[0]; };
 
@@ -1198,7 +1202,7 @@ function viewProfileManager(){
     ${stag('Profilo')}
     <div class="card rise center" style="padding:28px 20px">
       <div class="avatarBig" style="margin:0 auto">${esc(initials)}</div>
-      <div style="font-family:var(--serif);font-size:26px;font-style:italic;margin-top:12px">${esc(u.full_name||'—')}</div>
+      <div style="font-family:var(--serif);font-size:26px;font-style:italic;margin-top:12px">${esc(capName(u.full_name)||'—')}</div>
       <div style="font-size:11.5px;color:var(--ivoryFaint);font-family:var(--mono);letter-spacing:.1em;margin-top:2px">${esc((u.club||'—').toUpperCase())} · ${esc((u.provincia||'—').toUpperCase())}</div>
       <div style="display:flex;justify-content:center;gap:8px;margin-top:14px">
         ${pill('Responsabile Circolo','neon')}
@@ -1341,7 +1345,7 @@ ${auth.user&&auth.user.role==='admin'?`
       ${adminPending.length===0
         ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:12px 0">Nessuna richiesta in attesa</div>`
         :adminPending.map(p=>`<div style="padding:12px 0;border-bottom:1px solid var(--lineSoft)">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px">${esc(p.full_name||'—')}</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">${esc(capName(p.full_name)||'—')}</div>
           <div style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono);margin-bottom:2px">${esc(p.email)}</div>
           <div style="font-size:12px;color:var(--ivoryDim);margin-bottom:2px">🏟 ${esc(p.club||'—')} · ${esc(p.provincia||'—')}</div>
           <div style="font-size:12px;color:var(--ivoryDim);margin-bottom:2px">📍 ${esc(p.indirizzo||'—')}</div>
@@ -1369,7 +1373,7 @@ ${auth.user&&auth.user.role==='admin'?`
         ?`<div style="font-size:13px;color:var(--ivoryFaint);text-align:center;padding:12px 0">Nessun giocatore</div>`
         :`<select class="auth-input" autocomplete="off" onchange="showAdminPlayer(this.value)">
           <option value="">— Seleziona un giocatore (${adminAllPlayers.length}) —</option>
-          ${adminAllPlayers.map(p=>`<option value="${p.id}">${esc(p.full_name)}${p.status!=='active'?' ⏳':''}</option>`).join('')}
+          ${adminAllPlayers.map(p=>`<option value="${p.id}">${esc(capName(p.full_name))}${p.status!=='active'?' ⏳':''}</option>`).join('')}
         </select>
         <div id="admin-player-detail" style="margin-top:12px"></div>`}
     </div>
@@ -1695,7 +1699,7 @@ async function loadPlayers(){
     .order('rating',{ascending:false});
   if(!error && data){
     players=data.map(p=>({
-      id:p.id, name:p.full_name||'—',
+      id:p.id, name:capName(p.full_name)||'—',
       club:p.club||'', city:p.city||'', provincia:p.provincia||'',
       rating:p.rating??50, games:p.games??0, streak:p.streak??0, role:p.role,
       telefono:p.telefono||''
@@ -1740,7 +1744,7 @@ async function loadPendingPlayers(){
   const club=auth.user?.club;
   if(!club) return;
   const {data}=await sb.from('pm_profiles').select('id,full_name,club,email').eq('status','pending').eq('club',club);
-  if(data) pendingPlayers=data.map(p=>({...p,name:p.full_name}));
+  if(data) pendingPlayers=data.map(p=>({...p,name:capName(p.full_name)}));
 }
 
 async function loadClubMatches(){
@@ -1986,7 +1990,7 @@ async function doRegister(){
   if(pass!==pass2){ regErrors.add('ar-pass'); regErrors.add('ar-pass2'); auth.err='Le password non coincidono'; renderAuth(); return; }
 
   auth.loading=true; renderAuth();
-  const meta={full_name:nome+' '+cognome, role:auth.role, club, city, provincia};
+  const meta={full_name:capName(nome+' '+cognome), role:auth.role, club, city, provincia};
   if(indirizzo) meta.indirizzo=indirizzo;
   if(telefono) meta.telefono=telefono;
   const {error}=await sb.auth.signUp({email,password:pass,options:{data:meta,emailRedirectTo:window.location.origin}});
@@ -2092,7 +2096,7 @@ function showAdminPlayer(id){
   const statusLabel=p.status==='active'?'Attivo':p.status==='pending'?'In attesa':'Rifiutato';
   const roleLabel=p.role==='manager'?'Responsabile':p.role==='admin'?'Admin':'Giocatore';
   el.innerHTML=`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px">
-    <div style="font-size:15px;font-weight:700;margin-bottom:10px">${esc(p.full_name||'—')}</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:10px">${esc(capName(p.full_name)||'—')}</div>
     <div class="irow"><span class="k">Circolo</span><span class="v">${esc(p.club||'—')}</span></div>
     <div class="irow"><span class="k">Ruolo</span><span class="v">${roleLabel}</span></div>
     <div class="irow"><span class="k">Stato</span><span class="v" style="color:${statusColor}">${statusLabel}</span></div>
@@ -2121,7 +2125,7 @@ async function adminLoadMatches(){
     sb.from('pm_notifications').select('user_id,data,created_at').eq('type','match_invite').order('created_at',{ascending:false}).limit(1000),
     sb.from('pm_profiles').select('id,full_name')
   ]);
-  adminNames={}; (pRes.data||[]).forEach(p=>{ adminNames[p.id]=p.full_name; });
+  adminNames={}; (pRes.data||[]).forEach(p=>{ adminNames[p.id]=capName(p.full_name); });
   adminAllMatches=mRes.data||[];
   const g={};
   (invRes.data||[]).forEach(n=>{

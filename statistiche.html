@@ -206,6 +206,9 @@ const bandIdx=r=>{const i=BANDS.findIndex(b=>r<=b.max);return i===-1?BANDS.lengt
 const bandName=r=>BANDS[bandIdx(r)].name;
 const bandColor=r=>BANDS[bandIdx(r)].color;
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// Iniziale maiuscola per ogni parola: tocca solo la prima lettera, così
+// cognomi come D'Ambrosio o De Luca restano corretti.
+const capName=s=>String(s||'').split(/\s+/).filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
 
 function countUp(el,target,decimals,duration){
   const start=performance.now();
@@ -402,9 +405,9 @@ function render(profile,matches,players,clubPlayers,clubMatches){
       const pc=p.pct>=60?'#5BF0CB':p.pct>=40?'#EFD06A':'#E07B4A';
       return `<div class="prow">
         <div class="prow-rank">${i+1}</div>
-        <div class="prow-av" style="border-color:${pl?bandColor(pl.rating)+'55':'var(--line)'}">${pl?esc(pl.full_name[0]):'?'}</div>
+        <div class="prow-av" style="border-color:${pl?bandColor(pl.rating)+'55':'var(--line)'}">${pl?esc(capName(pl.full_name)[0]):'?'}</div>
         <div class="prow-info">
-          <div class="prow-name">${pl?esc(pl.full_name):'Sconosciuto'}</div>
+          <div class="prow-name">${pl?esc(capName(pl.full_name)):'Sconosciuto'}</div>
           <div class="prow-sub">${pl?bandName(pl.rating):'—'} · ${p.w+p.l+p.t} partite</div>
         </div>
         <div class="prow-stat">
@@ -416,7 +419,7 @@ function render(profile,matches,players,clubPlayers,clubMatches){
 
   document.getElementById('main').innerHTML=`
     <div class="hero-card r0">
-      <div class="hero-name">${esc(profile.full_name)}</div>
+      <div class="hero-name">${esc(capName(profile.full_name))}</div>
       <div class="hero-club">${esc(profile.club||'—')} · ${esc(profile.provincia||'—')}</div>
       <div class="hero-pr" id="v-pr">—</div>
       <span class="hero-band" style="background:${bc}18;border:1px solid ${bc}50;color:${bc}">
@@ -588,9 +591,9 @@ function renderClub(profile,clubPlayers,clubMatches){
         :topA.map((p,i)=>`
           <div class="prow">
             <div class="prow-rank">${i+1}</div>
-            <div class="prow-av" style="border-color:${bandColor(p.rating)}55">${esc(p.full_name[0])}</div>
+            <div class="prow-av" style="border-color:${bandColor(p.rating)}55">${esc(capName(p.full_name)[0])}</div>
             <div class="prow-info">
-              <div class="prow-name">${esc(p.full_name)}</div>
+              <div class="prow-name">${esc(capName(p.full_name))}</div>
               <div class="prow-sub">${bandName(p.rating)} · PR ${p.rating.toFixed(1)}</div>
             </div>
             <div class="prow-stat">
