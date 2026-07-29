@@ -682,6 +682,19 @@ function viewPlay(){
       <div style="font-size:11px;color:var(--ivoryFaint);margin-top:8px;line-height:1.5">Se non riuscite a concludere il terzo set per il tempo, lasciatelo vuoto (o incompleto): la partita verrà comunque registrata come "abbreviata".</div>
       <input id="play-score" type="hidden" value="${pl.score||''}">
     </div>
+    <div style="margin-top:14px">
+      <label class="auth-label">Partita interrotta (ritiro / infortunio)</label>
+      <div class="seg">
+        <button class="segBtn ${!pl.retired?'active':''}" onclick="setRetired(false)">No, conclusa</button>
+        <button class="segBtn ${pl.retired?'active':''}" onclick="setRetired(true)">Sì, interrotta</button>
+      </div>
+      ${pl.retired?`
+      <div class="seg" style="margin-top:8px">
+        <button class="segBtn ${pl.retiredTeam===1?'active':''}" onclick="setRetiredTeam(1)">Ritirata la tua coppia</button>
+        <button class="segBtn ${pl.retiredTeam===2?'active':''}" onclick="setRetiredTeam(2)">Ritirati gli avversari</button>
+      </div>
+      <div style="font-size:11px;color:var(--ivoryFaint);margin-top:8px;line-height:1.5">Inserisci sopra i game giocati fino all'interruzione (anche parziali o nessuno). Come da regolamento, la vittoria va all'altra coppia con punteggio pieno; eventuali penalità per ritiro ingiustificato le valuta il responsabile.</div>`:''}
+    </div>
     <div id="play-outcome">${outcomeHtml}</div>
     <div id="play-preview">${previewHtml}</div>
     <button id="play-cta" class="cta" ${ready?'':'disabled'} onclick="confirmMatch()"><span>Conferma e invia ↗</span></button>
@@ -718,6 +731,12 @@ function setStatus(a,b){
 //   -> partita "abbreviata": vince chi ha fatto più game nei 2 set giocati, al 50% dei punti;
 //      a parità di game, partita registrata ma classifica invariata (0 punti).
 function matchOutcome(){
+  // Ritiro/infortunio: vince l'altra coppia a punteggio pieno (regolamento,
+  // "Abbandono partita"), qualunque fosse il parziale al momento dello stop.
+  if(pl.retired){
+    if(pl.retiredTeam!==1&&pl.retiredTeam!==2) return {state:'incomplete'};
+    return {state:'retired',winner:pl.retiredTeam===1?'B':'A',mult:1};
+  }
   const s1ok=setStatus(pl.s1a,pl.s1b)==='ok', s2ok=setStatus(pl.s2a,pl.s2b)==='ok';
   if(!s1ok||!s2ok) return {state:'incomplete'};
   const w1=Number(pl.s1a)>Number(pl.s1b)?'A':'B';
@@ -738,7 +757,9 @@ function outcomePreview(t1,t2){
   if(!playersOk||outcome.state==='incomplete') return {outcomeHtml:'',previewHtml:'',ready:false};
   const box=(border,bg,col,txt)=>`<div style="margin-top:14px;padding:11px 13px;border:1px solid ${border};background:${bg};border-radius:10px;font-size:12.5px;line-height:1.5;color:${col}">${txt}</div>`;
   let outcomeHtml='';
-  if(outcome.state==='decisive'){
+  if(outcome.state==='retired'){
+    outcomeHtml=box('var(--danger)','rgba(240,106,128,.07)','var(--danger)',`🚑 Ritiro — vince ${outcome.winner==='A'?'la tua coppia':'la coppia avversaria'} a punteggio pieno.`);
+  } else if(outcome.state==='decisive'){
     outcomeHtml=box('var(--neon)','rgba(91,240,203,.07)','var(--neon)',`🏆 Vince ${outcome.winner==='A'?'la tua coppia':'la coppia avversaria'} (${outcome.sets}) — punteggio pieno.`);
   } else if(outcome.state==='partial'){
     outcomeHtml=box('var(--gold)','rgba(239,208,106,.08)','var(--gold)',`⏱ Terzo set non concluso — partita abbreviata. Vince ${outcome.winner==='A'?'la tua coppia':'la coppia avversaria'} ai game (${outcome.gA}-${outcome.gB}): 50% dei punti.`);
@@ -770,7 +791,8 @@ function validateScore(){
     const st=setStatus(a,b);
     // Il terzo set è libero (non blocca) quando i primi due sono già validi:
     // può essere ignorato (2-0) o parziale/vuoto per tempo scaduto (partita abbreviata).
-    const optional=(n==='3')&&s1ok&&s2ok;
+    // In caso di ritiro ogni set è libero: si registrano i game giocati fin lì.
+    const optional=pl.retired||((n==='3')&&s1ok&&s2ok);
     const bad=!optional&&(st==='invalid'||st==='incomplete');
     const ia=$('#in-s'+n+'a'), ib=$('#in-s'+n+'b');
     if(ia) ia.classList.toggle('score-in-bad',bad);
@@ -779,7 +801,8 @@ function validateScore(){
       ? `Completa i games del Set ${n}.`
       : `Set ${n}: punteggio non valido. Ammessi 6-0…6-4, 7-5, 7-6.`;
   });
-  if(!problem && !(s1ok&&s2ok)) problem='Inserisci almeno il Set 1 e il Set 2 completi.';
+  if(!problem && !pl.retired && !(s1ok&&s2ok)) problem='Inserisci almeno il Set 1 e il Set 2 completi.';
+  if(!problem && pl.retired && pl.retiredTeam!==1 && pl.retiredTeam!==2) problem='Indica quale coppia si è ritirata.';
   const msg=$('#score-msg');
   if(msg){ msg.textContent=problem; msg.style.display=problem?'block':'none'; }
   composeScore();
@@ -790,6 +813,8 @@ function validateScore(){
   cta.disabled=!(ready && !problem);
 }
 function resetPlay(){pl={partner:null,opp1:null,opp2:null,done:false,club:(me()?.club||'')};render()}
+function setRetired(v){pl.retired=v;if(!v)pl.retiredTeam=null;render()}
+function setRetiredTeam(t){pl.retiredTeam=t;render()}
 // Da una partita organizzata: precompila i 4 giocatori in "Registra".
 // ME viene sempre messo nella SUA coppia reale, così l'ELO è calcolato correttamente.
 function registerFromInvite(key){
@@ -815,7 +840,9 @@ async function confirmMatch(){
   if(![...t1,...t2].every(Boolean)||new Set([...t1,...t2]).size!==4) return;
   const outcome=matchOutcome();
   if(outcome.state==='incomplete') return;
-  const score=$('#play-score')?.value?.trim()||'';
+  let score=$('#play-score')?.value?.trim()||'';
+  // Ritiro: marca lo score con la notazione "rit." (es. "6-3 / 2-1 rit.")
+  if(outcome.state==='retired') score=(score?score+' ':'')+'rit.';
   const club=pl.club||me()?.club||auth.user?.club||'';
   let winnerStr, deltas;
   if(outcome.state==='tie'){
@@ -989,6 +1016,7 @@ function parseSets(score){
 function matchBadges(m){
   const out=[];
   if(m.winner==='T'){ out.push(['⚖️ Pareggio','var(--ivoryFaint)']); return out; }
+  if(/rit\.$/.test((m.score||'').trim())){ out.push(['🚑 Ritiro','var(--danger)']); return out; }
   const sets=parseSets(m.score);
   const aWon=m.winner==='A';
   // Rating medio PRIMA della partita = rating_after − delta
