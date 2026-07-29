@@ -891,7 +891,32 @@ function viewMatches(){
         <button class="btnGhostSm" onclick="hideMatch('${m.id}')">Rimuovi dalla lista</button>
       </div></div>`;
   }).join('');
-  const inviteCards=myInvites.map(inv=>{
+  // Il risultato di questo invito è già stato registrato? Cerco una partita non
+  // annullata con esattamente questi 4 giocatori, creata dopo l'invito.
+  const inviteRegMatch=inv=>{
+    const inviteIds=[inv.organizer,inv.partner,inv.opp1,inv.opp2].filter(Boolean);
+    if(inviteIds.length!==4) return null;
+    return matches.find(mm=>{
+      if(mm.status==='rejected') return false;
+      const ids=[...mm.t1,...mm.t2];
+      if(ids.length!==4||!inviteIds.every(id=>ids.includes(id))) return false;
+      return !inv.created_at||!mm.createdAt||new Date(mm.createdAt)>=new Date(inv.created_at);
+    })||null;
+  };
+  // Qui restano solo gli inviti "vivi": da giocare o appena giocati da registrare.
+  // Spariscono per tutti quando il risultato è stato registrato (la partita è ora
+  // nell'elenco sotto) oppure quando la data è passata da oltre 3 giorni (margine
+  // per registrare in ritardo, in linea con la finestra delle 48h del regolamento).
+  const activeInvites=myInvites.filter(inv=>{
+    if(inviteRegMatch(inv)) return false;
+    if(inv.date){
+      const cutoff=new Date(inv.date+'T23:59:59');
+      cutoff.setDate(cutoff.getDate()+3);
+      if(Date.now()>cutoff.getTime()) return false;
+    }
+    return true;
+  });
+  const inviteCards=activeInvites.map(inv=>{
     const amOrganizer=inv.organizer===ME;
     const allAccepted=inv.players.length>=3&&inv.players.every(s=>s.response==='accepted');
     const anyDeclined=inv.players.some(s=>s.response==='declined');
@@ -907,21 +932,10 @@ function viewMatches(){
       </div>`;
     }).join('');
     const outcome=allAccepted
-      ? `<div style="margin-top:10px;font-size:13px;color:var(--neon);font-weight:700">🎾 Partita organizzata</div>`
+      ? `<div style="margin-top:10px;font-size:13px;color:var(--neon);font-weight:700">🎾 Partita organizzata — da giocare</div>`
       : anyDeclined
         ? `<div style="margin-top:10px;font-size:13px;color:var(--danger);font-weight:600">Partita non organizzata</div>`
         : `<div style="margin-top:10px;font-size:13px;color:var(--ivoryFaint)">In attesa di risposta</div>`;
-    // Il risultato di questo invito è già stato registrato? Cerco una partita non
-    // annullata con esattamente questi 4 giocatori, creata dopo l'invito. Serve a non
-    // far registrare due volte la stessa partita (l'invito resta comunque in lista).
-    const inviteIds=[inv.organizer,inv.partner,inv.opp1,inv.opp2].filter(Boolean);
-    const regMatch=inviteIds.length===4?matches.find(mm=>{
-      if(mm.status==='rejected') return false;
-      const ids=[...mm.t1,...mm.t2];
-      if(ids.length!==4||!inviteIds.every(id=>ids.includes(id))) return false;
-      return !inv.created_at||!mm.createdAt||new Date(mm.createdAt)>=new Date(inv.created_at);
-    }):null;
-    const regBox=regMatch?`<div style="margin-top:10px;padding:9px 11px;border:1px solid var(--neon);background:rgba(91,240,203,.07);border-radius:9px;font-size:12px;line-height:1.5;color:var(--neon)">✓ <b>Risultato già registrato</b> (${esc(regMatch.score)}) — lo trovi in "Le mie partite" qui sotto.</div>`:'';
     const keyArg=`'${encodeURIComponent(inv.key)}'`;
     const cancelArg=inv.invite_id?`'${inv.invite_id}'`:`null,'${encodeURIComponent(inv.date||'')}','${encodeURIComponent(inv.time||'')}'`;
     const headLabel=amOrganizer?'Hai organizzato':`Invito da ${esc(pName(inv.organizer))}`;
@@ -930,15 +944,15 @@ function viewMatches(){
         <span style="font-size:11px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;text-transform:uppercase">${headLabel}</span>
         <span style="font-size:11px;color:var(--ivoryFaint);font-family:var(--mono)">${inv.date||'—'} · ${inv.time||'—'}${venue?' · '+esc(venue):''}</span>
       </div>
-      ${rows}${outcome}${regBox}
+      ${rows}${outcome}
       <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
-        ${allAccepted&&!regMatch?`<button class="btnSolidSm" onclick="registerFromInvite(${keyArg})">⚡ Registra risultato</button>`:''}
+        ${allAccepted?`<button class="btnSolidSm" onclick="registerFromInvite(${keyArg})">⚡ Registra risultato</button>`:''}
         <button class="btnGhostSm" onclick="hideInvite(${keyArg})">Rimuovi dalla lista</button>
         ${amOrganizer?`<button class="btnGhostSm" onclick="cancelInvite(${cancelArg})">Cancella partita</button>`:''}
       </div>
     </div>`;
   }).join('');
-  const orgSection=myInvites.length?`${stag('Inviti partita')}${inviteCards}`:'';
+  const orgSection=activeInvites.length?`${stag('Partite organizzate — da giocare')}${inviteCards}`:'';
   const tabs=`<div class="chips">
     <button class="chip ${matchesTab==='mine'?'active':''}" onclick="setMatchesTab('mine')">Le mie partite</button>
     <button class="chip ${matchesTab==='all'?'active':''}" onclick="setMatchesTab('all')">🌍 Tutte le partite</button>
