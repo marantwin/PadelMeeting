@@ -845,7 +845,9 @@ async function confirmMatch(){
 
 function viewMatches(){
   const hiddenM=getHiddenMatches();
-  const cards=matches.filter(m=>!hiddenM.includes(m.id)).map(m=>{
+  // Le partite rifiutate/annullate non compaiono qui: sono chiuse, non contano in
+  // classifica e non hanno azioni possibili. Restano visibili nella plancia admin.
+  const cards=matches.filter(m=>m.status!=='rejected'&&!hiddenM.includes(m.id)).map(m=>{
     const involvesMe=[...m.t1,...m.t2].includes(ME);
     const side=(ids,win,align)=>`<div class="mside" style="text-align:${align}">
       ${ids.map(id=>`<div class="pl" style="color:${win?C.neon:C.ivory};font-weight:${win?700:500}">${esc(pName(id).replace(' (Demo)',''))}</div>`).join('')}
