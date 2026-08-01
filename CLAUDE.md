@@ -114,6 +114,11 @@ Admin-only, opened from a button in the admin panel of `viewProfile()`. Read-onl
 
 Invites and matches are merged into a **single chronological list**, newest first, each card tagged "Organizzata" (gold) or "Registrata" (neon). The previous two-section layout (all invites, then all matches) buried recent matches ~1265px down the page.
 
+#### Admin quick tools — "Strumenti rapidi" (`viewProfile()` admin section)
+Two forms, admin-only, that automate what used to require manual SQL + the full approval flow:
+- **➕ Nuovo giocatore** (`adminCreatePlayer()`): name, surname, email, password, club → calls the **`admin-create-user` Edge Function** (service role): creates the auth user with **email already confirmed and password set**, plus an **active** `pm_profiles` row at PR 35 (falls back to inserting the profile if the signup trigger didn't). The function rejects any caller whose `pm_profiles.role` ≠ `'admin'` (JWT verified server-side), so knowing the URL is useless to others. Source: `supabase/functions/admin-create-user/index.ts`.
+- **⚡ Partita lampo** (`adminQuickMatch()`): 4 players, venue club, date, set-by-set score → inserts the match **directly as `approved`** (submitted_by = admin, approved_by = an opposing player) with deltas + `rating_after_*`, then applies rating/games/**streak** via `pm_update_ratings` — same outcome rules as "Registra" (`computeOutcomeFrom`: decisiva/abbreviata/pareggio; no ritiro here). Guards: 4 distinct players, ≥2 valid sets.
+
 ### ELO Rating Logic
 
 ```js
@@ -126,7 +131,7 @@ computeMatch(team1ids, team2ids, format, winnerTeam)
 
 #### Registra partita — score entry (`viewPlay()`)
 - Score is entered **set by set** (3 rows of games: your pair vs opponents), not free text. `validSetScore()` enforces padel rules: a set is valid only **6-0…6-4, 7-5, 7-6** (so 7-3, 6-5 etc. are invalid). `composeScore()` builds the string ("6-3 / 4-6 / 7-5") into a hidden `#play-score` → stored in `pm_matches.score` (DB format unchanged).
-- **Outcome is derived automatically from the entered sets** (no manual winner buttons) via `matchOutcome()`, called live by `validateScore()` on every keystroke and rendered into `#play-outcome` (esito) + `#play-preview` (ELO delta preview) without a full `render()` (keeps input focus):
+- **Outcome is derived automatically from the entered sets** (no manual winner buttons) via `matchOutcome()` — a thin wrapper over **`computeOutcomeFrom(src)`**, the parametrized single source of truth for outcome rules (also used by the admin "Partita lampo"). Called live by `validateScore()` on every keystroke and rendered into `#play-outcome` (esito) + `#play-preview` (ELO delta preview) without a full `render()` (keeps input focus):
   - **Decisive** — same pair wins set1+set2 (`2-0`, set3 ignored) or 1-1 then set3 is a valid completed set (`2-1`) → full nominal ELO points (`mult:1`), same as before.
   - **Partial ("abbreviata")** — set1+set2 both valid and split 1-1, **set3 not completed** (empty/incomplete/partial score — e.g. time ran out mid-set, like a real `3-5`) → winner = pair with more **total games across set1+set2 only** (set3's partial numbers, if any, are ignored for the count but still shown in the stored score string); awarded **50%** of nominal ELO points (`mult:0.5`).
   - **Tie** — same abbreviated scenario but total games equal (e.g. `6-4`/`4-6` = 10-10) → match is still submitted/registered (counts toward future "games played" stats and the `games` counter via `pm_update_ratings` once approved) but **0 delta**, ranking unchanged. Stored as `pm_matches.winner = 'T'` (third value beyond `'A'`/`'B'`; the CHECK constraint was widened via `supabase/allow_tie_winner.sql`).
@@ -250,7 +255,7 @@ The manager can suspend the inactivity counter (e.g. for injury); it restarts fr
   - `computeStats(uid, matches)` — wins/losses/**ties** (`m.winner==='T'`, an "abbreviated" tied match — must NOT be counted as a loss), win %, avg ELO delta, **sets won/lost** (`countSets()`/`validSet()` parse `m.score` and only count fully-completed padel-valid sets, ignoring partial/unfinished ones — same rule as `matchOutcome()` in `index.html`), and top-3 partners (teammates, not opponents) with their own W/L/T breakdown.
   - **PR chart** (`fullHistory`, built in `render()`): starts at **account creation** (`profile.created_at`, PR 35) and always extends to **today** (current `profile.rating`), passing through each approved match's `rating_after_*`. Always rendered — a player with zero matches still gets a flat 2-point line at 35 (no more "chart apparirà dopo le prime partite" placeholder). Y-axis uses `maxTicksLimit:5` + 1-decimal labels to avoid duplicate rounded ticks (e.g. "36, 36, 36, 37") when the rating range is narrow.
 - `termini.pdf` — Terms of use; includes 60-day free trial clause and €49.97/month subscription after trial
-- `sw.js` — Service worker, current version `padelmeeting-v83`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
+- `sw.js` — Service worker, current version `padelmeeting-v84`; precaches `index.html` + icons + `supabase.js`. **Mixed caching strategy** (do not revert to blanket cache-first):
   - **Supabase requests (`hostname.includes('supabase')`): network-only, never cached.** Critical — caching them serves stale invites/notifications/matches. This was the root cause of "stale data on reopen" bugs.
   - **Navigation (`request.mode === 'navigate'`, i.e. `index.html`): network-first**, falls back to cache offline — keeps app code fresh when online.
   - **Google Fonts: network-first**, cache fallback.
