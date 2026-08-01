@@ -730,26 +730,27 @@ function setStatus(a,b){
 // - 1-1 dopo 2 set e terzo set NON concluso (vuoto/incompleto/parziale, es. tempo scaduto)
 //   -> partita "abbreviata": vince chi ha fatto più game nei 2 set giocati, al 50% dei punti;
 //      a parità di game, partita registrata ma classifica invariata (0 punti).
-function matchOutcome(){
+function computeOutcomeFrom(src){
   // Ritiro/infortunio: vince l'altra coppia a punteggio pieno (regolamento,
   // "Abbandono partita"), qualunque fosse il parziale al momento dello stop.
-  if(pl.retired){
-    if(pl.retiredTeam!==1&&pl.retiredTeam!==2) return {state:'incomplete'};
-    return {state:'retired',winner:pl.retiredTeam===1?'B':'A',mult:1};
+  if(src.retired){
+    if(src.retiredTeam!==1&&src.retiredTeam!==2) return {state:'incomplete'};
+    return {state:'retired',winner:src.retiredTeam===1?'B':'A',mult:1};
   }
-  const s1ok=setStatus(pl.s1a,pl.s1b)==='ok', s2ok=setStatus(pl.s2a,pl.s2b)==='ok';
+  const s1ok=setStatus(src.s1a,src.s1b)==='ok', s2ok=setStatus(src.s2a,src.s2b)==='ok';
   if(!s1ok||!s2ok) return {state:'incomplete'};
-  const w1=Number(pl.s1a)>Number(pl.s1b)?'A':'B';
-  const w2=Number(pl.s2a)>Number(pl.s2b)?'A':'B';
+  const w1=Number(src.s1a)>Number(src.s1b)?'A':'B';
+  const w2=Number(src.s2a)>Number(src.s2b)?'A':'B';
   if(w1===w2) return {state:'decisive',winner:w1,sets:'2-0',mult:1};
-  if(setStatus(pl.s3a,pl.s3b)==='ok'){
-    const w3=Number(pl.s3a)>Number(pl.s3b)?'A':'B';
+  if(setStatus(src.s3a,src.s3b)==='ok'){
+    const w3=Number(src.s3a)>Number(src.s3b)?'A':'B';
     return {state:'decisive',winner:w3,sets:'2-1',mult:1};
   }
-  const gA=Number(pl.s1a)+Number(pl.s2a), gB=Number(pl.s1b)+Number(pl.s2b);
+  const gA=Number(src.s1a)+Number(src.s2a), gB=Number(src.s1b)+Number(src.s2b);
   if(gA===gB) return {state:'tie',gA,gB};
   return {state:'partial',winner:gA>gB?'A':'B',mult:0.5,gA,gB};
 }
+function matchOutcome(){ return computeOutcomeFrom(pl); }
 // Costruisce il box "Esito" e l'anteprima ELO in base a matchOutcome().
 function outcomePreview(t1,t2){
   const playersOk=[ME,pl.partner,pl.opp1,pl.opp2].every(Boolean)&&new Set([ME,pl.partner,pl.opp1,pl.opp2]).size===4;
@@ -1422,7 +1423,46 @@ ${auth.user&&auth.user.role==='admin'?`
         <div id="admin-player-detail" style="margin-top:12px"></div>`}
     </div>
     ${stag('Monitoraggio')}
-    <button class="btnSolid" style="width:100%" onclick="go('adminmatches')">📋 Tutte le partite (organizzate e registrate)</button>`:''}
+    <button class="btnSolid" style="width:100%" onclick="go('adminmatches')">📋 Tutte le partite (organizzate e registrate)</button>
+    ${stag('Strumenti rapidi')}
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--neon);font-family:var(--mono);letter-spacing:.06em;margin-bottom:12px">➕ NUOVO GIOCATORE</div>
+      <div style="font-size:11.5px;color:var(--ivoryFaint);margin-bottom:12px;line-height:1.5">Crea un giocatore già attivo (PR 35), con email confermata e password impostata: può accedere subito.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="auth-label">Nome</label><input id="qp-nome" type="text" class="auth-input" placeholder="Mario"></div>
+        <div><label class="auth-label">Cognome</label><input id="qp-cognome" type="text" class="auth-input" placeholder="Rossi"></div>
+      </div>
+      <div class="auth-field" style="margin-top:10px"><label class="auth-label">Email</label>
+        <input id="qp-email" type="email" class="auth-input" placeholder="mario@email.it"></div>
+      <div class="auth-field"><label class="auth-label">Password provvisoria</label>
+        <input id="qp-pass" type="text" class="auth-input" placeholder="cambiami8"></div>
+      <div class="auth-field"><label class="auth-label">Circolo</label>
+        <select id="qp-club" class="auth-input">${[...new Set(players.map(p=>p.club))].filter(Boolean).sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
+      <button class="btnSolid" style="width:100%;margin-top:6px" onclick="adminCreatePlayer()">Crea giocatore</button>
+      <div id="qp-msg" style="font-size:12px;margin-top:8px;text-align:center"></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);font-family:var(--mono);letter-spacing:.06em;margin-bottom:12px">⚡ PARTITA LAMPO</div>
+      <div style="font-size:11.5px;color:var(--ivoryFaint);margin-bottom:12px;line-height:1.5">Inserisce una partita <b>già validata</b>: classifica e striscia si aggiornano subito (stesse regole di "Registra": abbreviate, pareggi…).</div>
+      ${['a1','a2','b1','b2'].map((k,i)=>`
+      <div class="selWrap" style="margin-top:${i===0?0:8}px"><span class="selLabel">${i<2?'Coppia A':'Coppia B'}</span>
+        <select id="qm-${k}" class="selBox">${'<option value="">— seleziona —</option>'+players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${esc(p.name)} · ${p.rating.toFixed(1)}</option>`).join('')}</select></div>`).join('')}
+      <div class="auth-field" style="margin-top:10px"><label class="auth-label">Circolo (dove si è giocata)</label>
+        <select id="qm-club" class="auth-input">${[...new Set(players.map(p=>p.club))].filter(Boolean).sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
+      <div class="auth-field"><label class="auth-label">Data</label>
+        <input id="qm-date" type="date" class="auth-input" value="${todayLocal()}" max="${todayLocal()}"></div>
+      <label class="auth-label">Punteggio (games coppia A – coppia B)</label>
+      <div class="score-box">
+        ${[1,2,3].map(n=>`<div class="score-row">
+          <span class="score-setlbl">Set ${n}</span>
+          <input id="qm-s${n}a" type="number" inputmode="numeric" class="score-in" min="0" max="7">
+          <span class="score-sep">–</span>
+          <input id="qm-s${n}b" type="number" inputmode="numeric" class="score-in" min="0" max="7">
+        </div>`).join('')}
+      </div>
+      <button class="btnSolid" style="width:100%;margin-top:12px" onclick="adminQuickMatch()">Inserisci partita validata</button>
+      <div id="qm-msg" style="font-size:12px;margin-top:8px;text-align:center"></div>
+    </div>`:''}
     ${changePasswordSection()}
     <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
       Esci dall'account
@@ -2161,6 +2201,83 @@ async function adminLoadAll(){
   render();
 }
 async function adminLoadPending(){ adminLoadAll(); }
+
+/* ===== Strumenti rapidi admin ===== */
+// Crea un giocatore completo (auth confermata + password + profilo attivo PR 35)
+// tramite la Edge Function admin-create-user, che gira con la service role key.
+async function adminCreatePlayer(){
+  const msg=$('#qp-msg');
+  const say=(t,ok)=>{ if(msg){ msg.style.color=ok?'var(--neon)':'var(--danger)'; msg.textContent=t; } };
+  const nome=$('#qp-nome').value.trim(), cognome=$('#qp-cognome').value.trim();
+  const email=$('#qp-email').value.trim(), pass=$('#qp-pass').value.trim();
+  const club=$('#qp-club').value;
+  if(!nome||!cognome||!email||!pass||!club){ say('Compila tutti i campi.'); return; }
+  if(pass.length<6){ say('Password minimo 6 caratteri.'); return; }
+  say('Creazione in corso…',true);
+  const fullName=capName(nome+' '+cognome);
+  const {data,error}=await sb.functions.invoke('admin-create-user',{body:{full_name:fullName,email,password:pass,club}});
+  if(error){
+    let detail=error.message;
+    try{ const body=await error.context?.json?.(); if(body?.error) detail=body.error; }catch(_){/* ignore */}
+    say('Errore: '+detail); return;
+  }
+  if(data?.error){ say('Errore: '+data.error); return; }
+  say(`✓ ${fullName} creato e attivo — accede con ${email}`,true);
+  ['qp-nome','qp-cognome','qp-email','qp-pass'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+  await loadPlayers();
+}
+// Inserisce una partita GIÀ validata: stesse regole di esito di "Registra"
+// (decisiva/abbreviata/pareggio) + rating e striscia applicati subito.
+async function adminQuickMatch(){
+  const msg=$('#qm-msg');
+  const say=(t,ok)=>{ if(msg){ msg.style.color=ok?'var(--neon)':'var(--danger)'; msg.textContent=t; } };
+  const ids=['a1','a2','b1','b2'].map(k=>$('#qm-'+k).value);
+  if(ids.some(v=>!v)||new Set(ids).size!==4){ say('Seleziona 4 giocatori diversi.'); return; }
+  const src={};
+  [1,2,3].forEach(n=>{ src['s'+n+'a']=$('#qm-s'+n+'a').value; src['s'+n+'b']=$('#qm-s'+n+'b').value; });
+  const outcome=computeOutcomeFrom(src);
+  if(outcome.state==='incomplete'){ say('Servono almeno Set 1 e Set 2 validi (6-0…6-4, 7-5, 7-6).'); return; }
+  const t1=[ids[0],ids[1]], t2=[ids[2],ids[3]];
+  const scoreStr=[[src.s1a,src.s1b],[src.s2a,src.s2b],[src.s3a,src.s3b]]
+    .filter(([a,b])=>a!==''&&a!=null&&b!==''&&b!=null).map(([a,b])=>`${a}-${b}`).join(' / ');
+  let winnerStr, deltas;
+  if(outcome.state==='tie'){
+    winnerStr='T'; deltas={[t1[0]]:0,[t1[1]]:0,[t2[0]]:0,[t2[1]]:0};
+  } else {
+    const winnerTeam=outcome.winner==='A'?1:2;
+    const calc=computeMatch(t1,t2,'classic',winnerTeam);
+    winnerStr=outcome.winner; deltas={};
+    [...t1,...t2].forEach(id=>{ deltas[id]=+(calc.res[id].delta*outcome.mult).toFixed(1); });
+  }
+  const clamp=v=>+Math.max(0,Math.min(100,v)).toFixed(1);
+  const rOf=pid=>players.find(p=>p.id===pid)?.rating??0;
+  const after={}; [...t1,...t2].forEach(id=>{ after[id]=clamp(rOf(id)+(deltas[id]??0)); });
+  say('Inserimento…',true);
+  const {data:ins,error}=await sb.from('pm_matches').insert({
+    club:$('#qm-club').value, winner:winnerStr, score:scoreStr,
+    team_a1:t1[0], team_a2:t1[1], team_b1:t2[0], team_b2:t2[1],
+    submitted_by:ME, approved_by:(winnerStr==='A'?t2[0]:t1[0]),
+    played_at:$('#qm-date').value||todayLocal(),
+    delta_a1:deltas[t1[0]], delta_a2:deltas[t1[1]], delta_b1:deltas[t2[0]], delta_b2:deltas[t2[1]],
+    rating_after_a1:after[t1[0]], rating_after_a2:after[t1[1]],
+    rating_after_b1:after[t2[0]], rating_after_b2:after[t2[1]],
+    status:'approved'
+  }).select();
+  if(error||!(ins||[]).length){ say('Errore: '+(error?.message||'inserimento fallito')); return; }
+  const winSet=new Set(outcome.state==='tie'?[]:(outcome.winner==='A'?t1:t2));
+  const ratings=[...t1,...t2].map(id=>{
+    const p=players.find(x=>x.id===id); const cur=p?.streak||0;
+    const streak=outcome.state==='tie'?0:(winSet.has(id)?(cur>=0?cur+1:1):(cur<=0?cur-1:-1));
+    return {id, rating:after[id], games:(p?.games||0)+1, streak};
+  });
+  const {error:rErr}=await sb.rpc('pm_update_ratings',{ratings});
+  if(rErr){ say('Partita inserita ma rating NON aggiornati: '+rErr.message); return; }
+  say(`✓ Partita validata (${scoreStr||'—'}) — classifica e striscia aggiornate.`,true);
+  ['a1','a2','b1','b2'].forEach(k=>{ const el=$('#qm-'+k); if(el) el.value=''; });
+  [1,2,3].forEach(n=>{ ['a','b'].forEach(s=>{ const el=$('#qm-s'+n+s); if(el) el.value=''; }); });
+  await loadPlayers(); await loadMatches();
+  allMatches=[]; // il feed "Tutte le partite" si ricaricherà alla prossima apertura
+}
 // Plancia admin: carica TUTTE le partite organizzate (inviti) e registrate.
 async function adminLoadMatches(){
   if(auth.user?.role!=='admin') return;
