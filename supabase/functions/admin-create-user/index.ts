@@ -3,8 +3,10 @@
 // Crea un giocatore COMPLETO in un colpo solo: utente auth con email
 // gia' confermata e password impostata + profilo pm_profiles attivo (PR 35).
 //
-// Sicurezza: accetta richieste SOLO da un utente loggato con role='admin'
-// in pm_profiles. Chiunque altro riceve 403.
+// Sicurezza: accetta richieste solo da utenti loggati con role='admin'
+// (qualsiasi circolo) o role='manager' — per i manager il circolo del nuovo
+// giocatore viene FORZATO al loro, lato server, qualunque cosa mandi il
+// client. Chiunque altro riceve 403.
 //
 // Variabili d'ambiente (gia' presenti di default nelle Edge Functions):
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY
@@ -45,15 +47,19 @@ Deno.serve(async (req) => {
 
     const { data: prof } = await admin
       .from("pm_profiles")
-      .select("role")
+      .select("role, club")
       .eq("id", caller.user.id)
       .single();
-    if (prof?.role !== "admin") return json({ error: "Solo admin" }, 403);
+    const isAdmin = prof?.role === "admin";
+    const isManager = prof?.role === "manager";
+    if (!isAdmin && !isManager) return json({ error: "Solo admin o responsabile di circolo" }, 403);
 
-    // 2) Input
+    // 2) Input — per i manager il circolo e' SEMPRE il loro (imposto qui,
+    //    lato server: il valore inviato dal client viene ignorato)
     const { full_name, email, password, club, city, provincia, telefono } =
       await req.json();
-    if (!full_name || !email || !password || !club) {
+    const effectiveClub = isAdmin ? club : prof.club;
+    if (!full_name || !email || !password || !effectiveClub) {
       return json({ error: "Campi obbligatori: full_name, email, password, club" }, 400);
     }
     if (String(password).length < 6) {
@@ -64,7 +70,7 @@ Deno.serve(async (req) => {
     const meta = {
       full_name,
       role: "player",
-      club,
+      club: effectiveClub,
       city: city || "",
       provincia: provincia || "",
       telefono: telefono || "",
@@ -91,7 +97,7 @@ Deno.serve(async (req) => {
         id: uid,
         full_name,
         email,
-        club,
+        club: effectiveClub,
         city: city || null,
         provincia: provincia || null,
         telefono: telefono || null,

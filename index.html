@@ -1276,6 +1276,7 @@ function viewProfileManager(){
       <span style="font-size:18px;color:rgba(10,28,25,.7)">→</span>
     </a>
     ${pushCard()}
+    ${quickToolsHTML(u.club||'')}
     ${changePasswordSection()}
     <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
       Esci dall'account
@@ -1424,45 +1425,7 @@ ${auth.user&&auth.user.role==='admin'?`
     </div>
     ${stag('Monitoraggio')}
     <button class="btnSolid" style="width:100%" onclick="go('adminmatches')">📋 Tutte le partite (organizzate e registrate)</button>
-    ${stag('Strumenti rapidi')}
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;color:var(--neon);font-family:var(--mono);letter-spacing:.06em;margin-bottom:12px">➕ NUOVO GIOCATORE</div>
-      <div style="font-size:11.5px;color:var(--ivoryFaint);margin-bottom:12px;line-height:1.5">Crea un giocatore già attivo (PR 35), con email confermata e password impostata: può accedere subito.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><label class="auth-label">Nome</label><input id="qp-nome" type="text" class="auth-input" placeholder="Mario"></div>
-        <div><label class="auth-label">Cognome</label><input id="qp-cognome" type="text" class="auth-input" placeholder="Rossi"></div>
-      </div>
-      <div class="auth-field" style="margin-top:10px"><label class="auth-label">Email</label>
-        <input id="qp-email" type="email" class="auth-input" placeholder="mario@email.it"></div>
-      <div class="auth-field"><label class="auth-label">Password provvisoria</label>
-        <input id="qp-pass" type="text" class="auth-input" placeholder="cambiami8"></div>
-      <div class="auth-field"><label class="auth-label">Circolo</label>
-        <select id="qp-club" class="auth-input">${[...new Set(players.map(p=>p.club))].filter(Boolean).sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
-      <button class="btnSolid" style="width:100%;margin-top:6px" onclick="adminCreatePlayer()">Crea giocatore</button>
-      <div id="qp-msg" style="font-size:12px;margin-top:8px;text-align:center"></div>
-    </div>
-    <div class="card" style="margin-top:10px">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);font-family:var(--mono);letter-spacing:.06em;margin-bottom:12px">⚡ PARTITA LAMPO</div>
-      <div style="font-size:11.5px;color:var(--ivoryFaint);margin-bottom:12px;line-height:1.5">Inserisce una partita <b>già validata</b>: classifica e striscia si aggiornano subito (stesse regole di "Registra": abbreviate, pareggi…).</div>
-      ${['a1','a2','b1','b2'].map((k,i)=>`
-      <div class="selWrap" style="margin-top:${i===0?0:8}px"><span class="selLabel">${i<2?'Coppia A':'Coppia B'}</span>
-        <select id="qm-${k}" class="selBox">${'<option value="">— seleziona —</option>'+players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${esc(p.name)} · ${p.rating.toFixed(1)}</option>`).join('')}</select></div>`).join('')}
-      <div class="auth-field" style="margin-top:10px"><label class="auth-label">Circolo (dove si è giocata)</label>
-        <select id="qm-club" class="auth-input">${[...new Set(players.map(p=>p.club))].filter(Boolean).sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
-      <div class="auth-field"><label class="auth-label">Data</label>
-        <input id="qm-date" type="date" class="auth-input" value="${todayLocal()}" max="${todayLocal()}"></div>
-      <label class="auth-label">Punteggio (games coppia A – coppia B)</label>
-      <div class="score-box">
-        ${[1,2,3].map(n=>`<div class="score-row">
-          <span class="score-setlbl">Set ${n}</span>
-          <input id="qm-s${n}a" type="number" inputmode="numeric" class="score-in" min="0" max="7">
-          <span class="score-sep">–</span>
-          <input id="qm-s${n}b" type="number" inputmode="numeric" class="score-in" min="0" max="7">
-        </div>`).join('')}
-      </div>
-      <button class="btnSolid" style="width:100%;margin-top:12px" onclick="adminQuickMatch()">Inserisci partita validata</button>
-      <div id="qm-msg" style="font-size:12px;margin-top:8px;text-align:center"></div>
-    </div>`:''}
+    ${quickToolsHTML(null)}`:''}
     ${changePasswordSection()}
     <button class="cta" onclick="doLogout()" style="margin-top:12px;background:transparent;border:1px solid var(--danger);color:var(--danger);box-shadow:none">
       Esci dall'account
@@ -2202,7 +2165,53 @@ async function adminLoadAll(){
 }
 async function adminLoadPending(){ adminLoadAll(); }
 
-/* ===== Strumenti rapidi admin ===== */
+/* ===== Strumenti rapidi (admin e responsabile di circolo) ===== */
+// lockedClub: null per l'admin (sceglie il circolo), oppure il circolo del
+// responsabile — in quel caso il selettore ha una sola opzione (bloccato) e
+// comunque la Edge Function impone il circolo del chiamante lato server.
+function quickToolsHTML(lockedClub){
+  const clubs=lockedClub?[lockedClub]:[...new Set(players.map(p=>p.club))].filter(Boolean).sort();
+  const clubOpts=clubs.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  return `${stag('Strumenti rapidi')}
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--neon);font-family:var(--mono);letter-spacing:.06em;margin-bottom:12px">➕ NUOVO GIOCATORE</div>
+      <div style="font-size:11.5px;color:var(--ivoryFaint);margin-bottom:12px;line-height:1.5">Crea un giocatore già attivo (PR 35), con email confermata e password impostata: può accedere subito.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="auth-label">Nome</label><input id="qp-nome" type="text" class="auth-input" placeholder="Mario"></div>
+        <div><label class="auth-label">Cognome</label><input id="qp-cognome" type="text" class="auth-input" placeholder="Rossi"></div>
+      </div>
+      <div class="auth-field" style="margin-top:10px"><label class="auth-label">Email</label>
+        <input id="qp-email" type="email" class="auth-input" placeholder="mario@email.it"></div>
+      <div class="auth-field"><label class="auth-label">Password provvisoria</label>
+        <input id="qp-pass" type="text" class="auth-input" placeholder="cambiami8"></div>
+      <div class="auth-field"><label class="auth-label">Circolo</label>
+        <select id="qp-club" class="auth-input" ${lockedClub?'disabled':''}>${clubOpts}</select></div>
+      <button class="btnSolid" style="width:100%;margin-top:6px" onclick="adminCreatePlayer()">Crea giocatore</button>
+      <div id="qp-msg" style="font-size:12px;margin-top:8px;text-align:center"></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);font-family:var(--mono);letter-spacing:.06em;margin-bottom:12px">⚡ PARTITA LAMPO</div>
+      <div style="font-size:11.5px;color:var(--ivoryFaint);margin-bottom:12px;line-height:1.5">Inserisce una partita <b>già validata</b>: classifica e striscia si aggiornano subito (stesse regole di "Registra": abbreviate, pareggi…).</div>
+      ${['a1','a2','b1','b2'].map((k,i)=>`
+      <div class="selWrap" style="margin-top:${i===0?0:8}px"><span class="selLabel">${i<2?'Coppia A':'Coppia B'}</span>
+        <select id="qm-${k}" class="selBox">${'<option value="">— seleziona —</option>'+players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${esc(p.name)} · ${p.rating.toFixed(1)}</option>`).join('')}</select></div>`).join('')}
+      <div class="auth-field" style="margin-top:10px"><label class="auth-label">Circolo (dove si è giocata)</label>
+        <select id="qm-club" class="auth-input" ${lockedClub?'disabled':''}>${clubOpts}</select></div>
+      <div class="auth-field"><label class="auth-label">Data</label>
+        <input id="qm-date" type="date" class="auth-input" value="${todayLocal()}" max="${todayLocal()}"></div>
+      <label class="auth-label">Punteggio (games coppia A – coppia B)</label>
+      <div class="score-box">
+        ${[1,2,3].map(n=>`<div class="score-row">
+          <span class="score-setlbl">Set ${n}</span>
+          <input id="qm-s${n}a" type="number" inputmode="numeric" class="score-in" min="0" max="7">
+          <span class="score-sep">–</span>
+          <input id="qm-s${n}b" type="number" inputmode="numeric" class="score-in" min="0" max="7">
+        </div>`).join('')}
+      </div>
+      <button class="btnSolid" style="width:100%;margin-top:12px" onclick="adminQuickMatch()">Inserisci partita validata</button>
+      <div id="qm-msg" style="font-size:12px;margin-top:8px;text-align:center"></div>
+    </div>`;
+}
 // Crea un giocatore completo (auth confermata + password + profilo attivo PR 35)
 // tramite la Edge Function admin-create-user, che gira con la service role key.
 async function adminCreatePlayer(){
