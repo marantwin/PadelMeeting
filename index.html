@@ -2184,6 +2184,8 @@ function quickToolsHTML(lockedClub){
         <input id="qp-email" type="email" class="auth-input" placeholder="mario@email.it"></div>
       <div class="auth-field"><label class="auth-label">Password provvisoria</label>
         <input id="qp-pass" type="text" class="auth-input" placeholder="cambiami8"></div>
+      <div class="auth-field"><label class="auth-label">Telefono</label>
+        <input id="qp-telefono" type="tel" class="auth-input" placeholder="+39 333 1234567" autocomplete="off"></div>
       <div class="auth-field"><label class="auth-label">Circolo</label>
         <select id="qp-club" class="auth-input" ${lockedClub?'disabled':''}>${clubOpts}</select></div>
       <button class="btnSolid" style="width:100%;margin-top:6px" onclick="adminCreatePlayer()">Crea giocatore</button>
@@ -2219,12 +2221,13 @@ async function adminCreatePlayer(){
   const say=(t,ok)=>{ if(msg){ msg.style.color=ok?'var(--neon)':'var(--danger)'; msg.textContent=t; } };
   const nome=$('#qp-nome').value.trim(), cognome=$('#qp-cognome').value.trim();
   const email=$('#qp-email').value.trim(), pass=$('#qp-pass').value.trim();
+  const telefono=$('#qp-telefono').value.trim();
   const club=$('#qp-club').value;
-  if(!nome||!cognome||!email||!pass||!club){ say('Compila tutti i campi.'); return; }
+  if(!nome||!cognome||!email||!pass||!telefono||!club){ say('Compila tutti i campi (telefono incluso).'); return; }
   if(pass.length<6){ say('Password minimo 6 caratteri.'); return; }
   say('Creazione in corso…',true);
   const fullName=capName(nome+' '+cognome);
-  const {data,error}=await sb.functions.invoke('admin-create-user',{body:{full_name:fullName,email,password:pass,club}});
+  const {data,error}=await sb.functions.invoke('admin-create-user',{body:{full_name:fullName,email,password:pass,club,telefono}});
   if(error){
     let detail=error.message;
     try{ const body=await error.context?.json?.(); if(body?.error) detail=body.error; }catch(_){/* ignore */}
@@ -2232,7 +2235,7 @@ async function adminCreatePlayer(){
   }
   if(data?.error){ say('Errore: '+data.error); return; }
   say(`✓ ${fullName} creato e attivo — accede con ${email}`,true);
-  ['qp-nome','qp-cognome','qp-email','qp-pass'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+  ['qp-nome','qp-cognome','qp-email','qp-pass','qp-telefono'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
   await loadPlayers();
 }
 // Inserisce una partita GIÀ validata: stesse regole di esito di "Registra"
