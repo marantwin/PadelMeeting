@@ -2040,6 +2040,9 @@ async function doRegister(){
   const meta={full_name:capName(nome+' '+cognome), role:auth.role, club, city, provincia};
   if(indirizzo) meta.indirizzo=indirizzo;
   if(telefono) meta.telefono=telefono;
+  // Registro i consensi dati col form (finiscono nei metadati auth: prova di
+  // chi ha accettato cosa e quando, con la versione dei documenti).
+  meta.consents={mode:'self', maggiorenne:true, termini:true, privacy:true, version:'v1', at:new Date().toISOString()};
   const {error}=await sb.auth.signUp({email,password:pass,options:{data:meta,emailRedirectTo:window.location.origin}});
   auth.loading=false;
   if(error){ auth.err=error.message; renderAuth(); return; }
@@ -2188,6 +2191,10 @@ function quickToolsHTML(lockedClub){
         <input id="qp-telefono" type="tel" class="auth-input" placeholder="+39 333 1234567" autocomplete="off"></div>
       <div class="auth-field"><label class="auth-label">Circolo</label>
         <select id="qp-club" class="auth-input" ${lockedClub?'disabled':''}>${clubOpts}</select></div>
+      <label style="display:flex;align-items:flex-start;gap:10px;margin:4px 0 10px;cursor:pointer">
+        <input id="qp-consensi" type="checkbox" style="margin-top:2px;width:16px;height:16px;accent-color:var(--neon);flex-shrink:0">
+        <span style="font-size:12px;color:var(--ivoryDim);line-height:1.5">Confermo che il giocatore è maggiorenne e che gli ho fatto leggere e accettare i <a href="/termini.pdf" target="_blank" style="color:var(--neon);text-decoration:underline">Termini d'uso</a> e la <a href="/privacy.pdf" target="_blank" style="color:var(--neon);text-decoration:underline">Privacy Policy</a></span>
+      </label>
       <button class="btnSolid" style="width:100%;margin-top:6px" onclick="adminCreatePlayer()">Crea giocatore</button>
       <div id="qp-msg" style="font-size:12px;margin-top:8px;text-align:center"></div>
     </div>
@@ -2225,9 +2232,12 @@ async function adminCreatePlayer(){
   const club=$('#qp-club').value;
   if(!nome||!cognome||!email||!pass||!telefono||!club){ say('Compila tutti i campi (telefono incluso).'); return; }
   if(pass.length<6){ say('Password minimo 6 caratteri.'); return; }
+  if(!$('#qp-consensi')?.checked){ say('Devi confermare che il giocatore ha accettato Termini e Privacy.'); return; }
   say('Creazione in corso…',true);
   const fullName=capName(nome+' '+cognome);
-  const {data,error}=await sb.functions.invoke('admin-create-user',{body:{full_name:fullName,email,password:pass,club,telefono}});
+  // consents_attested: la Edge Function registra il consenso "assistito" con
+  // data server, chi lo attesta (dal JWT) e versione dei documenti.
+  const {data,error}=await sb.functions.invoke('admin-create-user',{body:{full_name:fullName,email,password:pass,club,telefono,consents_attested:true}});
   if(error){
     let detail=error.message;
     try{ const body=await error.context?.json?.(); if(body?.error) detail=body.error; }catch(_){/* ignore */}
@@ -2236,6 +2246,7 @@ async function adminCreatePlayer(){
   if(data?.error){ say('Errore: '+data.error); return; }
   say(`✓ ${fullName} creato e attivo — accede con ${email}`,true);
   ['qp-nome','qp-cognome','qp-email','qp-pass','qp-telefono'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+  const cb=$('#qp-consensi'); if(cb) cb.checked=false;
   await loadPlayers();
 }
 // Inserisce una partita GIÀ validata: stesse regole di esito di "Registra"
