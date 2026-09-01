@@ -12,7 +12,10 @@
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY
 //
 // Body atteso (JSON):
-//   { full_name, email, password, club, city?, provincia?, telefono? }
+//   { full_name, email, password, club, city?, provincia?, telefono?,
+//     consents_attested: true }  <- obbligatorio: chi crea attesta che il
+//     giocatore ha letto/accettato Termini e Privacy (consenso "assistito",
+//     registrato nei metadati auth con data server e id dell'attestante)
 // ============================================================
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -56,8 +59,8 @@ Deno.serve(async (req) => {
 
     // 2) Input — per i manager il circolo e' SEMPRE il loro (imposto qui,
     //    lato server: il valore inviato dal client viene ignorato)
-    const { full_name, email, password, club, city, provincia, telefono } =
-      await req.json();
+    const { full_name, email, password, club, city, provincia, telefono,
+      consents_attested } = await req.json();
     const effectiveClub = isAdmin ? club : prof.club;
     if (!full_name || !email || !password || !effectiveClub) {
       return json({ error: "Campi obbligatori: full_name, email, password, club" }, 400);
@@ -65,6 +68,22 @@ Deno.serve(async (req) => {
     if (String(password).length < 6) {
       return json({ error: "Password minimo 6 caratteri" }, 400);
     }
+    if (consents_attested !== true) {
+      return json({ error: "Manca l'attestazione dei consensi (Termini/Privacy): aggiorna l'app e spunta la conferma" }, 400);
+    }
+
+    // Consenso "assistito": chi crea l'account attesta di aver fatto leggere
+    // e accettare i documenti al giocatore. Data del server + attestante dal JWT.
+    const consents = {
+      mode: "assisted",
+      maggiorenne: true,
+      termini: true,
+      privacy: true,
+      version: "v1",
+      at: new Date().toISOString(),
+      attested_by: caller.user.id,
+      attested_role: prof.role,
+    };
 
     // 3) Crea l'utente auth: email confermata + password impostata
     const meta = {
@@ -74,6 +93,7 @@ Deno.serve(async (req) => {
       city: city || "",
       provincia: provincia || "",
       telefono: telefono || "",
+      consents,
     };
     const { data: created, error: createErr } =
       await admin.auth.admin.createUser({
@@ -110,7 +130,7 @@ Deno.serve(async (req) => {
       if (insErr) return json({ error: "Utente creato ma profilo no: " + insErr.message }, 500);
     }
 
-    return json({ ok: true, id: uid, email });
+    return json({ ok: true, id: uid, email, consents });
   } catch (e) {
     return json({ error: String(e) }, 500);
   }
